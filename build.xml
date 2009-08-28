@@ -1,0 +1,279 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="SemWIQ" default="jar" basedir=".">
+    <description>
+    	SemWIQ Mediator build file
+    
+    	Main targets: jar (default), war, test, compile-rules, clean, swing
+    </description>
+
+<!-- properties for source and target directories -->
+	
+	<property name="java.sourcedir" value="src/main/java" />
+	<property name="java.sourcedir.test" value="src/test/java" />
+	<property name="rules.sourcedir" value="src/main/rules" />
+	<property name="java.builddir" value="build" />
+	<property name="lib.dir" value="lib" />
+	<property name="target.dir" value="." />
+	
+<!-- properties for the vocabulary generation (with Jena schemagen) -->
+	
+	<property name="vocab.sourcedir" value="vocabulary" />
+	<property name="vocab.targetdir" value="${java.sourcedir}/at/jku/semwiq/mediator/vocabulary" />
+	<property name="vocab.template"  value="${vocab.sourcedir}/schemagen.rdf" />
+
+	<property name="semwiq.vendor" value="Institute of Applied Knowledge Processing, Johannes Kepler University Linz" />
+	<loadfile property="semwiq.version" srcFile="${java.sourcedir}/VERSION"/>
+
+<!-- ############### build targets ############### -->
+
+	<target name="compose-classpath">
+	    <path id="cp-drools">
+	    	<fileset dir="${lib.dir}">
+	    	    <include name="**/*.jar"/>
+	    		<exclude name="core*.jar"/>
+	    		<include name="drools-compiler/core*.jar"/><!-- use Eclipse JDT core from drools-compiler subdir -->
+	    	</fileset>
+	    	<pathelement path="${java.builddir}"/>	<!-- add build target to classpath (required to build optimizer rules) -->
+		</path>
+		<pathconvert property="classpath-drools" refid="cp-drools" pathsep=" " dirsep="/" />
+		
+	    <path id="cp">
+	    	<fileset dir="${lib.dir}">
+	    	    <include name="**/*.jar"/>
+	    	</fileset>
+	    	<pathelement path="${java.builddir}"/>	<!-- add build target to classpath (required to build optimizer rules) -->
+		</path>
+		<pathconvert property="classpath" refid="cp" pathsep=" " dirsep="/" /> <!-- required for manifest Class-Path -->
+
+		<!--	<echo message="Using classpath: ${classpath}" />-->
+	</target>
+	
+<!-- Section: vocabulary generation -->
+
+  <target name="vocab" depends="vocab.void,vocab.dcterms,vocab.sdv,vocab.skos-core,vocab.config" />
+		
+  <target name="vocab.void" depends="vocab-check.void,compose-classpath" unless="vocab-nobuild.void">
+    <java classname="jena.schemagen" classpathref="cp" fork="yes" failonerror="true">
+      <arg value="-i" />
+      <arg value="file:${vocab.sourcedir}/rdfs.org/ns/void" />
+      <arg value="-o" />
+      <arg value="${vocab.targetdir}" />
+      <arg value="-c" />
+      <arg value="${vocab.template}" />
+      <arg value="-a" />
+      <arg value="http://rdfs.org/ns/void#" />
+      <arg value="-n" />
+	  <arg value="voiD" />
+    </java>
+  </target>
+	
+  <target name="vocab-check.void">
+    <uptodate
+       property="vocab-nobuild.void"
+       srcFile="${vocab.sourcedir}/rdfs.org/ns/void"
+       targetFile="${vocab.targetdir}/voiD.java" />
+  </target>
+
+  <target name="vocab.dcterms" depends="vocab-check.dcterms,compose-classpath" unless="vocab-nobuild.dcterms">
+    <java classname="jena.schemagen" classpathref="cp" fork="yes" failonerror="true">
+      <arg value="-i" />
+      <arg value="file:${vocab.sourcedir}/dublincore.org/2008/01/14/dcterms.rdf" />
+      <arg value="-o" />
+      <arg value="${vocab.targetdir}" />
+      <arg value="-c" />
+      <arg value="${vocab.template}" />
+      <arg value="-a" />
+      <arg value="http://purl.org/dc/terms/" />
+      <arg value="-n" />
+	  <arg value="DCTerms" />
+    </java>
+  </target>
+	
+  <target name="vocab-check.dcterms">
+    <uptodate
+       property="vocab-nobuild.dcterms"
+       srcFile="${vocab.sourcedir}/dublincore.org/2008/01/14/dcterms.rdf"
+       targetFile="${vocab.targetdir}/DCTerms.java" />
+  </target>
+	
+<!-- SDV VOCAB -->
+  <target name="vocab-check.sdv">
+    <uptodate
+       property="vocab-nobuild.sdv"
+       srcFile="${vocab.sourcedir}/purl.org/semwiq/mediator/sdv.n3"
+       targetFile="${vocab.targetdir}/SDV.java" />
+  </target>
+	
+  <target name="vocab.sdv" depends="vocab-check.sdv,compose-classpath" unless="vocab-nobuild.sdv">
+    <java classname="jena.schemagen" classpathref="cp" fork="yes" failonerror="true">
+      <arg value="-i" />
+      <arg value="file:${vocab.sourcedir}/purl.org/semwiq/mediator/sdv.n3" />
+      <arg value="-o" />
+      <arg value="${vocab.targetdir}" />
+      <arg value="-n" />
+      <arg value="SDV" />
+      <arg value="--inference" />
+      <arg value="--owl" />
+      <arg value="-c" />
+      <arg value="${vocab.template}" />
+    </java>
+  </target>
+	
+<!-- SKOS CORE VOCAB -->
+  <target name="vocab-check.skos-core">
+    <uptodate
+       property="vocab-nobuild.skos-core"
+       srcFile="${vocab.sourcedir}/www.w3.org/2004/02/skos/core"
+       targetFile="${vocab.targetdir}/SKOSCore.java" />
+  </target>
+	
+  <target name="vocab.skos-core" depends="vocab-check.skos-core,compose-classpath" unless="vocab-nobuild.skos-core">
+    <java classname="jena.schemagen" classpathref="cp" fork="yes" failonerror="true">
+      <arg value="-i" />
+      <arg value="file:${vocab.sourcedir}/www.w3.org/2004/02/skos/core" />
+      <arg value="-o" />
+      <arg value="${vocab.targetdir}" />
+      <arg value="--owl" />
+      <arg value="-n" />
+      <arg value="SKOSCore" />
+      <arg value="-c" />
+      <arg value="${vocab.template}" />
+    </java>
+  </target>
+
+<!-- CONFIGURATION VOCAB -->
+  <target name="vocab-check.config">
+    <uptodate
+       property="vocab-nobuild.config"
+       srcFile="${vocab.sourcedir}/purl.org/semwiq/mediator/config.n3"
+       targetFile="${vocab.targetdir}/Config.java" />
+  </target>
+	
+  <target name="vocab.config" depends="vocab-check.config,compose-classpath" unless="vocab-nobuild.config">
+    <java classname="jena.schemagen" classpathref="cp" fork="yes" failonerror="true">
+      <arg value="--rdfs" />
+      <arg value="-i" />
+      <arg value="file:${vocab.sourcedir}/purl.org/semwiq/mediator/config.n3" />
+      <arg value="-o" />
+      <arg value="${vocab.targetdir}" />
+      <arg value="-n" />
+      <arg value="Config" />
+      <arg value="--owl" />
+      <arg value="--inference" />
+      <arg value="-c" />
+      <arg value="${vocab.template}" />
+    </java>
+  </target>
+
+<!-- Conversion to XML for publishing -->
+
+  <target name="vocab.toXML" depends="vocab">
+	<java classname="jena.rdfcopy" classpathref="cp" fork="yes"
+		output="${vocab.sourcedir}/purl.org/semwiq/mediator/config" failonerror="true">
+		<arg value="${vocab.sourcedir}/purl.org/semwiq/mediator/config.n3"/>
+		<arg value="N3"/>
+		<arg value="RDF/XML-ABBREV"/>
+	</java>
+	<java classname="jena.rdfcopy" classpathref="cp" fork="yes"
+		output="${vocab.sourcedir}/purl.org/semwiq/mediator/sdv" failonerror="true">
+		<arg value="${vocab.sourcedir}/purl.org/semwiq/mediator/sdv.n3"/>
+		<arg value="N3"/>
+		<arg value="RDF/XML-ABBREV"/>
+	</java>
+	<java classname="jena.rdfcopy" classpathref="cp" fork="yes"
+		output="${vocab.sourcedir}/purl.org/semwiq/mediator/sparql-explain" failonerror="true">
+		<arg value="${vocab.sourcedir}/purl.org/semwiq/mediator/sparql-explain.n3"/>
+		<arg value="N3"/>
+		<arg value="RDF/XML-ABBREV"/>
+	</java>
+  </target>
+
+<!-- compilation of rules -->
+<!--
+	<target name="compile-rules" depends="compose-classpath,build">
+		<java classname="semwiq.deployutils" classpathref="cp-drools" fork="yes" failonerror="yes">
+			<arg value="compile-rules" />
+			<arg value="${java.builddir}" />
+		</java>
+	</target>
+-->
+	
+<!-- Section: building -->
+
+	<target name="build" depends="vocab,compose-classpath">
+		<mkdir dir="${java.builddir}"/>
+		<javac srcdir="${java.sourcedir}"
+			destdir="${java.builddir}"
+			classpathref="cp"
+			verbose="on"
+			deprecation="on"
+			debug="on" />
+		<copy todir="${java.builddir}">
+			<fileset dir="${java.sourcedir}"
+				excludes="**/*.java" /><!-- other files: logback.xml, VERSION, etc. -->
+		</copy>
+
+		<!-- tests -->
+		<!--<javac srcdir="${java.sourcedir.test}"
+			destdir="${java.builddir}"
+			classpathref="cp"
+			verbose="on"
+			deprecation="on"
+			debug="on" />-->
+	</target>
+	
+	<target name="jar" depends="build" description="Make the jar without test suite and without servlets">
+		<jar destfile="${target.dir}/semwiq-mediator.jar" index="true">
+			<fileset dir="${java.builddir}" />
+
+			<manifest>
+				<attribute name="Built-By" value="${user.name}"/>
+			    <attribute name="Specification-Title" value="${ant.project.name}"/>
+			    <attribute name="Specification-Version" value="${semwiq.version}"/>
+			    <attribute name="Specification-Vendor" value="${semwiq.vendor}"/>
+			    <attribute name="Implementation-Title" value="${ant.project.name}"/>
+			    <attribute name="Implementation-Version" value="${semwiq.version}"/> 
+			    <attribute name="Implementation-Vendor" value="${semwiq.vendor}"/>
+		    	<attribute name="Class-Path" value="${classpath}"/>
+				<attribute name="Main-Class" value="semwiq.launcher"/>
+			</manifest>
+		</jar>
+		<echo>SemWIQ Version ${semwiq.version}</echo>
+	</target>
+<!--
+	<target name="war" depends="build,compile-rules" description="Make a Web Archive (.war) without test suite and without gui client">
+		<war destfile="${target.dir}/semwiq-mediator.war" webxml="webapps/semwiq/WEB-INF/web.xml" compress="true" index="true">
+			<classes dir="${java.builddir}"/>
+
+			<lib dir="${lib.dir}">
+				<include name="**/*.jar" />
+				<exclude name="drools-compiler/*.jar" />
+			</lib>
+			<zipfileset dir="webapps/semwiq" />
+			<zipfileset dir="etc" prefix="WEB-INF/etc" />
+			<zipfileset dir="data" prefix="WEB-INF/data">
+				<exclude name="**/*.log"/>
+			</zipfileset>
+		</war>
+		<echo>SemWIQ Version ${semwiq.version}</echo>
+	</target>
+-->
+<!--
+	<target name="test" description="Run the test suite" depends="build,compile-rules">
+ 		<junit printsummary="no" fork="true" haltonerror="true" haltonfailure="true">
+			<classpath refid="cp" />
+			<formatter type="plain" usefile="no" />
+			<test name="at.jku.semwiq.test.SemWIQTestSuite" />
+		</junit>
+	</target>-->
+	
+	<target name="clean">
+		<delete dir="${java.builddir}" />
+		<mkdir dir="${java.builddir}" />
+	</target>
+
+	<target name="swing" depends="compose-classpath">
+		<java classname="semwiq.swing" failonerror="true" fork="true" classpathref="cp" classpath="${target.dir}/semwiq.jar"/>
+	</target>
+</project>

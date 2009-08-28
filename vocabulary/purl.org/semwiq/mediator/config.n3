@@ -1,0 +1,151 @@
+# SemWIQ configuration vocabulary
+
+@prefix rdfs:   <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xsd:    <http://www.w3.org/2001/XMLSchema#> .
+
+@prefix ja:     <http://jena.hpl.hp.com/2005/11/Assembler#> .
+@prefix stats:	<http://purl.org/rdfstats/config#> .
+@prefix :		<http://purl.org/semwiq/mediator/config#> .
+
+<>	rdfs:label				"SemWIQ configuration vocabulary" ;
+	rdfs:comment			"specifies the global configuration for a SemWIQ mediator instance" ;
+	.
+
+### MEDIATOR CONFIGURATION ######################################
+
+:MediatorConfig				a rdfs:Class ;
+	rdfs:comment			"Main configuration of the SemWIQ Mediator" .
+
+:adminPassword				a rdf:Property ;
+	rdfs:comment			"administrator password for the control panel" ;
+	rdfs:domain				:MediatorConfig ;
+	rdfs:range				xsd:string .
+
+:store						a rdf:Property ;
+	rdfs:comment			"assembled Jena model used by DataSourceRegistry, UserRegistry, and RDFStats statistics" ;
+	rdfs:domain				:MediatorConfig ;
+	rdfs:range				ja:Model .
+
+# sub configurations
+
+:dataSourceRegistryConfig	a rdf:Property ;
+	rdfs:comment			"Configuration of the DataSourceRegistry including RDFStats and the data source monitor" ;
+	rdfs:domain				:MediatorConfig ;
+	rdfs:range				:DataSourceRegistryConfig .
+
+:userRegistryConfig			a rdf:Property ;
+	rdfs:comment			"Configuration of the UserRegistry" ;
+	rdfs:domain				:MediatorConfig ;
+	rdfs:range				:UserRegistryConfig .
+	
+:federatorConfig			a rdf:Property ;
+	rdfs:comment			"Configuration of query federator" ;
+	rdfs:domain				:MediatorConfig ;
+	rdfs:range				:FederatorConfig .
+
+:guiConfig					a rdf:Property ;
+	rdfs:comment			"Configuration of the graphical user interface (used for both, the web application and the Java swing client" ;
+	rdfs:domain				:MediatorConfig ;
+	rdfs:range				:GUIConfig .
+
+
+### DATA SOURCE REGISTRY ####################################################
+
+:DataSourceRegistryConfig	a rdfs:Class ;
+	rdfs:comment			"Configuration of the DataSourceRegistry" .
+
+:globalStatsConfig			a rdf:Property ;
+	rdfs:comment			"Global RDFStats configuration (ignoring some properties such as stats:endpoint, stats:outputFile, and stats:outputFormat). Specific configurations can be set for each data source with a sdv:CentralizedMonitoringProfile." ;
+	rdfs:domain				:DataSourceRegistryConfig ;
+	rdfs:range				stats:RDFStatsConfiguration .
+
+
+### USER REGISTRY #####################################################
+
+:UserRegistryConfig			a rdfs:Class ;
+	rdfs:comment			"Configuration of the UserRegistry" .
+
+
+### FEDERATOR ##########################################################
+
+:FederatorConfig 			a rdfs:Class ;
+	rdfs:comment			"Abstract configuration class of the Query Processor" .
+
+:TripleBasedFederatorConfig			rdfs:subClassOf :FederatorConfig .
+:InstanceBasedFederatorConfig		rdfs:subClassOf :FederatorConfig .
+
+:inferTypes				a rdf:Property ;
+	rdfs:comment		"enables type inference, default is true" ;
+	rdfs:domain			:InstanceBasedFederatorConfig ;
+	rdfs:range			xsd:boolean .
+
+:subsumption			a rdf:Property ;
+	rdfs:comment		"enable subsumption reasoning if not supported natively by a data source, default is true" ;
+	rdfs:domain			:InstanceBasedFederatorConfig ;
+	rdfs:range			xsd:boolean .
+
+
+### GUI CONFIG ##################################################
+
+:GUIConfig					a rdfs:Class ;
+	rdfs:comment			"Configuration of the graphical user interface (used for both, the web application and the Java swing client" .
+
+:prefixMapping				a rdf:Property ;
+	rdfs:comment			"Adds a prefix mapping to the query widget (HTML form in the Web application or Java SWING text widget." ;
+	rdfs:domain				:GUIConfig ;
+	rdfs:range				:PrefixMapping .
+
+:sampleQuery				a rdf:Property ;
+	rdfs:comment			"A sample query to show in the GUI after startup." ;
+	rdfs:domain				:GUIConfig ;
+	rdfs:range				:SampleQuery .
+	
+#--- Prefix mapping ---
+
+:PrefixMapping				a rdfs:Class ;
+	rdfs:comment			"Represents a prefix mapping" .
+
+:prefix						a rdf:Property ;
+	rdfs:comment			"The prefix string" ;
+	rdfs:domain				:PrefixMapping ;
+	rdfs:range				xsd:string .
+
+:namespace					a rdf:Property ;
+	rdfs:comment			"The namespace" ;
+	rdfs:domain				:PrefixMapping ;
+	rdfs:range				rdfs:Resource .
+
+#--- Sample query ---
+
+:SampleQuery				a rdfs:Class ;
+	rdfs:comment			"A sample query to show in the GUI after startup." .
+
+:queryName					a rdf:Property ;
+	rdfs:comment			"A name for the query (may be used as tab title in the GUI)" ;
+	rdfs:domain				:SampleQuery ;
+	rdfs:range				xsd:string .
+	
+:queryString				a rdf:Property ;
+	rdfs:comment			"The lexical SPARQL query string." ;
+	rdfs:domain				:SampleQuery ;
+	rdfs:range				xsd:string .
+	
+
+### ASSEMBLER CONFIGURATION ######################################
+
+:SemWIQDataset
+	a rdfs:Class ;
+	rdfs:subClassOf ja:Object ;
+	rdfs:label "Virtual SemWIQ dataset" ;
+	rdfs:comment "Jena Assemler specification for a virtual mediator dataset" ;
+	ja:assembler "at.jku.semwiq.mediator.dataset.SemWIQDatasetAssembler" ;
+	.
+
+:configFile
+	a rdf:Property ;
+	rdfs:label "SemWIQ config file" ;
+	rdfs:comment "URL of a SemWIQ configuration file (e.g. file:... or http://...)." ;
+	rdfs:domain :VirtualDataset ;
+	rdfs:range rdfs:Resource ;
+	.

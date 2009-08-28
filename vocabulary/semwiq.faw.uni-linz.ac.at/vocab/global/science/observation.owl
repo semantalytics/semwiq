@@ -1,0 +1,250 @@
+<?xml version="1.0"?>
+<rdf:RDF
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+    xmlns:protege="http://protege.stanford.edu/plugins/owl/protege#"
+    xmlns:owl="http://www.w3.org/2002/07/owl#"
+    xmlns:sci="http://semwiq.faw.uni-linz.ac.at/vocab/global/science/science.owl#"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+    xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+    xmlns="http://semwiq.faw.uni-linz.ac.at/vocab/global/science/observation.owl#"
+  xml:base="http://semwiq.faw.uni-linz.ac.at/vocab/global/science/observation.owl">
+  <owl:Ontology rdf:about="">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Used to describe scientific observations</rdfs:comment>
+    <owl:versionInfo rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >v1.0 2008-04-04</owl:versionInfo>
+    <owl:imports rdf:resource="http://protege.stanford.edu/plugins/owl/protege"/>
+    <owl:imports rdf:resource="http://semwiq.faw.uni-linz.ac.at/vocab/global/science/science.owl"/>
+    <owl:imports rdf:resource="http://www.w3.org/2004/02/skos/core"/>
+  </owl:Ontology>
+  <owl:Class rdf:ID="AbstractDrawing">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >observation recorded by drawing or sketching the observed phenomenon</rdfs:comment>
+    <subclassesDisjoint rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean"
+    >true</subclassesDisjoint>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >abstractly drawn observation</rdfs:label>
+    <rdfs:subClassOf>
+      <owl:Class rdf:ID="ObservationByType"/>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:ID="IntervalObservation">
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >interval observation</rdfs:label>
+    <subclassesDisjoint rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean"
+    >true</subclassesDisjoint>
+    <rdfs:subClassOf>
+      <owl:Class rdf:ID="ObservationByTime"/>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:onProperty>
+          <owl:FunctionalProperty rdf:ID="toDateTime"/>
+        </owl:onProperty>
+        <owl:cardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+        >1</owl:cardinality>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:cardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+        >1</owl:cardinality>
+        <owl:onProperty>
+          <owl:FunctionalProperty rdf:ID="fromDateTime"/>
+        </owl:onProperty>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >observation obtained during a specific time interval (from, to dateTimes)</rdfs:comment>
+  </owl:Class>
+  <owl:Class rdf:about="#ObservationByType">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >this is an abstract class to group observations by type (e.g. exposure, audio recording, abstract description, drawing, etc.)</rdfs:comment>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >observation by type (abstract)</rdfs:label>
+    <rdfs:subClassOf>
+      <owl:Class rdf:ID="ScientificObservation"/>
+    </rdfs:subClassOf>
+    <subclassesDisjoint rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean"
+    >true</subclassesDisjoint>
+  </owl:Class>
+  <owl:Class rdf:ID="ObservationInstrument">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >a scientific instrument which is used to obtain scientific observations from phenomenons</rdfs:comment>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >scientific observation instrument</rdfs:label>
+    <rdfs:subClassOf rdf:resource="http://semwiq.faw.uni-linz.ac.at/vocab/global/science/science.owl#ScientificInstrument"/>
+  </owl:Class>
+  <owl:Class rdf:ID="InstantObservation">
+    <subclassesDisjoint rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean"
+    >true</subclassesDisjoint>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >instant observation</rdfs:label>
+    <rdfs:subClassOf>
+      <owl:Class rdf:about="#ObservationByTime"/>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:cardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+        >1</owl:cardinality>
+        <owl:onProperty>
+          <owl:FunctionalProperty rdf:ID="dateTime"/>
+        </owl:onProperty>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >observation obtained at a specific time instant (dateTime)</rdfs:comment>
+  </owl:Class>
+  <owl:Class rdf:ID="Observatory">
+    <rdfs:subClassOf rdf:resource="http://semwiq.faw.uni-linz.ac.at/vocab/global/science/science.owl#ScientificInstitute"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >scientific observatory</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >a scientific institute which has a special focus on collecting and providing scientific observations (e.g. astronomical observatories)</rdfs:comment>
+  </owl:Class>
+  <owl:Class rdf:ID="Exposure">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >observation recorded by creating an exposure (film, digital film, etc.) of the observed phenomenon</rdfs:comment>
+    <subclassesDisjoint rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean"
+    >true</subclassesDisjoint>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >exposure observation</rdfs:label>
+    <rdfs:subClassOf rdf:resource="#ObservationByType"/>
+  </owl:Class>
+  <owl:Class rdf:about="#ObservationByTime">
+    <rdfs:subClassOf>
+      <owl:Class rdf:about="#ScientificObservation"/>
+    </rdfs:subClassOf>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >observations by time (abstract)</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >this is an abstract class used to group observations by different time constraints (e.g. interval or instant)</rdfs:comment>
+    <subclassesDisjoint rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean"
+    >true</subclassesDisjoint>
+  </owl:Class>
+  <owl:Class rdf:about="#ScientificObservation">
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >scientific observation</rdfs:label>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:onProperty>
+          <owl:FunctionalProperty rdf:ID="site"/>
+        </owl:onProperty>
+        <owl:allValuesFrom rdf:resource="#Observatory"/>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:allValuesFrom rdf:resource="#ObservationInstrument"/>
+        <owl:onProperty>
+          <owl:FunctionalProperty rdf:ID="instrument"/>
+        </owl:onProperty>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:allValuesFrom rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
+        <owl:onProperty>
+          <owl:FunctionalProperty rdf:ID="phenomenon"/>
+        </owl:onProperty>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >a scientific observation of some phenomenon usually obtained using some scientific instrument at recorded at some spatial location by a scientist (dc:creator)</rdfs:comment>
+  </owl:Class>
+  <owl:Class rdf:ID="AudioRecording">
+    <subclassesDisjoint rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean"
+    >true</subclassesDisjoint>
+    <rdfs:subClassOf rdf:resource="#ObservationByType"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >audio-recorded observation</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >observation recorded as audio stream of the phenomenon</rdfs:comment>
+  </owl:Class>
+  <owl:Class rdf:ID="AbstractData">
+    <rdfs:subClassOf rdf:resource="#ObservationByType"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >abstract data observation</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >observation recorded in form of abstract numbers, matrices, etc.</rdfs:comment>
+  </owl:Class>
+  <owl:Class rdf:ID="ObservationByPhenomenon">
+    <rdfs:subClassOf rdf:resource="#ScientificObservation"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >observations by phenomenon (abstract)</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >this is an abstract class used to group observations by scientific domains (e.g. AstronomyObservations, SolarObservations, etc.)</rdfs:comment>
+  </owl:Class>
+  <owl:Class rdf:ID="ObservationSeries">
+    <rdfs:subClassOf rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+    <rdfs:subClassOf rdf:resource="http://www.w3.org/2000/01/rdf-schema#Container"/>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >a series of observations as an rdf container (e.g. rdf:Bag or rdf:Seq) - each member must be an instance of the class ScientificObservation!</rdfs:comment>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >scientific observation series</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:ID="AbstractDescription">
+    <subclassesDisjoint rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean"
+    >true</subclassesDisjoint>
+    <rdfs:subClassOf rdf:resource="#ObservationByType"/>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >an abstract description of an observed phenomenon in form of a text</rdfs:comment>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >abstractly described observation</rdfs:label>
+  </owl:Class>
+  <rdf:Property rdf:ID="subclassesDisjoint"/>
+  <owl:DatatypeProperty rdf:ID="fileUri">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >the URI of a file which can be downloaded (FTP, HTTP, etc.)</rdfs:comment>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >some file's URI</rdfs:label>
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#anyURI"/>
+  </owl:DatatypeProperty>
+  <owl:FunctionalProperty rdf:about="#dateTime">
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >a time stamp</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >the time stamp of an instant expressed as an xsd:dateTime value</rdfs:comment>
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#dateTime"/>
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
+  </owl:FunctionalProperty>
+  <owl:FunctionalProperty rdf:about="#fromDateTime">
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >start time stamp</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >the beginning of a time period</rdfs:comment>
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#dateTime"/>
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
+  </owl:FunctionalProperty>
+  <owl:FunctionalProperty rdf:about="#toDateTime">
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#dateTime"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >end time stamp</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >the end of a time period</rdfs:comment>
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
+  </owl:FunctionalProperty>
+  <owl:FunctionalProperty rdf:about="#phenomenon">
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >a natural phenomenon</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >a natural phenomenon, must be a SKOS Concept - this is a leight-weight approach which allows us to use more simple taxonomies and classification schemes instead of full OWL ontology concepts</rdfs:comment>
+    <rdfs:range rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
+  </owl:FunctionalProperty>
+  <owl:FunctionalProperty rdf:about="#instrument">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >an observation instrument</rdfs:label>
+    <rdfs:range rdf:resource="#ObservationInstrument"/>
+  </owl:FunctionalProperty>
+  <owl:FunctionalProperty rdf:about="#site">
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >an observation site</rdfs:label>
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
+    <rdfs:range rdf:resource="#Observatory"/>
+  </owl:FunctionalProperty>
+</rdf:RDF>
+
+<!-- Created with Protege (with OWL Plugin 3.4, Build 128)  http://protege.stanford.edu -->

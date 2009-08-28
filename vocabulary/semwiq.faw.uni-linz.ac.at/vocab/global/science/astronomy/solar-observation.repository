@@ -1,0 +1,8 @@
+[Dublin Core DL Redirect]
+../observation.owl?forceReadOnly=false
+../science.owl?forceReadOnly=false
+http://xmlns.com/foaf/0.1/
+http://www.w3.org/2006/vcard/ns
+http://www.w3.org/2006/vcard/ns#
+http://purl.org/dc/elements/1.1/
+http://www.w3.org/2004/02/skos/core

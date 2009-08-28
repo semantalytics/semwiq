@@ -1,0 +1,107 @@
+<rdf:RDF
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+    xmlns:foaf="http://xmlns.com/foaf/0.1/"
+    xmlns:owl="http://www.w3.org/2002/07/owl#"
+    xmlns="http://purl.org/semwiq/mediator/sdv#"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+    xmlns:void="http://rdfs.org/ns/void#"
+    xmlns:rsc="http://purl.org/rdfstats/configuration#"
+    xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#">
+  <rdf:Description rdf:about="">
+    <rdfs:comment>Describes data sources registered at a SemWIQ mediator node. When there is a first stable version of voiD (see http://community.linkeddata.org/MediaWiki/index.php?VoiD), this vocabulary will be migrated or at least linked to voiD.</rdfs:comment>
+    <rdfs:label>SemWIQ DataSource Vocabulary</rdfs:label>
+  </rdf:Description>
+  <rdfs:Class rdf:about="http://purl.org/semwiq/mediator/sdv#VoidMonitoringProfile">
+    <rdfs:comment>monitors data sources by retrieving voiD metadata according to robots.txt. =&gt; sitemap.xml =&gt; void:Dataset in RDF</rdfs:comment>
+    <rdfs:subClassOf>
+      <rdfs:Class rdf:about="http://purl.org/semwiq/mediator/sdv#MonitoringProfile"/>
+    </rdfs:subClassOf>
+  </rdfs:Class>
+  <rdfs:Class rdf:about="http://purl.org/semwiq/mediator/sdv#RemoteMonitoringProfile">
+    <rdfs:comment>defines remote monitoring (RDFStats installed at end-point) and specifies monitoring options</rdfs:comment>
+    <rdfs:subClassOf>
+      <rdfs:Class rdf:about="http://purl.org/semwiq/mediator/sdv#MonitoringProfile"/>
+    </rdfs:subClassOf>
+  </rdfs:Class>
+  <rdfs:Class rdf:about="http://purl.org/semwiq/mediator/sdv#CentralizedMonitoringProfile">
+    <rdfs:comment>defines centralized monitoring and specifies monitoring options</rdfs:comment>
+    <rdfs:subClassOf>
+      <rdfs:Class rdf:about="http://purl.org/semwiq/mediator/sdv#MonitoringProfile"/>
+    </rdfs:subClassOf>
+  </rdfs:Class>
+  <rdfs:Class rdf:about="http://purl.org/semwiq/mediator/sdv#MonitoringProfile">
+    <rdfs:comment>abstract class - specifies monitoring options and can be applied for multiple data sources</rdfs:comment>
+  </rdfs:Class>
+  <owl:Class rdf:about="http://purl.org/semwiq/mediator/sdv#DataSource">
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:cardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger"
+        >1</owl:cardinality>
+        <owl:onProperty rdf:resource="http://rdfs.org/ns/void#sparqlEndpoint"/>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf rdf:resource="http://rdfs.org/ns/void#Dataset"/>
+    <rdfs:comment>data source accessible via the SPARQL protocol - Instead of introducing a new data source vocabulary, we assume that each void:Dataset that has a void:sparqlEndpoint property is a valid data source</rdfs:comment>
+    <rdfs:label>SPARQL data source</rdfs:label>
+  </owl:Class>
+  <rdf:Property rdf:about="http://purl.org/semwiq/mediator/sdv#interval">
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#int"/>
+    <rdfs:domain rdf:resource="http://purl.org/semwiq/mediator/sdv#MonitoringProfile"/>
+    <rdfs:comment>interval for update request in seconds</rdfs:comment>
+  </rdf:Property>
+  <rdf:Property rdf:about="http://purl.org/semwiq/mediator/sdv#monitoringProfile">
+    <rdfs:range rdf:resource="http://purl.org/semwiq/mediator/sdv#MonitoringProfile"/>
+    <rdfs:domain rdf:resource="http://purl.org/semwiq/mediator/sdv#DataSource"/>
+    <rdfs:comment>specific data source monitor options, if omitted the data source is monitored by the default :VoidMonitoringProfile</rdfs:comment>
+  </rdf:Property>
+  <rdf:Property rdf:about="http://purl.org/semwiq/mediator/sdv#required">
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#boolean"/>
+    <rdfs:domain rdf:resource="http://www.w3.org/2000/01/rdf-schema#Resource"/>
+    <rdfs:comment>indicates that a property or instance of some class is required for a catalog to be valid</rdfs:comment>
+    <rdfs:label>required</rdfs:label>
+  </rdf:Property>
+  <rdf:Property rdf:about="http://purl.org/semwiq/mediator/sdv#statsUrl">
+    <rdfs:range rdf:resource="http://www.w3.org/2000/01/rdf-schema#Resource"/>
+    <rdfs:domain rdf:resource="http://purl.org/semwiq/mediator/sdv#RemoteMonitoringProfile"/>
+    <rdfs:comment>Optional custom URL from where to retrieve RDFStats statistics. The default is '%%PROTOCOL%%://%%DOMAIN%%:%%PORT%%/rdfstats-%%PORT%%.nt.zip'.
+The following macros can be used and will be replaced by the corresponding values of a concrete data source's SPARQL endpoint URI. 
+%%ENDPOINT-URI%%, %%PROTOCOL%%, %%DOMAIN%%, %%PORT%%, %%PATH%%.</rdfs:comment>
+  </rdf:Property>
+  <rdf:Property rdf:about="http://purl.org/semwiq/mediator/sdv#updateOnlyIfNewer">
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#boolean"/>
+    <rdfs:domain rdf:resource="http://purl.org/semwiq/mediator/sdv#VoidMonitoringProfile"/>
+    <rdfs:domain rdf:resource="http://purl.org/semwiq/mediator/sdv#RemoteMonitoringProfile"/>
+    <rdfs:comment>update dataset only if remote statistics are newer</rdfs:comment>
+  </rdf:Property>
+  <rdf:Property rdf:about="http://purl.org/semwiq/mediator/sdv#subsumption">
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#boolean"/>
+    <rdfs:domain rdf:resource="http://purl.org/semwiq/mediator/sdv#DataSource"/>
+    <rdfs:comment>specifies that the data source is capable of subsumption reasoning itself, default is false</rdfs:comment>
+  </rdf:Property>
+  <rdf:Property rdf:about="http://purl.org/semwiq/mediator/sdv#unavailable">
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#boolean"/>
+    <rdfs:domain rdf:resource="http://purl.org/semwiq/mediator/sdv#DataSource"/>
+    <rdfs:comment>this property is used internally by SemWIQ to mark data sources as temporarily unavailable, it will be added/changed by the data source monitor</rdfs:comment>
+  </rdf:Property>
+  <rdf:Property rdf:about="http://purl.org/semwiq/mediator/sdv#lastDownload">
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#dateTime"/>
+    <rdfs:domain rdf:resource="http://www.w3.org/2000/01/rdf-schema#Resource"/>
+    <rdfs:comment>allows to mark resources with a timestamp to indicate when they were downloaded from the Web into the global store (e.g. used for RDFStatsDataset)</rdfs:comment>
+    <rdfs:label>last download</rdfs:label>
+  </rdf:Property>
+  <rdf:Property rdf:about="http://purl.org/semwiq/mediator/sdv#disabled">
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#boolean"/>
+    <rdfs:domain rdf:resource="http://purl.org/semwiq/mediator/sdv#DataSource"/>
+    <rdfs:comment>allows to explicitly specify that a data source is disabled</rdfs:comment>
+  </rdf:Property>
+  <rdf:Property rdf:about="http://purl.org/semwiq/mediator/sdv#updateOnStartup">
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#boolean"/>
+    <rdfs:domain rdf:resource="http://purl.org/semwiq/mediator/sdv#MonitoringProfile"/>
+    <rdfs:comment></rdfs:comment>
+  </rdf:Property>
+  <rdf:Property rdf:about="http://purl.org/semwiq/mediator/sdv#statsConfig">
+    <rdfs:range rdf:resource="http://purl.org/rdfstats/configuration#RDFStatsConfiguration"/>
+    <rdfs:domain rdf:resource="http://purl.org/semwiq/mediator/sdv#CentralizedMonitoringProfile"/>
+    <rdfs:comment>overrides global RDFStats configuration (ignoring explicit properties rsc:endpoint, rsc:statsModel, rsc:outputFile, and rsc:outputFormat)</rdfs:comment>
+  </rdf:Property>
+</rdf:RDF>
