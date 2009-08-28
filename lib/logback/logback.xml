@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration debug="false"><!-- prints setup details when starting -->
+
+  <appender name="stdout" class="ch.qos.logback.core.ConsoleAppender">
+    <layout class="ch.qos.logback.classic.PatternLayout">
+      <Pattern>%date{HH:mm:ss.SSS} %-6level [%-40.40logger{40}] %msg%n</Pattern>
+    </layout>
+  </appender>
+
+  <appender name="logfile" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <file>logs/semwiq-mediator.log</file>
+    <layout class="ch.qos.logback.classic.PatternLayout">
+      <Pattern>%date %-6level [%thread] [%-40.40logger{40}] [%file:%line] %msg%n</Pattern>
+    </layout>
+    <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
+      <FileNamePattern>logs/semwiq-mediator.%i.log.gz</FileNamePattern>
+      <MinIndex>1</MinIndex>
+      <MaxIndex>10</MaxIndex>
+    </rollingPolicy>
+    <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+      <MaxFileSize>10MB</MaxFileSize>
+    </triggeringPolicy>
+  </appender>
+  
+<!--  <appender name="DB" class="ch.qos.logback.classic.db.DBAppender">-->
+<!--    <filter class="ch.qos.logback.classic.filter.ThresholdFilter">-->
+<!--      <level>info</level>-->
+<!--    </filter>-->
+<!--    <connectionSource class="ch.qos.logback.core.db.DriverManagerConnectionSource">-->
+<!--      <driverClass>com.mysql.jdbc.Driver</driverClass>-->
+<!--      <url>jdbc:mysql://localhost/test</url> -->
+<!--	<user>root</user>-->
+<!--    </connectionSource>-->
+<!--  </appender>-->
+
+<!-- special logger which writes Drools events into [working-directory]/optimizer-events.log to disk for debugging -->
+  <logger name="drools-events">
+  	<level value="OFF"/>
+  </logger>
+
+<!-- special logger which exports all query plans (original/federated/optimized) into GraphViz .dot and .png files into the working directory -->
+  <logger name="render-plans">
+  	<level value="OFF"/>
+  </logger>
+  
+  <logger name="at.jku.semwiq.mediator.optimizer">
+    <level value="INFO"/>
+  </logger>
+  <logger name="at.jku.semwiq.mediator.registry">
+    <level value="INFO"/>
+  </logger>
+  <logger name="at.jku.semwiq">
+    <level value="INFO"/>
+  </logger>
+  <logger name="semwiq">
+    <level value="INFO"/>
+  </logger>
+  <logger name="at.jku.rdfstats">
+    <level value="INFO"/>
+  </logger>
+  <logger name="rdfstats">
+    <level value="INFO"/>
+  </logger>
+  <logger name="com.hp.hpl.jena">
+    <level value="INFO"/>
+  </logger>
+  <logger name="org.mortbay">
+    <level value="INFO"/>
+  </logger>
+  <logger name="org.joseki">
+    <level value="INFO"/>
+  </logger>
+  <logger name="com.hp.hpl.jena.util.FileManager">
+  	<level value="INFO"/>
+  </logger>
+  
+  <root>
+    <level value="WARN" />
+    <appender-ref ref="stdout"/>
+    <appender-ref ref="logfile"/>
+<!--    <appender-ref ref="DB"/>-->
+  </root>
+</configuration>
