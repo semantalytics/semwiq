@@ -90,14 +90,14 @@ public class MediatorQueryEngine extends QueryEngineMain {
     		protected boolean hasNextBinding() {
     			boolean has = super.hasNextBinding();
     			if (!has) // no more results, at the end
-    				ctx.set(Constants.EXEC_TIME_ALLRESULTS, (Long) ctx.get(Constants.EXEC_TIME_START) - System.currentTimeMillis());
+    				ctx.set(Constants.EXEC_TIME_ALLRESULTS, System.currentTimeMillis() - (Long) ctx.get(Constants.EXEC_TIME_START));
     			return has;
     		}
     		
     		@Override
     		protected Binding moveToNextBinding() {
     			if (first) { // first result
-    				ctx.set(Constants.EXEC_TIME_FIRSTRESULT, (Long) ctx.get(Constants.EXEC_TIME_START) - System.currentTimeMillis());
+    				ctx.set(Constants.EXEC_TIME_FIRSTRESULT, System.currentTimeMillis() - (Long) ctx.get(Constants.EXEC_TIME_START));
     				first = false;
     			}
     			return super.moveToNextBinding();

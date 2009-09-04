@@ -21,10 +21,15 @@ import java.util.concurrent.ExecutionException;
 
 import javax.swing.SwingWorker;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import at.jku.semwiq.mediator.Constants;
 import at.jku.semwiq.mediator.Mediator;
 
 import com.hp.hpl.jena.query.Query;
 import com.hp.hpl.jena.query.QueryExecution;
+import com.hp.hpl.jena.sparql.util.Context;
 
 /**
  * returns number of results and intermediate QuerySolutions
@@ -69,7 +74,15 @@ public abstract class QueryProcessingTask<T, V> extends SwingWorker<T, V> {
         	client.getProgressBar().setString("Canceled");
         else {
         	try {
-        		queryDone();        		
+        		queryDone();
+        		Logger log = LoggerFactory.getLogger(QueryProcessingTask.class);
+        		if (log.isInfoEnabled()) {
+        			Context ctx = queryExec.getContext();
+        			log.info("Total time: " + ctx.get(Constants.EXEC_TIME_ALLRESULTS) +
+        					" ms, first result: " + ctx.get(Constants.EXEC_TIME_FIRSTRESULT) +
+        					" ms, optimize: " + ctx.get(Constants.EXEC_TIME_OPTIMIZE) +
+        					" ms, federate: " + ctx.get(Constants.EXEC_TIME_FEDERATE) + " ms");
+        		}
             } catch (Exception e) {
             	client.getProgressBar().setString("Failed");
             	throw new RuntimeException("Failed to execute query: " + e.getMessage(), e);
