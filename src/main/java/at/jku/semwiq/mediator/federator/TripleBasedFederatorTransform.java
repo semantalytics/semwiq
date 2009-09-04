@@ -33,6 +33,7 @@ import com.hp.hpl.jena.sparql.algebra.TransformCopy;
 import com.hp.hpl.jena.sparql.algebra.op.OpBGP;
 import com.hp.hpl.jena.sparql.algebra.op.OpJoin;
 import com.hp.hpl.jena.sparql.algebra.op.OpNull;
+import com.hp.hpl.jena.sparql.algebra.op.OpSequence;
 import com.hp.hpl.jena.sparql.algebra.op.OpService;
 import com.hp.hpl.jena.sparql.algebra.op.OpUnion;
 import com.hp.hpl.jena.sparql.core.BasicPattern;
@@ -88,7 +89,7 @@ public class TripleBasedFederatorTransform extends TransformCopy {
 					pt.add(new Triple(t.getSubject(), t.getPredicate(), t.getObject()));
 				
 				// multiple endpoints
-				} else if (dataSources.size() > 1){
+				} else if (dataSources.size() > 1) {
 					for (DataSource endpoint : dataSources) {
 						BasicPattern pt = new BasicPattern();
 						pt.add(new Triple(t.getSubject(), t.getPredicate(), t.getObject()));
@@ -100,7 +101,7 @@ public class TripleBasedFederatorTransform extends TransformCopy {
 					}
 				}
 				
-				prevJoinOp = (prevJoinOp == null) ? prevUnionOp : OpJoin.create(prevJoinOp, prevUnionOp);
+				prevJoinOp = (prevJoinOp == null) ? prevUnionOp : OpSequence.create(prevJoinOp, prevUnionOp); // OpJoin.create(prevJoinOp, prevUnionOp);
 			}
 			
 			if (prevJoinOp == null)

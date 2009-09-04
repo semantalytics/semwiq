@@ -32,7 +32,7 @@ public interface DataSourceMonitor {
 	public void shutdown();
 
 	/** schedule a worker thread to monitor ds */
-	public boolean scheduleWorker(DataSource ds, boolean updateImmediately);
+	public boolean startMonitoring(DataSource ds, boolean updateImmediately);
 
 	/** stop monitoring ds */
 	public void stopMonitoring(DataSource ds);

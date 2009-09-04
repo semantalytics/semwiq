@@ -111,7 +111,7 @@ public class DataSourceRegistryManagerImpl extends DataSourceRegistryImpl implem
 		
 		globalStore.enterCriticalSection(Lock.WRITE);
 		try {
-			log.info("Registering data source " + newDataSource + " ...");
+			log.info("Registering " + newDataSource + " ...");
 			
 			// import all statements (closure) into globalStore
 			StmtClosureIterator it = new StmtClosureIterator(voidDataset);
@@ -139,41 +139,34 @@ public class DataSourceRegistryManagerImpl extends DataSourceRegistryImpl implem
 	 * @throws RegistryException
 	 */
 	public boolean unregister(DataSource ds) throws RegistryException {
-		boolean unregistered = false;
+		String endpointUri = ds.getSPARQLEndpointURL();
 		
+		List<Statement> toDel = new ArrayList<Statement>();		
 		globalStore.enterCriticalSection(Lock.WRITE);
-		List<Statement> toDel = new ArrayList<Statement>();
-		
 		try {
-			StmtIterator it = ds.getWrappedResource().listProperties();
-			while (it.hasNext())
-				toDel.add(it.nextStatement());
-			it.close();
-
-			for (Statement s : toDel)
-				globalStore.remove(s);
-			if (toDel.size() > 0)
-				unregistered = true;
+			globalStore.removeAll(ds.getWrappedResource(), null, null);
+			ds = null;
+			// TODO remove other unused linked resources...
 			
 			// delete statistics
-			RDFStatsDataset statsDs = statsModel.getDataset(ds.getSPARQLEndpointURL());
+			RDFStatsDataset statsDs = statsModel.getDataset(endpointUri);
 			try {
 				statsModel.requestExclusiveWriteLock(statsDs);
 				statsModel.removeDataset(statsDs);
 			} catch (Exception e) {
-				log.error("Failed to clear statistics for " + ds + ".", e);
+				log.error("Failed to clear statistics for " + statsDs + ".", e);
 			} finally {
 				statsModel.returnExclusiveWriteLock(statsDs);
 			}
 			
 		} catch (Exception e) {
-			throw new RegistryException("Error unregistering " + ds + ".", e);
+			throw new RegistryException("Error unregistering Data source <" + endpointUri + ">.", e);
 		} finally {
 			globalStore.leaveCriticalSection();
 		}
 		
-		log.info(ds + " unregistered.");
-		return unregistered;
+		log.info("Data source <" + endpointUri + "> unregistered.");
+		return true;
 	}
 
 	/*

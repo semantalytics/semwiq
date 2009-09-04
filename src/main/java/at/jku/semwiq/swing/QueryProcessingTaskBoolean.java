@@ -13,26 +13,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package at.jku.semwiq.mediator.registry;
+package at.jku.semwiq.swing;
 
-import com.hp.hpl.jena.rdf.model.Model;
+import java.util.concurrent.ExecutionException;
 
-import at.jku.semwiq.mediator.conf.UserRegistryConfig;
+import com.hp.hpl.jena.query.Query;
 
 /**
  * @author dorgon, Andreas Langegger, al@jku.at
  *
  */
-public class UserRegistryImpl implements UserRegistry {
+public class QueryProcessingTaskBoolean extends QueryProcessingTask<Boolean, Void> {
 
-	public UserRegistryImpl(UserRegistryConfig config, Model store) {
-		//...
+	/**
+	 * @param client
+	 * @param q
+	 */
+	public QueryProcessingTaskBoolean(SwingApp client, Query q) {
+		super(client, q);
+	}
+
+	/* (non-Javadoc)
+	 * @see at.jku.semwiq.swing.QueryProcessingTask#queryInBackground()
+	 */
+	@Override
+	protected Boolean queryInBackground() {
+		return queryExec.execAsk();
 	}
 	
-	/* (non-Javadoc)
-	 * @see at.jku.semwiq.mediator.registry.UserRegistry#shutdown()
-	 */
-	public void shutdown() {
-		
-	}
+	@Override
+	protected void queryDone() throws InterruptedException, ExecutionException {
+		boolean answer = get();
+		client.getTab().initResultTextArea("Answer: " + answer);
+    	client.getProgressBar().setString("Answer: " + answer);
+    }
 }

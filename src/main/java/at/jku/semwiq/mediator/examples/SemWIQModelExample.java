@@ -22,6 +22,10 @@ import at.jku.semwiq.mediator.conf.ConfigException;
 import at.jku.semwiq.mediator.dataset.SemWIQVirtualModel;
 import at.jku.semwiq.mediator.registry.RegistryException;
 
+import com.hp.hpl.jena.query.QueryExecution;
+import com.hp.hpl.jena.query.QueryExecutionFactory;
+import com.hp.hpl.jena.query.ResultSet;
+import com.hp.hpl.jena.query.ResultSetFormatter;
 import com.hp.hpl.jena.rdf.model.StmtIterator;
 import com.hp.hpl.jena.vocabulary.RDF;
 import com.hp.hpl.jena.vocabulary.RDFS;
@@ -42,15 +46,17 @@ public class SemWIQModelExample {
 		Mediator m = new MediatorImpl();
 		SemWIQVirtualModel model = new SemWIQVirtualModel(m);
 		m.getDataSourceRegistry().getManager().register(ExampleConstants.testEndpoint, ExampleConstants.monitoringProfile);
+		m.getDataSourceRegistry().getManager().register(ExampleConstants.testEndpoint2, ExampleConstants.monitoringProfile);
 		m.getDataSourceRegistry().getMonitor().waitUntilFinished(); // blocks until monitor has finished updating
 		
-//		QueryExecution qe = QueryExecutionFactory.create("SELECT DISTINCT * WHERE { ?s a ?o }", model);
-//		ResultSet r = qe.execSelect();
-//		ResultSetFormatter.out(r);
-		StmtIterator it = model.listStatements(null, RDFS.label, "turgescence retrospection");
-		while (it.hasNext())
-			System.out.println(it.next());
-		model.close();
+		QueryExecution qe = QueryExecutionFactory.create("SELECT DISTINCT * WHERE { ?s a ?o }", model);
+		ResultSet r = qe.execSelect();
+		ResultSetFormatter.out(r);
+		
+//		StmtIterator it = model.listStatements(null, RDFS.label, "turgescence retrospection");
+//		while (it.hasNext())
+//			System.out.println(it.next());
+//		model.close();
 	}
 
 }

@@ -34,47 +34,51 @@ public abstract class UpdateWorkerBase implements Runnable {
 	
 	protected final DataSource ds;
 	protected final DataSourceRegistry registry;
-	protected static final Set<DataSource> updating = new HashSet<DataSource>();
+	
+	protected static final Set<DataSource> currentlyUpdating = new HashSet<DataSource>();
 	
 	public UpdateWorkerBase(DataSource ds, DataSourceRegistry reg) {
 		this.ds = ds;
 		this.registry = reg;
 	}
 
-	private synchronized void setUpdating(DataSource ds, boolean state) {
+	private void setUpdating(DataSource ds, boolean state) {
 		if (state)
-			updating.add(ds);
+			currentlyUpdating.add(ds);
 		else
-			updating.remove(ds);
+			currentlyUpdating.remove(ds);
 	}
 	
 	public static boolean isUpdating(DataSource ds) {
-		return updating.contains(ds);
+		return currentlyUpdating.contains(ds);
 	}
 	
 	/* (non-Javadoc)
 	 * @see java.lang.Runnable#run()
 	 */
 	public void run() {
-		doRun();
+		boolean currentlyUpdating;
+		synchronized(this) {
+			currentlyUpdating = isUpdating(ds);
+			if (!currentlyUpdating)
+				setUpdating(ds, true);
+		}
+
+		if (!currentlyUpdating)
+			doRun();
+		else
+			log.warn("Attempt to start another update for " + ds + " but update is already running...");
 	}
 
-	/** 
-	 * sychronized run
-	 */
-	private synchronized void doRun() {
-		if (!isUpdating(ds)) {
-			log.info("Updating " + ds + "...");
-			try {
-				setUpdating(ds, true);
-				doWork();
-			} catch (Exception e) {
-				log.error("Failed to run data source update.", e);
-			} finally {
-				setUpdating(ds, false);
-			}
-		} else {
-			log.warn("Attempt to start another update for " + ds + " but update is already running...");
+	/** safe run */
+	private void doRun() {
+		log.info("Updating " + ds + "...");
+		try {
+			doWork();
+		} catch (Exception e) {
+			log.error("Failed to run data source update.", e);
+		} finally {
+			setUpdating(ds, false);
 		}
 	}
 	

@@ -19,12 +19,11 @@ package at.jku.semwiq.mediator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import at.jku.rdfstats.test.model.ModelTestPackage;
 import at.jku.semwiq.mediator.conf.ConfigException;
 import at.jku.semwiq.mediator.conf.MediatorConfig;
 import at.jku.semwiq.mediator.dataset.SemWIQDataset;
 import at.jku.semwiq.mediator.engine.MediatorQueryEngine;
-import at.jku.semwiq.mediator.engine.MediatorQueryExecution;
-import at.jku.semwiq.mediator.engine.MediatorQueryExecutionFactory;
 import at.jku.semwiq.mediator.engine.describe.MediatorDescribeHandlerFactory;
 import at.jku.semwiq.mediator.federator.Federator;
 import at.jku.semwiq.mediator.federator.FederatorFactory;
@@ -36,12 +35,16 @@ import at.jku.semwiq.mediator.registry.UserRegistryImpl;
 
 import com.hp.hpl.jena.assembler.Assembler;
 import com.hp.hpl.jena.query.Query;
+import com.hp.hpl.jena.query.QueryExecution;
+import com.hp.hpl.jena.query.QueryExecutionFactory;
 import com.hp.hpl.jena.query.QueryFactory;
 import com.hp.hpl.jena.query.Syntax;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
 import com.hp.hpl.jena.rdf.model.Resource;
 import com.hp.hpl.jena.sparql.core.describe.DescribeHandlerRegistry;
+import com.hp.hpl.jena.tdb.TDB;
+import com.hp.hpl.jena.tdb.store.GraphTDB;
 
 /**
  * @author dorgon
@@ -57,7 +60,7 @@ public class MediatorImpl implements Mediator {
 	private final Model store;
 	
 	/** data source registry */
-	private final DataSourceRegistryManager registry;
+	private final DataSourceRegistryManager dsRegistry;
 
 	/** user registry */
 	private final UserRegistry userRegistry;
@@ -115,15 +118,15 @@ public class MediatorImpl implements Mediator {
 		
 		try {
 			if (reg != null)
-				this.registry = reg;
+				this.dsRegistry = reg;
 			else
-				this.registry = new DataSourceRegistryManagerImpl(this.config.getDataSourceRegistryConfig(), this.store);
+				this.dsRegistry = new DataSourceRegistryManagerImpl(this.config.getDataSourceRegistryConfig(), this.store);
 		} catch (Exception e) {
 			throw new MediatorException("Failed to start mediator." + e);
 		}
 		
 		this.userRegistry = new UserRegistryImpl(this.config.getUserRegistryConfig(), this.store);
-		this.federator = FederatorFactory.create(this.config.getFederatorConfig(), this.registry, this.userRegistry);
+		this.federator = FederatorFactory.create(this.config.getFederatorConfig(), this.dsRegistry, this.userRegistry);
 
 		// register mediator query engine and describe handler at ARQ registry
 		MediatorQueryEngine.register();
@@ -143,7 +146,7 @@ public class MediatorImpl implements Mediator {
 	}
 	
 	public DataSourceRegistry getDataSourceRegistry() {
-		return registry;
+		return dsRegistry;
 	}
 	
 	public UserRegistry getUserRegistry() {
@@ -163,9 +166,17 @@ public class MediatorImpl implements Mediator {
 			isReady = false;
 			log.info("Shutting down mediator...");
 	
-			if (registry != null)
-				registry.shutdown();
+			if (dsRegistry != null)
+				dsRegistry.shutdown();
 	
+			if (userRegistry != null)
+				userRegistry.shutdown();
+			
+			log.info("Shutting down global RDF store...");
+			store.close();
+			if (store.getGraph() instanceof GraphTDB)
+				TDB.sync(store);
+			
 			log.info("Mediator shut down cleanly.");
 			terminated = true;
 		} else
@@ -176,12 +187,12 @@ public class MediatorImpl implements Mediator {
 		return terminated;
 	}
 	
-	public MediatorQueryExecution createQueryExecution(Query query) {
-		MediatorQueryExecution qe = MediatorQueryExecutionFactory.create(query, new SemWIQDataset(this));
+	public QueryExecution createQueryExecution(Query query) {
+		QueryExecution qe = QueryExecutionFactory.create(query, new SemWIQDataset(this));
 		return qe;
 	}
 
-	public MediatorQueryExecution createQueryExecution(String qryStr) {
+	public QueryExecution createQueryExecution(String qryStr) {
 		return createQueryExecution(createQuery(qryStr));
 	}
 	
@@ -189,10 +200,6 @@ public class MediatorImpl implements Mediator {
 		return QueryFactory.create(qryStr, Syntax.syntaxARQ);
 	}
 	
-//	public Op compile(Query qry) {
-//		return Algebra.compile(qry);
-//	}
-//	
 //	public Op federate(Op op, Query qry) throws FederatorException {
 //		if (renderPlans.isInfoEnabled())
 //			GraphVizWriter.write(op, qry, "plan_original"); // done here not in compile() because if the QueryEngine is used, Algebra.compile() is done by QueryEngineBase
@@ -212,10 +219,6 @@ public class MediatorImpl implements Mediator {
 //			GraphVizWriter.write(optimized, qry, "plan_optimized");
 //		
 //		return optimized;
-//	}
-//	
-//	public Op federateAndOptimize(Op op, Query qry) throws FederatorException, OptimizerException {
-//		return optimize(federate(op, qry), qry);
 //	}
 //	
 //	public Model explainQuery(Query query) throws FederatorException, OptimizerException {

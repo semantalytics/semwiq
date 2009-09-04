@@ -278,7 +278,7 @@ public class DataSource extends UpdatableResource {
 			// if monitor reference available, create or remove monitor worker
 			if (monitor != null) {
 				if (reactivated)
-					monitor.scheduleWorker(this, updateIfReactivated);
+					monitor.startMonitoring(this, updateIfReactivated);
 				else if (deactivated)
 					monitor.stopMonitoring(this);
 			}

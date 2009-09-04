@@ -39,7 +39,7 @@ import com.hp.hpl.jena.vocabulary.RDFS;
 public class UpdatableResource extends WrappedResource {
 	private static final Logger log = LoggerFactory.getLogger(UpdatableResource.class);
 
-	private static final int WAIT_INTERVAL = 5000;
+	private static final int WAIT_INTERVAL = 1000;
 	
 	/** store the owner of the lock */
 	private Thread lockOwner = null;
@@ -54,14 +54,15 @@ public class UpdatableResource extends WrappedResource {
 	
 	/**
 	 * always call returnExclusiveWriteLock() in a finally {} block !!!
+	 * TODO: not sync'ed to prevent from dead locks, but should rethink and improve locking
 	 */
-	public synchronized void requestExclusiveWriteLock() {
+	public void requestExclusiveWriteLock() {
 		// wait if another thread is still owning the lock...
 		while (lockOwner != null) {
 			try {
 				wait(WAIT_INTERVAL);
 			} catch (InterruptedException ignore) {
-				log.warn("Thread " + Thread.currentThread() + " is still waiting for exclusive write lock on data source <" + resource.getURI() + "> which is still owned by Thread " + lockOwner + "...");
+				log.debug("Thread " + Thread.currentThread() + " is waiting for exclusive write lock for " + this + " which is still owned by Thread " + lockOwner + "...");
 			}
 		}
 
@@ -69,26 +70,26 @@ public class UpdatableResource extends WrappedResource {
 		lockOwner = Thread.currentThread();
 		model.enterCriticalSection(Lock.WRITE);
 		if (log.isDebugEnabled())
-			log.debug("Thread " + Thread.currentThread().getId() + " obtained exclusive write lock for " + resource.getURI() + ".");
+			log.debug("Thread " + Thread.currentThread().getId() + " obtained exclusive write lock for " + this + ".");
 	}
 
 	/**
 	 * should be called in a finally {} block after requrestExclusiveWriteLock()
 	 */
-	public synchronized void returnExclusiveWriteLock() {
+	public void returnExclusiveWriteLock() {
 		if (lockOwner == Thread.currentThread()) {
 			model.leaveCriticalSection();
 			lockOwner = null;
-			notifyAll();
+
 			if (log.isDebugEnabled())
-				log.debug("Thread " + Thread.currentThread().getId() + " returned exclusive write lock for " + resource.getURI() + ".");
+				log.debug("Thread " + Thread.currentThread().getId() + " returned exclusive write lock for " + this + ".");
 		} else
 			throw new RuntimeException("Attempt to return exclusive write lock by another thread."); // usually shouldn't occur => now RuntimeException
 	}
 	
 	protected synchronized void checkLock() throws RegistryException {
 		if (lockOwner != Thread.currentThread())
-			throw new RegistryException("Attempt to change data source <" + getUri() + "> without owning the exclusive write lock.");
+			throw new RegistryException("Attempt to modify UpdatableResource <" + this + "> without owning the exclusive write lock.");
 	}
 	
 // same basic setters...

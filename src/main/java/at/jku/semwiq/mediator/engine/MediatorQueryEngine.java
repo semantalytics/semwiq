@@ -25,6 +25,8 @@ import at.jku.semwiq.mediator.dataset.SemWIQDatasetGraph;
 import com.hp.hpl.jena.query.Query;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
 import com.hp.hpl.jena.sparql.algebra.Op;
+import com.hp.hpl.jena.sparql.algebra.OpAsQuery;
+import com.hp.hpl.jena.sparql.algebra.opt.Optimize;
 import com.hp.hpl.jena.sparql.core.DataSourceGraphImpl;
 import com.hp.hpl.jena.sparql.core.DatasetGraph;
 import com.hp.hpl.jena.sparql.core.Substitute;
@@ -35,9 +37,12 @@ import com.hp.hpl.jena.sparql.engine.QueryEngineRegistry;
 import com.hp.hpl.jena.sparql.engine.QueryIterator;
 import com.hp.hpl.jena.sparql.engine.binding.Binding;
 import com.hp.hpl.jena.sparql.engine.iterator.QueryIterRoot;
+import com.hp.hpl.jena.sparql.engine.iterator.QueryIteratorBase;
 import com.hp.hpl.jena.sparql.engine.iterator.QueryIteratorCheck;
+import com.hp.hpl.jena.sparql.engine.iterator.QueryIteratorWrapper;
 import com.hp.hpl.jena.sparql.engine.main.QC;
 import com.hp.hpl.jena.sparql.engine.main.QueryEngineMain;
+import com.hp.hpl.jena.sparql.serializer.QuerySerializer;
 import com.hp.hpl.jena.sparql.util.Context;
 import com.hp.hpl.jena.tdb.graph.GraphFactory;
 
@@ -53,13 +58,11 @@ import com.hp.hpl.jena.tdb.graph.GraphFactory;
 public class MediatorQueryEngine extends QueryEngineMain {
 	private static final Logger log = LoggerFactory.getLogger(MediatorQueryEngine.class);
 	
-	private long start, stop;
-	
 	/** Constructor: delegate to QueryEngineMain */
 	public MediatorQueryEngine(Query query, DatasetGraph dataset, Binding initial, Context context) {
 		super(query, dataset, initial, context);
-		start = System.currentTimeMillis();
 		context.set(Constants.QUERY, query);
+		context.set(Constants.EXEC_TIME_START, System.currentTimeMillis());
 	}
 
 	/** Constructor: delegate to QueryEngineMain */
@@ -69,45 +72,64 @@ public class MediatorQueryEngine extends QueryEngineMain {
 
     public MediatorQueryEngine(Op op, DatasetGraph dataset, Binding input, Context context) {
     	super(op, dataset, input, context) ;
+    	context.set(Constants.QUERY, OpAsQuery.asQuery(op)); // back into query, usually this method is not used
+		context.set(Constants.EXEC_TIME_START, System.currentTimeMillis());
     }
 
     @Override
     public QueryIterator eval(Op op, DatasetGraph dsg, Binding input, Context context) {
-    	// call with empty dataset
-    	return super.eval(op, new DataSourceGraphImpl(), input, context);
+    	// call with empty dataset to prevent ARQ from calling graphBaseFind() infinite loops cause this again create a new query execution on the SemWIQDataset
+    	QueryIterator queryIter = super.eval(op, new DataSourceGraphImpl(), input, context);
+    	
+    	// intercept moveToNextBinding() in order to measure times
+    	final Context ctx = context;
+    	QueryIterator iter = new QueryIteratorWrapper(queryIter) {
+    		private boolean first = true;
+    		
+    		@Override
+    		protected boolean hasNextBinding() {
+    			boolean has = super.hasNextBinding();
+    			if (!has) // no more results, at the end
+    				ctx.set(Constants.EXEC_TIME_ALLRESULTS, (Long) ctx.get(Constants.EXEC_TIME_START) - System.currentTimeMillis());
+    			return has;
+    		}
+    		
+    		@Override
+    		protected Binding moveToNextBinding() {
+    			if (first) { // first result
+    				ctx.set(Constants.EXEC_TIME_FIRSTRESULT, (Long) ctx.get(Constants.EXEC_TIME_START) - System.currentTimeMillis());
+    				first = false;
+    			}
+    			return super.moveToNextBinding();
+    		}
+    	};
+    	return iter;
     }
     
-    /** returns annotated op */
 	@Override
 	protected Op modifyOp(Op op) {
 		try {
-	    	if (context.get(Constants.USING_MEDIATOR_QUERYEXECUTION) == null || !(Boolean) context.get(Constants.USING_MEDIATOR_QUERYEXECUTION))
-	    		log.warn("Not using MediatorQueryExecution, cannot process query in centralized mode if it would be cheaper. If you want to make use of " +
-	    				"full optimizations, please use Mediator.createQueryExecution().");
-
-			context.set(Constants.ORIGINAL_OP, op);
+			context.set(Constants.OP_ORIGINAL, op);
+			
+	    	// ARQ optimizations (simplify join identities, delabel, bind expr functions, property functions, break conjunctions, 
+	    	// transform equality filters, filter placement, join/ljoin => sequence/conditional, flatten prop paths
+			long start = System.currentTimeMillis();
+	    	Op opt = Optimize.optimize(op, context);
+	    	context.set(Constants.EXEC_TIME_OPTIMIZE, System.currentTimeMillis() - start); 
+			context.set(Constants.OP_OPTIMIZED, opt);
 
 			Mediator mediator = ((SemWIQDatasetGraph) dataset).getMediator();
-			Query qry = (Query) context.get(Constants.QUERY); // set by MediatorQueryEngine constructor
-			
-			Op opt = op;
-			start = System.currentTimeMillis();
-			Op fed = mediator.getFederator().federate(op);
-			stop = System.currentTimeMillis();
-			context.set(Constants.FEDERATION_TIME, new Long(stop-start));
-			context.set(Constants.FEDERATED_OP, fed);
-//			
-//			start = System.currentTimeMillis();
-//			Op opt = mediator.optimize(fed, qry);
-//			stop = System.currentTimeMillis();
-//			context.set(Constants.OPTIMIZATION_TIME, new Long(System.currentTimeMillis() - start));
-//			context.set(Constants.OPTIMIZED_OP, opt);
 
-			//TODO
-//			context.set(Constants.ESTIMATED_MIN_RESULTS, opt.getMinResults());
-//			context.set(Constants.ESTIMATED_AVG_RESULTS, opt.getAvgResults());
-//			context.set(Constants.ESTIMATED_MAX_RESULTS, opt.getMaxResults());
-			
+			Long[] estimates = new Long[3]; // collect estimates
+			start = System.currentTimeMillis();
+			Op fed = mediator.getFederator().federate(op, context, estimates);
+			context.set(Constants.EXEC_TIME_FEDERATE, System.currentTimeMillis() - start); 
+			context.set(Constants.OP_FEDERATED, fed);
+
+			context.set(Constants.ESTIMATED_MIN_RESULTS, estimates[0]);
+			context.set(Constants.ESTIMATED_AVG_RESULTS, estimates[1]);
+			context.set(Constants.ESTIMATED_MAX_RESULTS, estimates[2]);
+
 			return fed;
 		} catch (Exception e) {
 			throw new RuntimeException(e);
@@ -131,21 +153,21 @@ public class MediatorQueryEngine extends QueryEngineMain {
 	 */
 	private static QueryEngineFactory factory = new QueryEngineFactory() {
 
-		public boolean accept(Query query, DatasetGraph dataset, Context context) {
-			return (dataset instanceof SemWIQDatasetGraph);
+		public boolean accept(Query query, DatasetGraph dsg, Context context) {
+			return (dsg instanceof SemWIQDatasetGraph);
 		}
 
-		public Plan create(Query query, DatasetGraph dataset, Binding initial, Context context) {
-			MediatorQueryEngine engine = new MediatorQueryEngine(query, dataset, initial, context);
+		public Plan create(Query query, DatasetGraph dsg, Binding initial, Context context) {
+			MediatorQueryEngine engine = new MediatorQueryEngine(query, dsg, initial, context);
 			return engine.getPlan();
 		}
 
-		public boolean accept(Op op, DatasetGraph dataset, Context context) {
-			return (dataset instanceof SemWIQDatasetGraph);
+		public boolean accept(Op op, DatasetGraph dsg, Context context) {
+			return (dsg instanceof SemWIQDatasetGraph);
 		}
 
-		public Plan create(Op op, DatasetGraph dataset, Binding initial, Context context) {
-			MediatorQueryEngine engine = new MediatorQueryEngine(op, dataset, initial, context);
+		public Plan create(Op op, DatasetGraph dsg, Binding initial, Context context) {
+			MediatorQueryEngine engine = new MediatorQueryEngine(op, dsg, initial, context);
 			return engine.getPlan();
 		}
 

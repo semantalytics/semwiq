@@ -46,49 +46,58 @@ public class DataSourceMonitorImpl implements DataSourceMonitor {
 	
 	private final DataSourceRegistry registry;
 	private final RDFStatsConfiguration globalConf;
-	private final Scheduler execService;
+	private final Scheduler scheduler;
 
-	private final ConcurrentMap<DataSource, UpdateWorkerBase> workerReferences; // allows to remove elements while iterating
+	private final ConcurrentMap<DataSource, UpdateWorkerBase> workerReferences;
 	
 	public DataSourceMonitorImpl(DataSourceRegistry registry) {
 		this.registry = registry;
 		this.globalConf = registry.getConfig().getRdfStatsConfig();
 		this.workerReferences = new ConcurrentHashMap<DataSource, UpdateWorkerBase>();
-		this.execService = new Scheduler(CONCURRENT_WORKERS);
+		this.scheduler = new Scheduler(CONCURRENT_WORKERS);
 	}
 
 	public void start() throws RegistryException {
 		for (DataSource ds : registry.getEnabledDataSources()) {
-			if (scheduleWorker(ds, false) && log.isDebugEnabled()) {
+			if (startMonitoring(ds, false) && log.isDebugEnabled()) {
 				MonitoringProfile profile = ds.getMonitoringProfile();
 				log.debug("Monitoring " + ds + " every " + profile.getInterval() + " seconds (" + profile.getClass().getName() + ").");
 			}
 		}
 	}
 	
-	public boolean scheduleWorker(DataSource ds, boolean updateImmediately) {
+	public synchronized boolean startMonitoring(DataSource ds, boolean updateImmediately) {
+		if (isMonitoring(ds)) {
+			log.info("Already monitoring " + ds + ".");
+			if (updateImmediately)
+				triggerUpdate(ds);
+			return true;
+		}
+		
 		MonitoringProfile profile = ds.getMonitoringProfile();
 		UpdateWorkerBase task;
 		
 		if (profile == null) {
 			log.warn("Data source " + ds + " cannot be monitored since it has no monitoring profile.");
 			return false;
+			
 		} else if (profile.getInterval() > 0) {
 			if (profile instanceof RemoteMonitoringProfile) {
 				task = new RemoteUpdateWorker(ds, registry, (RemoteMonitoringProfile) profile);
 				workerReferences.put(ds, task);
-				execService.scheduleWithFixedDelay(task, (updateImmediately || profile.updateOnStartup()) ? 0 : profile.getInterval(), profile.getInterval(), TimeUnit.SECONDS);
+				scheduler.scheduleWithFixedDelay(task, (updateImmediately || profile.updateOnStartup()) ? 0 : profile.getInterval(), profile.getInterval(), TimeUnit.SECONDS);
 				return true;
 			} else if (profile instanceof CentralizedMonitoringProfile) {
 				task = new CentralizedUpdateWorker(ds, registry, (CentralizedMonitoringProfile) profile);
 				workerReferences.put(ds, task);
-				execService.scheduleWithFixedDelay(task, (updateImmediately || profile.updateOnStartup()) ? 0 : profile.getInterval(), profile.getInterval(), TimeUnit.SECONDS);
+				scheduler.scheduleWithFixedDelay(task, (updateImmediately || profile.updateOnStartup()) ? 0 : profile.getInterval(), profile.getInterval(), TimeUnit.SECONDS);
 				return true;
 			} else if (profile instanceof VoidMonitoringProfile) {
 				task = new VoidUpdateWorker(ds, registry, (VoidMonitoringProfile) profile);
 				workerReferences.put(ds, task);
-				execService.scheduleWithFixedDelay(task, (updateImmediately || profile.updateOnStartup()) ? 0 : profile.getInterval(), profile.getInterval(), TimeUnit.SECONDS);
+				scheduler.scheduleWithFixedDelay(task, (updateImmediately || profile.updateOnStartup()) ? 0 : profile.getInterval(), profile.getInterval(), TimeUnit.SECONDS);
 				return true;
+
 			} else {
 				log.warn("No monitoring profile for " + ds + ". The data source is not monitored.");
 				return false;
@@ -99,11 +108,28 @@ public class DataSourceMonitorImpl implements DataSourceMonitor {
 		}
 	}
 	
+	/**
+	 * @param ds
+	 * @return
+	 */
+	private synchronized boolean isMonitoring(DataSource ds) {
+		return workerReferences.containsKey(ds);
+	}
+	
+	/**
+	 * @param ds
+	 */
+	public synchronized void stopMonitoring(DataSource ds) {
+		UpdateWorkerBase worker = workerReferences.get(ds);
+		scheduler.remove(worker);
+		workerReferences.remove(ds);
+	}
+
 	/* (non-Javadoc)
 	 * @see at.faw.semwiq.mediator.registry.monitor.DataSourceMonitor#isUpdating()
 	 */
-	public boolean isUpdating() {
-		return execService.getActiveCount() > 0;
+	public synchronized boolean isUpdating() {
+		return scheduler.getActiveCount() > 0;
 	}
 	
 	/* (non-Javadoc)
@@ -118,35 +144,20 @@ public class DataSourceMonitorImpl implements DataSourceMonitor {
 	 */
 	public void shutdown() {
 		log.info("Shutting down data source monitor...");
-		execService.shutdown();
+		scheduler.shutdown();
 		
 		// wait for update to complete
 		if (isUpdating())
 			log.info("Update of a datasource is still in progress. Waiting for update to complete...");
 		while (isUpdating()) {
 			try { Thread.sleep(100); } catch (InterruptedException ignore) {}
-		}
-		
-		Model m = globalConf.getStatsModel();
-		if (m.supportsTransactions()) {
-			log.info("Committing statistics model...");
-			m.commit(); // flush to disk in case of FileModels
-		}
-	}
-
-	/**
-	 * @param ds
-	 */
-	public synchronized void stopMonitoring(DataSource ds) {
-		UpdateWorkerBase worker = workerReferences.get(ds);
-		execService.remove(worker);
-		workerReferences.remove(ds);
+		}		
 	}
 	
 	/* (non-Javadoc)
 	 * @see at.faw.semwiq.mediator.registry.monitor.DataSourceMonitor#triggerCompleteUpdate()
 	 */
-	public synchronized void triggerCompleteUpdate() throws RegistryException {
+	public void triggerCompleteUpdate() throws RegistryException {
 		Set<DataSource> currentlyUpdating = new HashSet<DataSource>();
 		
 		for (DataSource ds : workerReferences.keySet()) {
@@ -158,22 +169,22 @@ public class DataSourceMonitorImpl implements DataSourceMonitor {
 		
 		for (DataSource ds : registry.getEnabledDataSources()) {
 			if (!currentlyUpdating.contains(ds))
-				scheduleWorker(ds, true);
+				startMonitoring(ds, true);
 		}
 	}
 
 	/* (non-Javadoc)
 	 * @see at.faw.semwiq.mediator.registry.monitor.DataSourceMonitor#triggerUpdate(at.faw.semwiq.mediator.registry.model.DataSource)
 	 */
-	public synchronized void triggerUpdate(DataSource ds) {
+	public void triggerUpdate(DataSource ds) {
 		stopMonitoring(ds);
-		scheduleWorker(ds, true);
+		startMonitoring(ds, true);
 	}
 	
 	/* (non-Javadoc)
 	 * @see at.jku.semwiq.mediator.registry.monitor.DataSourceMonitor#waitUntilFinished()
 	 */
-	public synchronized void waitUntilFinished() {
+	public void waitUntilFinished() {
 		while (isUpdating())
 			try { Thread.sleep(500); } catch (InterruptedException e) {}
 	}

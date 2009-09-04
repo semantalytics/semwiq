@@ -16,6 +16,7 @@
 package at.jku.semwiq.mediator.federator;
 
 import com.hp.hpl.jena.sparql.algebra.Op;
+import com.hp.hpl.jena.sparql.util.Context;
 
 /**
  * @author dorgon, Andreas Langegger, al@jku.at
@@ -23,6 +24,6 @@ import com.hp.hpl.jena.sparql.algebra.Op;
  */
 public interface Federator {
 
-	public Op federate(Op op) throws FederatorException;
+	public Op federate(Op op, Context context, Long[] estimates) throws FederatorException;
 
 }

@@ -36,6 +36,7 @@ import com.hp.hpl.jena.query.QueryExecution;
 import com.hp.hpl.jena.query.QuerySolution;
 import com.hp.hpl.jena.query.ResultSet;
 import com.hp.hpl.jena.sparql.syntax.ElementTriplesBlock;
+import com.hp.hpl.jena.sparql.util.FmtUtils;
 import com.hp.hpl.jena.util.iterator.ClosableIterator;
 import com.hp.hpl.jena.util.iterator.ExtendedIterator;
 import com.hp.hpl.jena.util.iterator.NiceIterator;
@@ -112,13 +113,8 @@ public class SemWIQVirtualGraph extends GraphBase implements Graph {
 	private String toQueryNode(Node n, String pos) {
 		if (n == null || n.isVariable())
 			return "?" + pos;
-		else if (n.isLiteral())
-			return n.toString(true); //TODO check this, correct to get literal for SPARQL query that way?
-		else if (n.isURI()) 
-			return "<" + n.getURI() + ">";
-		else if (n.isBlank())
-			return "[]";
-		throw new RuntimeException("Illegal node: " + n);
+		else
+			return FmtUtils.stringForNode(n, getPrefixMapping());
 	}
 	
 	/**

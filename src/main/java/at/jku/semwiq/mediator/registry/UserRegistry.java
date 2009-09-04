@@ -21,4 +21,9 @@ package at.jku.semwiq.mediator.registry;
  */
 public interface UserRegistry {
 
+	/**
+	 * 
+	 */
+	public void shutdown();
+
 }

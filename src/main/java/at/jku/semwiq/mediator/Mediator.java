@@ -16,12 +16,12 @@
 package at.jku.semwiq.mediator;
 
 import at.jku.semwiq.mediator.conf.MediatorConfig;
-import at.jku.semwiq.mediator.engine.MediatorQueryExecution;
 import at.jku.semwiq.mediator.federator.Federator;
 import at.jku.semwiq.mediator.registry.DataSourceRegistry;
 import at.jku.semwiq.mediator.registry.UserRegistry;
 
 import com.hp.hpl.jena.query.Query;
+import com.hp.hpl.jena.query.QueryExecution;
 import com.hp.hpl.jena.rdf.model.Model;
 
 /**
@@ -54,10 +54,10 @@ public interface Mediator {
 	// create query execution
 	
 	/** create a new query execution from query string */
-	public MediatorQueryExecution createQueryExecution(String qryStr);
+	public QueryExecution createQueryExecution(String qryStr);
 	
 	/** create a new query execution from Jena Query instance */
-	public MediatorQueryExecution createQueryExecution(Query qry);
+	public QueryExecution createQueryExecution(Query qry);
 
 //	/** parse query */
 //	public Query createQuery(String qryStr);

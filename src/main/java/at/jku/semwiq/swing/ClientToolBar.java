@@ -39,6 +39,9 @@ import at.jku.semwiq.mediator.registry.RegistryException;
 import at.jku.semwiq.mediator.registry.model.MonitoringProfile;
 
 import com.hp.hpl.jena.ontology.OntModel;
+import com.hp.hpl.jena.query.Query;
+import com.hp.hpl.jena.query.QueryFactory;
+import com.hp.hpl.jena.query.Syntax;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.shared.Lock;
 import com.hp.hpl.jena.util.FileManager;
@@ -294,7 +297,15 @@ public class ClientToolBar extends JToolBar implements ActionListener {
 	 * @param query
 	 */
 	private void doQuery(String query) {
-		queryProcTask = new QueryProcessingTask(client, query);
+		Query q = QueryFactory.create(query, Syntax.syntaxARQ);
+		
+		if (q.isExplainQuery() || q.isDescribeType() || q.isConstructType())
+			queryProcTask = new QueryProcessingTaskModel(client, q);
+		else if (q.isSelectType())
+			queryProcTask = new QueryProcessingTaskResultSet(client, q);
+		else if (q.isAskType())
+			queryProcTask = new QueryProcessingTaskBoolean(client, q);
+		
 		client.getProgressBar().setString(null);
 		client.getProgressBar().setValue(0);
 		client.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
@@ -306,7 +317,7 @@ public class ClientToolBar extends JToolBar implements ActionListener {
 			        	 // update progress bar
 			             if ("progress".equals(evt.getPropertyName())) {
 			            	 int value = (Integer) evt.getNewValue();
-			            		 client.getProgressBar().setValue(value);
+		            		 client.getProgressBar().setValue(value);
 			             }
 			         }
 			     });

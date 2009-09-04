@@ -24,7 +24,8 @@ import at.jku.semwiq.mediator.registry.model.MonitoringProfile;
 public class ExampleConstants {
 	
 	// for endpoints spawned by the semwiq-endpoint project, chose the defaultVoidProfile, otherwise the defaultCentralizedProfile
-	public static final String testEndpoint = "http://ramses.faw.uni-linz.ac.at:8900/sparql";
+	public static final String testEndpoint = "http://ramses.faw.uni-linz.ac.at:8900/sparql/endpoint8900";
+	public static final String testEndpoint2 = "http://ramses.faw.uni-linz.ac.at:8901/sparql/endpoint8901";
 	public static MonitoringProfile monitoringProfile = MonitoringProfile.getDefaultVoidProfile();
 	
 //	public static final String testEndpoint = "http://data.semanticweb.org/sparql";

@@ -25,7 +25,6 @@ import at.jku.rdfstats.vocabulary.SCOVO;
 import at.jku.rdfstats.vocabulary.Stats;
 import at.jku.semwiq.mediator.conf.MediatorConfig;
 import at.jku.semwiq.mediator.vocabulary.Config;
-import at.jku.semwiq.mediator.vocabulary.RDFStatsExt;
 import at.jku.semwiq.mediator.vocabulary.SDV;
 import at.jku.semwiq.mediator.vocabulary.voiD;
 
@@ -40,10 +39,6 @@ import com.hp.hpl.jena.vocabulary.XSD;
  *
  */
 public class Constants {
-	
-	public static final String STATIC_RULES_FILE = "at/jku/semwiq/mediator/optimizer/optimizer-static-rules.drl"; // loaded via classloader
-	public static final String SYSTEMPROPERTY_DEBUG_STARTUP = "semwiq.debugstartup"; // fast start only for debugging/coding (query engine will not work correctly)
-	
 	public static final String SYSTEMPROPERTY_SEMWIQ_MEDIATOR_HOME = "semwiq.home";
 	public static final String SEMWIQ_MEDIATOR_HOME;
 	static {
@@ -76,36 +71,32 @@ public class Constants {
 		}
 	}
 	
-
-	
 	// default prefix for internal SPARQL queries
 	public static final String QUERY_PREFIX = 
 		"PREFIX rdfs:  <" + RDFS.getURI() + ">\n" +
 		"PREFIX rdf:   <" + RDF.getURI() + ">\n" +
 		"PREFIX xsd:   <" + XSD.getURI() + ">\n" +
 		"PREFIX dc:	   <" + DC.getURI() + ">\n" +
-		"PREFIX sdv:	   <" + SDV.getURI() + ">\n" +
+		"PREFIX sdv:   <" + SDV.getURI() + ">\n" +
 		"PREFIX sqc:   <" + Config.getURI() + ">\n" +
 		"PREFIX scv:   <" + SCOVO.getURI() + ">\n" +
 		"PREFIX stats: <" + Stats.getURI() + ">\n" +
-		"PREFIX stats-ext: <" + RDFStatsExt.getURI() + ">\n" +
 		"PREFIX void:  <" + voiD.getURI() + ">\n";
 
 	// query execution context symbols
-	public static final Symbol USING_MEDIATOR_QUERYEXECUTION = Symbol.create("semwiq.using.mediatorqueryexecution"); // boolean
+	public static final Symbol QUERY = Symbol.create("semwiq.query"); // Query
+	public static final Symbol OP_ORIGINAL = Symbol.create("semwiq.plan.orig"); // Op
+	public static final Symbol OP_OPTIMIZED = Symbol.create("semwiq.plan.opt");
+	public static final Symbol OP_FEDERATED = Symbol.create("semwiq.plan.fed");
 	
-	public static final Symbol QUERY = Symbol.create("semwiq.query"); // query
-	public static final Symbol ORIGINAL_OP = Symbol.create("semwiq.plan.original");		// Op
-	public static final Symbol FEDERATED_OP = Symbol.create("semwiq.plan.federated");	// AnnotatedOp
-	public static final Symbol OPTIMIZED_OP = Symbol.create("semwiq.plan.optimized");	// AnnotatedOp
+	public static final Symbol ESTIMATED_MIN_RESULTS = Symbol.create("semwiq.estimate.min");		// Long, possibly null
+	public static final Symbol ESTIMATED_AVG_RESULTS = Symbol.create("semwiq.estimate.avg");		// Long, possibly null
+	public static final Symbol ESTIMATED_MAX_RESULTS = Symbol.create("semwiq.estimate.max");		// Long, possibly null
 	
-	public static final Symbol ESTIMATED_MIN_RESULTS = Symbol.create("semwiq.estimatedMinResults");		// long
-	public static final Symbol ESTIMATED_AVG_RESULTS = Symbol.create("semwiq.estimatedAvgResults");		// long
-	public static final Symbol ESTIMATED_MAX_RESULTS = Symbol.create("semwiq.estimatedMaxResults");		// long
-	
-	public static final Symbol PARSE_TIME = Symbol.create("semwiq.time.parsing"); // long
-	public static final Symbol FEDERATION_TIME = Symbol.create("semwiq.time.federation"); // long 
-	public static final Symbol OPTIMIZATION_TIME = Symbol.create("semwiq.time.optimization"); // long
-	
+	public static final Symbol EXEC_TIME_START = Symbol.create("semwiq.time.start"); // long - timestamp [ms]
+	public static final Symbol EXEC_TIME_OPTIMIZE = Symbol.create("semwiq.time.opt"); // long - durations [ms]
+	public static final Symbol EXEC_TIME_FEDERATE = Symbol.create("semwiq.time.fed"); // long [ms]
+	public static final Symbol EXEC_TIME_FIRSTRESULT = Symbol.create("semwiq.time.first");  // long [ms]
+	public static final Symbol EXEC_TIME_ALLRESULTS = Symbol.create("semwiq.time.all");  // long [ms]
 
 }

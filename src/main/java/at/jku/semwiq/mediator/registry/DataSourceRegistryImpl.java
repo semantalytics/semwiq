@@ -99,11 +99,41 @@ public class DataSourceRegistryImpl implements DataSourceRegistry {
 		this.globalStore = globalStore;
 		this.statsModel = new RDFStatsUpdatableModelExt(globalStore); // has extensions to get/set swq:lastDownload
 		
+		selfCheck();
+		
 		// initialize data source monitor
 		this.monitor = new DataSourceMonitorImpl(this);
 		this.monitor.start();
 	}
 	
+	/**
+	 * @throws RegistryException 
+	 * 
+	 */
+	private void selfCheck() throws RegistryException {
+		List<DataSource> sources = getEnabledDataSources();
+		log.info(getRegisteredDataSources().size() + " data sources registered - " + sources.size() + " activated.");
+		try {
+			log.info(statsModel.getDatasets().size() + " RDFStats datasets in cache.");			
+		} catch (Exception e) {
+			log.error("Failed to access RDFStats statistics. You should delete or rebuild the global RDF store.");
+		}
+		
+		for (DataSource ds : sources) {
+			if (ds.getSPARQLEndpointURL() == null)
+				log.error("Invalid data source: " + ds.getUri() + " - Missing " + voiD.sparqlEndpoint.getURI() + "!");
+			try {
+				if (statsModel.getDataset(ds.getSPARQLEndpointURL()) == null) {
+					log.error("Missing statistics for " + ds + " - will trigger update.");
+					monitor.triggerUpdate(ds);
+				}
+			} catch (Exception e) {
+				log.error("Failed to get statistics for " + ds + " - will trigger update.");
+				monitor.triggerUpdate(ds);
+			}
+		}
+	}
+
 	public DataSourceRegistryConfig getConfig() {
 		return config;
 	}
@@ -144,7 +174,8 @@ public class DataSourceRegistryImpl implements DataSourceRegistry {
 //	}
 	
 	public void shutdown() {
-		log.info("Shuting down data source registry...");
+		log.info("Shutting down data source registry...");
+		
 		if (monitor != null)
 			monitor.shutdown(); // statsModel is committed and closed by monitor		
 	}
@@ -326,9 +357,15 @@ public class DataSourceRegistryImpl implements DataSourceRegistry {
 				RDFStatsDataset statsDs = statsModel.getDataset(ds.getSPARQLEndpointURL());
 				if (statsDs == null) {
 					result.add(ds);
-					log.warn("Data source selected as relevant for triple pattern " + new Triple(subject, predicate, object) + " because there a no RDFStats statistics available.");
-				} else 	if (statsDs.triplesForFilteredPattern(subject, predicate, object, filter) > 0)
-					result.add(ds);
+					log.warn("Data source " + ds + " selected as relevant for " + new Triple(subject, predicate, object) + " because there a no RDFStats statistics available.");
+				} else {
+					Long estimate = statsDs.triplesForFilteredPattern(subject, predicate, object, filter);
+					if (estimate == null) {
+						result.add(ds);
+						log.warn("Data source " + ds + " selected as relevant for " + new Triple(subject, predicate, object) + " because the RDFStats dataset failed to calculate a cardinality estimate.");
+					} else if (estimate > 0)
+						result.add(ds);
+				}
 			}
 			return result;
 		} catch (RDFStatsModelException e) {

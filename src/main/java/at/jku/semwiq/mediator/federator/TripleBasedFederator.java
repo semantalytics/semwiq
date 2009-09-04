@@ -24,6 +24,7 @@ import at.jku.semwiq.mediator.registry.UserRegistry;
 import com.hp.hpl.jena.rdf.model.Resource;
 import com.hp.hpl.jena.sparql.algebra.Op;
 import com.hp.hpl.jena.sparql.algebra.Transformer;
+import com.hp.hpl.jena.sparql.util.Context;
 
 /**
  * @author dorgon, Andreas Langegger, al@jku.at
@@ -38,11 +39,7 @@ public class TripleBasedFederator extends FederatorBase {
 		// if (conf != null) ...
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see at.jku.semwiq.mediator.federator.Federator#federate(com.hp.hpl.jena.sparql.algebra.Op)
-	 */
-	public Op federate(Op op) throws FederatorException {
+	public Op federate(Op op, Context context, Long[] estimates) throws FederatorException {
 		try {
 			TripleBasedFederatorTransform transform = new TripleBasedFederatorTransform(this);
 			return Transformer.transform(transform, op);

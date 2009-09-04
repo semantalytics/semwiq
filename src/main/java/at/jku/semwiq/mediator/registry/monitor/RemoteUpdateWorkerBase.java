@@ -16,10 +16,8 @@
 package at.jku.semwiq.mediator.registry.monitor;
 
 import java.io.BufferedInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Calendar;
 import java.util.Date;
@@ -31,13 +29,9 @@ import java.util.zip.ZipInputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import at.jku.rdfstats.RDFStatsDataset;
 import at.jku.rdfstats.RDFStatsModelFactory;
-import at.jku.rdfstats.RDFStatsModelImpl;
-import at.jku.rdfstats.RDFStatsUpdatableModelImpl;
 import at.jku.semwiq.mediator.registry.DataSourceRegistry;
 import at.jku.semwiq.mediator.registry.model.DataSource;
-import at.jku.semwiq.mediator.registry.model.RDFStatsDatasetExt;
 import at.jku.semwiq.mediator.registry.model.RDFStatsUpdatableModelExt;
 
 import com.hp.hpl.jena.rdf.model.Model;
