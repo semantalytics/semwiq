@@ -122,7 +122,7 @@ public class MediatorImpl implements Mediator {
 			throw new MediatorException("Failed to start mediator." + e);
 		}
 		
-		this.userRegistry = new UserRegistryImpl(this.config.getUserRegistryConfig());
+		this.userRegistry = new UserRegistryImpl(this.config.getUserRegistryConfig(), this.store);
 		this.federator = FederatorFactory.create(this.config.getFederatorConfig(), this.registry, this.userRegistry);
 
 		// register mediator query engine and describe handler at ARQ registry

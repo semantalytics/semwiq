@@ -15,6 +15,8 @@
  */
 package at.jku.semwiq.mediator.registry;
 
+import com.hp.hpl.jena.rdf.model.Model;
+
 import at.jku.semwiq.mediator.conf.UserRegistryConfig;
 
 /**
@@ -23,7 +25,7 @@ import at.jku.semwiq.mediator.conf.UserRegistryConfig;
  */
 public class UserRegistryImpl implements UserRegistry {
 
-	public UserRegistryImpl(UserRegistryConfig config) {
+	public UserRegistryImpl(UserRegistryConfig config, Model store) {
 		//...
 	}
 }
