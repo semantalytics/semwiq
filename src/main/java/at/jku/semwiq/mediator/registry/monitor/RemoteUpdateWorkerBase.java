@@ -61,6 +61,9 @@ public abstract class RemoteUpdateWorkerBase extends UpdateWorkerBase {
 	}
 
 	public void checkAndDownload(String statsUrl, RDFStatsUpdatableModelExt stats, Date lastDownload, boolean onlyIfNewer) throws DataSourceMonitorException {
+		if (log.isInfoEnabled())
+			log.info("Checking if update required for statistics of " + ds + "...");
+
 		HttpURLConnection urlConnection;
 		try {
 			URL url = new URL(statsUrl);
@@ -78,7 +81,8 @@ public abstract class RemoteUpdateWorkerBase extends UpdateWorkerBase {
 			throw new DataSourceMonitorException("Failed to connect to " + statsUrl + ".", e);
 		}
 		
-		boolean newer = lastDownload == null || urlConnection.getLastModified() - TIMING_GAP > lastDownload.getTime();
+		long lastModified = urlConnection.getLastModified();
+		boolean newer = lastDownload == null || lastModified == 0 || lastModified - TIMING_GAP > lastDownload.getTime();
 
 		// update if newer or actually older but onlyIfNewer flag not set
 		if (newer || !onlyIfNewer) {

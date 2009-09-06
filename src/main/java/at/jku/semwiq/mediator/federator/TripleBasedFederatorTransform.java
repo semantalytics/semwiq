@@ -65,7 +65,7 @@ public class TripleBasedFederatorTransform extends TransformCopy {
 			
 			Iterator<Triple> tp = opBGP.getPattern().iterator();
 			while (tp.hasNext()) {
-				// include unions over all sites
+				// include unions over data sources for tp
 				Op prevUnionOp = null;
 
 				Triple t = tp.next();

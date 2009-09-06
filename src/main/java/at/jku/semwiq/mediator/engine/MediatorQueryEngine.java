@@ -21,7 +21,9 @@ import org.slf4j.LoggerFactory;
 import at.jku.semwiq.mediator.Constants;
 import at.jku.semwiq.mediator.Mediator;
 import at.jku.semwiq.mediator.dataset.SemWIQDatasetGraph;
+import at.jku.semwiq.mediator.engine.op.OpExecutorSemWIQ;
 
+import com.hp.hpl.jena.query.ARQ;
 import com.hp.hpl.jena.query.Query;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
 import com.hp.hpl.jena.sparql.algebra.Op;
@@ -40,6 +42,8 @@ import com.hp.hpl.jena.sparql.engine.iterator.QueryIterRoot;
 import com.hp.hpl.jena.sparql.engine.iterator.QueryIteratorBase;
 import com.hp.hpl.jena.sparql.engine.iterator.QueryIteratorCheck;
 import com.hp.hpl.jena.sparql.engine.iterator.QueryIteratorWrapper;
+import com.hp.hpl.jena.sparql.engine.main.OpExecutor;
+import com.hp.hpl.jena.sparql.engine.main.OpExecutorFactory;
 import com.hp.hpl.jena.sparql.engine.main.QC;
 import com.hp.hpl.jena.sparql.engine.main.QueryEngineMain;
 import com.hp.hpl.jena.sparql.serializer.QuerySerializer;
@@ -57,6 +61,12 @@ import com.hp.hpl.jena.tdb.graph.GraphFactory;
 
 public class MediatorQueryEngine extends QueryEngineMain {
 	private static final Logger log = LoggerFactory.getLogger(MediatorQueryEngine.class);
+	
+	static {
+		ARQ.setStrictMode();
+		ARQ.getContext().set(ARQ.filterPlacement, true);
+		log.info("ARQ strict mode enabled");
+	}
 	
 	/** Constructor: delegate to QueryEngineMain */
 	public MediatorQueryEngine(Query query, DatasetGraph dataset, Binding initial, Context context) {
@@ -79,6 +89,11 @@ public class MediatorQueryEngine extends QueryEngineMain {
     @Override
     public QueryIterator eval(Op op, DatasetGraph dsg, Binding input, Context context) {
     	// call with empty dataset to prevent ARQ from calling graphBaseFind() infinite loops cause this again create a new query execution on the SemWIQDataset
+
+    	QC.setFactory(context, new OpExecutorFactory() {
+    		public OpExecutor create(ExecutionContext execCxt) { return new OpExecutorSemWIQ(execCxt); }
+    	});
+
     	QueryIterator queryIter = super.eval(op, new DataSourceGraphImpl(), input, context);
     	
     	// intercept moveToNextBinding() in order to measure times

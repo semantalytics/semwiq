@@ -359,7 +359,7 @@ public class DataSourceRegistryImpl implements DataSourceRegistry {
 					result.add(ds);
 					log.warn("Data source " + ds + " selected as relevant for " + new Triple(subject, predicate, object) + " because there a no RDFStats statistics available.");
 				} else {
-					Long estimate = statsDs.triplesForFilteredPattern(subject, predicate, object, filter);
+					Integer estimate = statsDs.triplesForFilteredPattern(subject, predicate, object, filter);
 					if (estimate == null) {
 						result.add(ds);
 						log.warn("Data source " + ds + " selected as relevant for " + new Triple(subject, predicate, object) + " because the RDFStats dataset failed to calculate a cardinality estimate.");

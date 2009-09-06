@@ -62,10 +62,6 @@ public class VoidUpdateWorker extends RemoteUpdateWorkerBase {
 	@Override
 	public void doWork() {
 		try {
-			// update internal existing stats
-			if (log.isInfoEnabled())
-				log.info("Checking if update required for statistics of " + ds + "...");
-
 			// describe service and get void:Dataset URI
 			Model serviceDesc;
 			Query query = QueryFactory.create("DESCRIBE SERVICE", Syntax.syntaxARQ);

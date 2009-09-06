@@ -53,7 +53,7 @@ public class QueryProcessingTaskModel extends QueryProcessingTask<Model, Void> {
 	protected void queryDone() throws InterruptedException, ExecutionException {
 		Model modelResult = get();
 		StringWriter w = new StringWriter();
-		modelResult.write(w);
+		modelResult.write(w, "N3");
 		w.flush();
 		
 		client.getTab().initResultTextArea(w.getBuffer().toString());

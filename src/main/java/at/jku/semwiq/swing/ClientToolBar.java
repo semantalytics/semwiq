@@ -157,7 +157,8 @@ public class ClientToolBar extends JToolBar implements ActionListener {
 			
 		} else if (cmd.equals(Action.CANCEL.toString())) {
 			if (queryProcTask != null && !queryProcTask.isDone())
-				queryProcTask.cancel(false);
+				queryProcTask.cancel(true);
+				
 			
 		} else if (cmd.equals(Action.REGISTER.toString())) {
 			JFileChooser fj = new JFileChooser();
