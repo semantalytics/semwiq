@@ -22,12 +22,15 @@ import at.jku.semwiq.mediator.Constants;
 import at.jku.semwiq.mediator.Mediator;
 import at.jku.semwiq.mediator.dataset.SemWIQDatasetGraph;
 import at.jku.semwiq.mediator.engine.op.OpExecutorSemWIQ;
+import at.jku.semwiq.mediator.federator.FederatorBase;
+import at.jku.semwiq.mediator.federator.TransformOpFederator;
 
 import com.hp.hpl.jena.query.ARQ;
 import com.hp.hpl.jena.query.Query;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
 import com.hp.hpl.jena.sparql.algebra.Op;
 import com.hp.hpl.jena.sparql.algebra.OpAsQuery;
+import com.hp.hpl.jena.sparql.algebra.Transformer;
 import com.hp.hpl.jena.sparql.algebra.opt.Optimize;
 import com.hp.hpl.jena.sparql.core.DataSourceGraphImpl;
 import com.hp.hpl.jena.sparql.core.DatasetGraph;
@@ -62,12 +65,6 @@ import com.hp.hpl.jena.tdb.graph.GraphFactory;
 public class MediatorQueryEngine extends QueryEngineMain {
 	private static final Logger log = LoggerFactory.getLogger(MediatorQueryEngine.class);
 	
-	static {
-		ARQ.setStrictMode();
-		ARQ.getContext().set(ARQ.filterPlacement, true);
-		log.info("ARQ strict mode enabled");
-	}
-	
 	/** Constructor: delegate to QueryEngineMain */
 	public MediatorQueryEngine(Query query, DatasetGraph dataset, Binding initial, Context context) {
 		super(query, dataset, initial, context);
@@ -90,6 +87,10 @@ public class MediatorQueryEngine extends QueryEngineMain {
     public QueryIterator eval(Op op, DatasetGraph dsg, Binding input, Context context) {
     	// call with empty dataset to prevent ARQ from calling graphBaseFind() infinite loops cause this again create a new query execution on the SemWIQDataset
 
+    	ARQ.setStrictMode(context);
+    	context.set(ARQ.filterPlacement, true);
+    	log.info("ARQ strict mode and filterPlacement enabled");
+    	
     	QC.setFactory(context, new OpExecutorFactory() {
     		public OpExecutor create(ExecutionContext execCxt) { return new OpExecutorSemWIQ(execCxt); }
     	});
@@ -129,17 +130,20 @@ public class MediatorQueryEngine extends QueryEngineMain {
 	    	// ARQ optimizations (simplify join identities, delabel, bind expr functions, property functions, break conjunctions, 
 	    	// transform equality filters, filter placement, join/ljoin => sequence/conditional, flatten prop paths
 			long start = System.currentTimeMillis();
-	    	Op opt = Optimize.optimize(op, context);
+	    	
+			Op opt = Optimize.optimize(op, context);
+	    	
 	    	context.set(Constants.EXEC_TIME_OPTIMIZE, System.currentTimeMillis() - start); 
 			context.set(Constants.OP_OPTIMIZED, opt);
 
 			Mediator mediator = ((SemWIQDatasetGraph) dataset).getMediator();
 
 			Long[] estimates = new Long[3]; // collect estimates
-			start = System.currentTimeMillis();
-			Op fed = mediator.getFederator().federate(op, context, estimates);
-			context.set(Constants.EXEC_TIME_FEDERATE, System.currentTimeMillis() - start); 
-			context.set(Constants.OP_FEDERATED, fed);
+			
+			TransformOpFederator transform = new TransformOpFederator(mediator.getFederator());
+			Op fed = Transformer.transform(transform, op);
+			
+//			context.set(Constants.OP_FEDERATED, fed);
 
 			context.set(Constants.ESTIMATED_MIN_RESULTS, estimates[0]);
 			context.set(Constants.ESTIMATED_AVG_RESULTS, estimates[1]);

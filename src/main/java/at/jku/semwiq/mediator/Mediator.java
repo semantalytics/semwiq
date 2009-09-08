@@ -17,6 +17,7 @@ package at.jku.semwiq.mediator;
 
 import at.jku.semwiq.mediator.conf.MediatorConfig;
 import at.jku.semwiq.mediator.federator.Federator;
+import at.jku.semwiq.mediator.federator.FederatorBase;
 import at.jku.semwiq.mediator.registry.DataSourceRegistry;
 import at.jku.semwiq.mediator.registry.UserRegistry;
 
@@ -46,7 +47,7 @@ public interface Mediator {
 	public Model getGlobalStore();
 	
 	/** get federator */
-	public Federator getFederator();
+	public FederatorBase getFederator();
 	
 	/** initiate shutdown */
 	public void shutdown();

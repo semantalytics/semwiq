@@ -129,4 +129,10 @@
 		a ?type ;
 		?p []
 }""" ] ;
+	sq:sampleQuery [
+		sq:queryName "FOAF Persons" ;
+		sq:queryString """SELECT * WHERE {
+	?p a foaf:Person ;
+		foaf:name ?name ; foaf:mbox_sha1sum ?mbox ; dc:publisher ?pub ; dc:date ?date ; rdf:type ?types .
+}""" ] ;
 	.

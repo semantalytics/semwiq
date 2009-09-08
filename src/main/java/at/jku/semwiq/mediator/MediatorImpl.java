@@ -26,6 +26,7 @@ import at.jku.semwiq.mediator.dataset.SemWIQDataset;
 import at.jku.semwiq.mediator.engine.MediatorQueryEngine;
 import at.jku.semwiq.mediator.engine.describe.MediatorDescribeHandlerFactory;
 import at.jku.semwiq.mediator.federator.Federator;
+import at.jku.semwiq.mediator.federator.FederatorBase;
 import at.jku.semwiq.mediator.federator.FederatorFactory;
 import at.jku.semwiq.mediator.registry.DataSourceRegistry;
 import at.jku.semwiq.mediator.registry.DataSourceRegistryManager;
@@ -66,7 +67,7 @@ public class MediatorImpl implements Mediator {
 	private final UserRegistry userRegistry;
 	
 	/** federator */
-	private final Federator federator;
+	private final FederatorBase federator;
 	
 	/** mediator ready and accepting queries? */
 	private boolean isReady = false;
@@ -157,7 +158,7 @@ public class MediatorImpl implements Mediator {
 		return store;
 	}
 	
-	public Federator getFederator() {
+	public FederatorBase getFederator() {
 		return federator;
 	}
 

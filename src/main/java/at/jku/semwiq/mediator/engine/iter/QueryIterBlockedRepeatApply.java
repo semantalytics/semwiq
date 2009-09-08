@@ -13,15 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package at.jku.semwiq.mediator.engine.op;
+package at.jku.semwiq.mediator.engine.iter;
 
 import java.util.NoSuchElementException;
+import java.util.Set;
+
+import at.jku.semwiq.mediator.Constants;
+import at.jku.semwiq.mediator.engine.op.ProjectedBindingsCache;
 
 import com.hp.hpl.jena.sparql.algebra.table.TableN;
+import com.hp.hpl.jena.sparql.core.Var;
 import com.hp.hpl.jena.sparql.engine.ExecutionContext;
 import com.hp.hpl.jena.sparql.engine.QueryIterator;
 import com.hp.hpl.jena.sparql.engine.binding.Binding;
 import com.hp.hpl.jena.sparql.engine.iterator.QueryIter1;
+import com.hp.hpl.jena.sparql.engine.iterator.QueryIterConvert;
 import com.hp.hpl.jena.sparql.engine.iterator.QueryIterRepeatApply;
 import com.hp.hpl.jena.sparql.util.ALog;
 import com.hp.hpl.jena.sparql.util.Utils;
@@ -29,19 +35,28 @@ import com.hp.hpl.jena.sparql.util.Utils;
 /**
  * @author dorgon, Andreas Langegger, al@jku.at
  * 
+ * stage with TableN bindings
+ * initialized with an input or piped TableN
+ * 
+ * fetches {@link Constants#}.BLOCK_SIZE bindings from input for next stage
  */
 public abstract class QueryIterBlockedRepeatApply extends QueryIter1 {
 	private QueryIterator currentStage;
-	public static final int BLOCK_SIZE = 50; // bindings
-
+	private TableN bindings;
+	
+	public QueryIterBlockedRepeatApply(TableN input, ExecutionContext context) {
+		super(null, context);
+		
+		this.currentStage = null;
+		this.bindings = input;
+	}
+	
 	public QueryIterBlockedRepeatApply(QueryIterator input, ExecutionContext context) {
 		super(input, context);
 		this.currentStage = null;
 
 		if (input == null) {
-			ALog
-					.fatal(this,
-							"[QueryIterRepeatApply] Repeated application to null input iterator");
+			ALog.fatal(this, "[QueryIterRepeatApply] Repeated application to null input iterator");
 			return;
 		}
 	}
@@ -50,6 +65,10 @@ public abstract class QueryIterBlockedRepeatApply extends QueryIter1 {
 		return currentStage;
 	}
 
+	protected ProjectedBindingsCache createBindingsCache(TableN table, Set<Var> scopedVars) {
+		return new ProjectedBindingsCache(table, scopedVars);
+	}
+	
 	protected abstract QueryIterator nextStage(TableN bindings);
 
 	@Override
@@ -81,22 +100,21 @@ public abstract class QueryIterBlockedRepeatApply extends QueryIter1 {
 			throw new NoSuchElementException(Utils.className(this)
 					+ ".next()/finished");
 		return currentStage.nextBinding();
-
 	}
 
 	private QueryIterator makeNextStage() {
+		if (bindings != null) // use bindings table
+			return nextStage(bindings);
 
-		if (getInput() == null)
-			return null;
-
+		// otherwise use input iterator and build next TableN
 		if (!getInput().hasNext()) {
 			getInput().close();
 			return null;
 		}
-
+		
 		TableN nextBindings = new TableN();
 		QueryIterator input = getInput();
-		for (int i=0; i<BLOCK_SIZE && input.hasNext(); i++) // will have at least one in final stage
+		for (int i=0; i<Constants.BLOCK_SIZE && input.hasNext(); i++) // will have at least one in final stage cause input has next
 			nextBindings.addBinding(input.next());
 
 		QueryIterator iter = nextStage(nextBindings);

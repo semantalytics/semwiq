@@ -29,7 +29,7 @@ import com.hp.hpl.jena.vocabulary.RDF;
  */
 public class FederatorFactory {
 
-	public static Federator create(FederatorConfig config, DataSourceRegistry dsRegistry, UserRegistry userRegistry) throws ConfigException {
+	public static FederatorBase create(FederatorConfig config, DataSourceRegistry dsRegistry, UserRegistry userRegistry) throws ConfigException {
 		// by default use triple-based federator (if not configured)
 		if (config.getConfigResource() == null)
 			return new TripleBasedFederator(null, dsRegistry, userRegistry);

@@ -95,8 +95,9 @@ public class Constants {
 	
 	public static final Symbol EXEC_TIME_START = Symbol.create("semwiq.time.start"); // long - timestamp [ms]
 	public static final Symbol EXEC_TIME_OPTIMIZE = Symbol.create("semwiq.time.opt"); // long - durations [ms]
-	public static final Symbol EXEC_TIME_FEDERATE = Symbol.create("semwiq.time.fed"); // long [ms]
 	public static final Symbol EXEC_TIME_FIRSTRESULT = Symbol.create("semwiq.time.first");  // long [ms]
 	public static final Symbol EXEC_TIME_ALLRESULTS = Symbol.create("semwiq.time.all");  // long [ms]
+	
+	public static final int BLOCK_SIZE = 200; // bindings
 
 }

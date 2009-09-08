@@ -15,7 +15,14 @@
  */
 package at.jku.semwiq.mediator.federator;
 
+import at.jku.semwiq.mediator.engine.op.OpFederate;
+
+import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.sparql.algebra.Op;
+import com.hp.hpl.jena.sparql.algebra.table.TableN;
+import com.hp.hpl.jena.sparql.engine.ExecutionContext;
+import com.hp.hpl.jena.sparql.engine.QueryIterator;
+import com.hp.hpl.jena.sparql.engine.iterator.QueryIter;
 import com.hp.hpl.jena.sparql.util.Context;
 
 /**
@@ -24,6 +31,6 @@ import com.hp.hpl.jena.sparql.util.Context;
  */
 public interface Federator {
 
-	public Op federate(Op op, Context context, Long[] estimates) throws FederatorException;
+	public QueryIterator federate(QueryIterator input, OpFederate op, ExecutionContext context) throws FederatorException;
 
 }

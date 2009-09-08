@@ -20,9 +20,14 @@ import org.slf4j.LoggerFactory;
 
 import com.hp.hpl.jena.rdf.model.Resource;
 import com.hp.hpl.jena.sparql.algebra.Op;
+import com.hp.hpl.jena.sparql.algebra.table.TableN;
+import com.hp.hpl.jena.sparql.engine.ExecutionContext;
+import com.hp.hpl.jena.sparql.engine.QueryIterator;
+import com.hp.hpl.jena.sparql.engine.iterator.QueryIter;
 import com.hp.hpl.jena.sparql.util.Context;
 
 
+import at.jku.semwiq.mediator.engine.op.OpFederate;
 import at.jku.semwiq.mediator.registry.DataSourceRegistry;
 import at.jku.semwiq.mediator.registry.UserRegistry;
 import at.jku.semwiq.mediator.vocabulary.Config;
@@ -79,8 +84,12 @@ public class InstanceBasedFederator extends FederatorBase {
 	public boolean isSubsumption() {
 		return subsumption;
 	}
-	
-	public Op federate(Op op, Context context, Long[] estimates) throws FederatorException {
+
+	/* (non-Javadoc)
+	 * @see at.jku.semwiq.mediator.federator.Federator#federate(com.hp.hpl.jena.sparql.engine.QueryIterator, at.jku.semwiq.mediator.engine.op.OpFederate, com.hp.hpl.jena.sparql.engine.ExecutionContext)
+	 */
+	public QueryIterator federate(QueryIterator input, OpFederate op, ExecutionContext context) throws FederatorException {
 		throw new FederatorException("Instance-based federation not implemented");
 	}
+	
 }
