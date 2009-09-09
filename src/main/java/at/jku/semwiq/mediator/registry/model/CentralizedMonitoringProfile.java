@@ -53,10 +53,18 @@ public class CentralizedMonitoringProfile extends MonitoringProfile {
 	}
 	
 	/* (non-Javadoc)
+	 * @see at.jku.semwiq.mediator.registry.model.MonitoringProfile#getName()
+	 */
+	@Override
+	public String getName() {
+		return "Centralized monitoring profile";
+	}
+	
+	/* (non-Javadoc)
 	 * @see at.jku.semwiq.mediator.registry.model.MonitoringProfile#toString()
 	 */
 	@Override
 	public String toString() {
-		return "CentralizedMonitoringProfile" + (resource.isURIResource() ? " <" + getUri() + ">" : "");
+		return getName() + (resource.isURIResource() ? " <" + getUri() + ">" : "");
 	}
 }

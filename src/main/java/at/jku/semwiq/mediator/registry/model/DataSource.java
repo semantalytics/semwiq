@@ -24,7 +24,6 @@ import org.slf4j.LoggerFactory;
 
 import at.jku.semwiq.mediator.registry.RegistryException;
 import at.jku.semwiq.mediator.registry.monitor.DataSourceMonitor;
-import at.jku.semwiq.mediator.util.UpdatableResource;
 import at.jku.semwiq.mediator.vocabulary.DCTerms;
 import at.jku.semwiq.mediator.vocabulary.SDV;
 import at.jku.semwiq.mediator.vocabulary.voiD;

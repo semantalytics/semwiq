@@ -21,6 +21,8 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -29,20 +31,27 @@ import javax.swing.JFrame;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 
+import ch.qos.logback.classic.spi.LoggingEvent;
+
+import at.jku.semwiq.log.LogBuffer;
+import at.jku.semwiq.log.LogBufferDispatcher;
+
 /**
  * @author dorgon
  * 
  */
-public class LogDialog extends JDialog implements ActionListener {
+public class LogDialog extends JFrame implements ActionListener {
 	private static final long serialVersionUID = -7350805751327398302L;
 
 	protected final JTextArea logWin;
 	protected final JButton clearButton;
 	protected final JScrollPane scrollLog;
+	protected final LogBuffer buf;
+	protected final Thread receiver;
 
-	public LogDialog(JFrame owner) {
-		super(owner, "Log Window");
-
+	public LogDialog() {
+		super("Log Window");
+		
 		logWin = new JTextArea();
 		logWin.setFont(new Font("Courier", Font.PLAIN, 10));
 		logWin.setEditable(false);
@@ -54,17 +63,36 @@ public class LogDialog extends JDialog implements ActionListener {
 		setLayout(new BorderLayout());
 		scrollLog = new JScrollPane(logWin);
 		scrollLog.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-		scrollLog.setPreferredSize(new Dimension(450, 700));
+		scrollLog.setPreferredSize(new Dimension(800, 400));
 		getContentPane().add(scrollLog, BorderLayout.CENTER);
 		getContentPane().add(clearButton, BorderLayout.PAGE_END);
+
+		buf = LogBufferDispatcher.createLogBuffer();
+		receiver = new Thread() {
+			@Override
+			public void run() {
+				while (true) {
+					LoggingEvent event;
+					try {
+						event = buf.nextEvent();
+						msg(event.getMessage());
+					} catch (InterruptedException e) {
+						break;
+					}
+				}
+			}
+		};
+		receiver.start();
+		
 		pack();
+		setVisible(true);
 	}
 
-	public void msg(String s) {
-		logWin.append(s);
+	private void msg(String msg) {
+		logWin.append(msg + "\n");
 		logWin.setCaretPosition(logWin.getText().length() - 1);
 	}
-
+	
 	public void clearLog() {
 		logWin.setText("");
 	}
@@ -73,4 +101,10 @@ public class LogDialog extends JDialog implements ActionListener {
 		if (e.getActionCommand().equals("CLEAR"))
 			clearLog();
 	}
+
+	public void close() {
+		receiver.interrupt();
+		dispose();
+	}
+
 }

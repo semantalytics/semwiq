@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package at.jku.semwiq.mediator.util;
+package at.jku.semwiq.mediator.registry.model;
 
 import java.util.ArrayList;
 import java.util.List;

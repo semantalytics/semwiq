@@ -53,10 +53,18 @@ public class VoidMonitoringProfile extends MonitoringProfile {
 	}
 	
 	/* (non-Javadoc)
+	 * @see at.jku.semwiq.mediator.registry.model.MonitoringProfile#getName()
+	 */
+	@Override
+	public String getName() {
+		return "voiD monitoring profile";
+	}
+	
+	/* (non-Javadoc)
 	 * @see at.jku.semwiq.mediator.registry.model.MonitoringProfile#toString()
 	 */
 	@Override
 	public String toString() {
-		return "VoidMonitoringProfile" + (resource.isURIResource() ? " <" + getUri() + ">" : "");
+		return getName() + (resource.isURIResource() ? " <" + getUri() + ">" : "");
 	}
 }

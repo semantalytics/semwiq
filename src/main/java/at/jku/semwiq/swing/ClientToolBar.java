@@ -19,6 +19,8 @@ package at.jku.semwiq.swing;
 import java.awt.Cursor;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.FileOutputStream;
@@ -60,6 +62,7 @@ public class ClientToolBar extends JToolBar implements ActionListener {
 		
 		RUN("Run Query", "Runs the query and displays results below."),
 		CANCEL("Cancel", 	"Cancel query processing."),
+		LOG("Logs", "Open log window."),
 
 		STATUPD("Update Statistics", "Update statistics."),
 		REGISTER("Register", "Register multiple data source endpoints from a file-based catalog model."),
@@ -84,9 +87,6 @@ public class ClientToolBar extends JToolBar implements ActionListener {
 
 	protected final SwingApp client;
 
-	/** background tasks */
-	protected QueryProcessingTask queryProcTask = null;
-
 	/** all the buttons for each action */
 	protected Map<Action, JButton> buttons = new Hashtable<Action, JButton>();
 	
@@ -104,6 +104,7 @@ public class ClientToolBar extends JToolBar implements ActionListener {
 		
 		createButton(Action.RUN);
 		createButton(Action.CANCEL);
+		createButton(Action.LOG);
 		add(new JSeparator(JSeparator.VERTICAL));		
 		
 		createButton(Action.STATUPD);
@@ -156,9 +157,12 @@ public class ClientToolBar extends JToolBar implements ActionListener {
 			doQuery(client.getTab().getQuery());
 			
 		} else if (cmd.equals(Action.CANCEL.toString())) {
+			QueryProcessingTask<?, ?> queryProcTask = client.getQueryProcessingTask();
 			if (queryProcTask != null && !queryProcTask.isDone())
 				queryProcTask.cancel(true);
-				
+		
+		} else if (cmd.equals(Action.LOG.toString())) {
+			client.getLogWindow().setVisible(true);
 			
 		} else if (cmd.equals(Action.REGISTER.toString())) {
 			JFileChooser fj = new JFileChooser();
@@ -301,29 +305,16 @@ public class ClientToolBar extends JToolBar implements ActionListener {
 		Query q = QueryFactory.create(query, Syntax.syntaxARQ);
 		
 		if (q.isExplainQuery() || q.isDescribeType() || q.isConstructType())
-			queryProcTask = new QueryProcessingTaskModel(client, q);
+			client.executeQueryProcessingTask(new QueryProcessingTaskModel(client, q));
 		else if (q.isSelectType())
-			queryProcTask = new QueryProcessingTaskResultSet(client, q);
+			client.executeQueryProcessingTask(new QueryProcessingTaskResultSet(client, q));
 		else if (q.isAskType())
-			queryProcTask = new QueryProcessingTaskBoolean(client, q);
+			client.executeQueryProcessingTask(new QueryProcessingTaskBoolean(client, q));
 		
 		client.getProgressBar().setString(null);
 		client.getProgressBar().setValue(0);
 		client.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 		getButton(Action.RUN).setEnabled(false);
-        
-		queryProcTask.addPropertyChangeListener(
-			     new PropertyChangeListener() {
-			         public  void propertyChange(PropertyChangeEvent evt) {
-			        	 // update progress bar
-			             if ("progress".equals(evt.getPropertyName())) {
-			            	 int value = (Integer) evt.getNewValue();
-		            		 client.getProgressBar().setValue(value);
-			             }
-			         }
-			     });
-
-		queryProcTask.execute();
 	}
 
 	/**
@@ -341,5 +332,5 @@ public class ClientToolBar extends JToolBar implements ActionListener {
 		for (JButton b : buttons.values())
 			b.setEnabled(true);
 	}
-
+	
 }

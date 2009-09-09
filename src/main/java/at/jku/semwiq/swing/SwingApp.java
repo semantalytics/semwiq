@@ -20,6 +20,8 @@ import java.awt.BorderLayout;
 import java.awt.Container;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -33,6 +35,7 @@ import javax.swing.SwingWorker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import at.jku.semwiq.log.LogBufferDispatcher;
 import at.jku.semwiq.mediator.Constants;
 import at.jku.semwiq.mediator.Mediator;
 import at.jku.semwiq.mediator.MediatorImpl;
@@ -51,14 +54,18 @@ public class SwingApp extends JFrame implements WindowListener {
 	
 	public static String CAT_OUTPUT_FILE = "exported-catalog.owl";
 
+	private static Mediator mediator;
+	private static GUIConfig config;
+	
+	/** background tasks */
+	protected QueryProcessingTask<?, ?> queryProcTask = null;
+	
 	private final List<QueryTab> qTabs = new ArrayList<QueryTab>();
 	private final ClientToolBar toolBar;
 	private final JTabbedPane tabPane;
 	private final JProgressBar progressBar;
-	
-	private static Mediator mediator;
-	private static GUIConfig config;
-	
+	private LogDialog logWindow = null;
+
 	private static Thread shutdownHook = new Thread() {
 		public void run() {
 			mediator.shutdown();
@@ -85,6 +92,8 @@ public class SwingApp extends JFrame implements WindowListener {
 	public SwingApp() {
 		setTitle(TITLE + " - Loading...");
 
+		LogBufferDispatcher.init(-1);
+
 		setDefaultLookAndFeelDecorated(true);
 		setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 		
@@ -102,6 +111,8 @@ public class SwingApp extends JFrame implements WindowListener {
 		progressBar.setStringPainted(true);
 		pane.add(progressBar, BorderLayout.PAGE_END);
 		
+		logWindow = new LogDialog();
+
 		pack();
 		setSize(getWidth(), 600);
 		setLocationRelativeTo(null);
@@ -165,6 +176,29 @@ public class SwingApp extends JFrame implements WindowListener {
 		return progressBar;
 	}
 	
+	public LogDialog getLogWindow() {
+		return logWindow;
+	}
+	
+	public QueryProcessingTask<?, ?> getQueryProcessingTask() {
+		return queryProcTask;
+	}
+	
+	public void executeQueryProcessingTask(QueryProcessingTask<?, ?> qpTask) {
+		queryProcTask = qpTask;
+		queryProcTask.addPropertyChangeListener(
+			     new PropertyChangeListener() {
+			         public  void propertyChange(PropertyChangeEvent evt) {
+			        	 // update progress bar
+			             if ("progress".equals(evt.getPropertyName())) {
+			            	 int value = (Integer) evt.getNewValue();
+		            		 getProgressBar().setValue(value);
+			             }
+			         }
+			     });
+		queryProcTask.execute();
+	}
+	
 	public QueryTab getTab() {
 		return (QueryTab) tabPane.getSelectedComponent();
 	}
@@ -204,7 +238,11 @@ public class SwingApp extends JFrame implements WindowListener {
 	
 	public void windowActivated(WindowEvent arg0) {}
 
-	public void windowClosed(WindowEvent arg0) {}
+	public void windowClosed(WindowEvent arg0) {
+		if (queryProcTask != null)
+			queryProcTask.cancel(true);
+		logWindow.close();
+	}
 
 	public void windowClosing(WindowEvent arg0) {
 		quit();

@@ -64,10 +64,8 @@ public class QueryProcessingTaskResultSet extends QueryProcessingTask<Long, Quer
 				int val = (int) (100 * (results / (float) estimatedResults));
 				if (val >= 0 && val <= 100)
 					setProgress(val);
-				
-			} else if (results == 1) // once, for first time only
-				 client.getProgressBar().setIndeterminate(true);
 			}
+		}
 
 		return results;
 	}

@@ -22,7 +22,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import at.jku.rdfstats.RDFStatsConfiguration;
-import at.jku.semwiq.mediator.util.WrappedResource;
 import at.jku.semwiq.mediator.vocabulary.SDV;
 
 import com.hp.hpl.jena.rdf.model.ModelFactory;
@@ -155,6 +154,8 @@ public abstract class MonitoringProfile extends WrappedResource {
 		return list;
 	}
 
+	public abstract String getName();
+	
 	@Override
 	public abstract String toString();
 }

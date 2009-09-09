@@ -61,7 +61,7 @@ public class DataSourceMonitorImpl implements DataSourceMonitor {
 		for (DataSource ds : registry.getEnabledDataSources()) {
 			if (startMonitoring(ds, false) && log.isDebugEnabled()) {
 				MonitoringProfile profile = ds.getMonitoringProfile();
-				log.debug("Monitoring " + ds + " every " + profile.getInterval() + " seconds (" + profile.getClass().getName() + ").");
+				log.debug("Monitoring " + ds + " every " + profile.getInterval() + " seconds (" + profile.getName() + ").");
 			}
 		}
 	}
