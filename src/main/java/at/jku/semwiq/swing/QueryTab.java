@@ -142,13 +142,12 @@ public class QueryTab extends JPanel {
 				continue;
 			} else if (n instanceof Resource) {
 				prefix = map.getNsURIPrefix(((Resource) n).getNameSpace());
-				if (prefix == null) {
+				if (prefix == null)
 					values.add("<" + ((Resource) n).getURI() + "> (" + TrackedNode.getProvenanceUri(n.asNode()) + ")");
-				}
 				else
 					values.add(prefix + ":" + ((Resource) n).getLocalName() + " (" + TrackedNode.getProvenanceUri(n.asNode()) + ")");
 			} else if (n instanceof Literal) {
-				values.add(((Literal) n).getLexicalForm());
+				values.add(((Literal) n).getLexicalForm() + " (" + TrackedNode.getProvenanceUri(n.asNode()) + ")");
 			}
 		}
 		resultsTableModel.addRow(values);
