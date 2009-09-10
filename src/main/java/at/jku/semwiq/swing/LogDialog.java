@@ -90,7 +90,7 @@ public class LogDialog extends JFrame implements ActionListener {
 
 	private void msg(String msg) {
 		logWin.append(msg + "\n");
-		logWin.setCaretPosition(logWin.getText().length() - 1);
+		logWin.setCaretPosition(logWin.getText().length() - msg.length());
 	}
 	
 	public void clearLog() {

@@ -19,7 +19,6 @@ package at.jku.semwiq.mediator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import at.jku.rdfstats.test.model.ModelTestPackage;
 import at.jku.semwiq.mediator.conf.ConfigException;
 import at.jku.semwiq.mediator.conf.MediatorConfig;
 import at.jku.semwiq.mediator.dataset.SemWIQDataset;

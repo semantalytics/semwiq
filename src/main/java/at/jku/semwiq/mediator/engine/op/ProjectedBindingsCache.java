@@ -117,25 +117,16 @@ public class ProjectedBindingsCache {
 	 * @return
 	 */
 	public QueryIterator addCachedBindings(QueryIterator iter, ExecutionContext execContext) {
-        return new QueryIterRestoreBinding(iter, this, execContext);
+        return new QueryIterConvert(iter, new ConverterExtendBlock(this), execContext);
 	}
 	
-    class QueryIterRestoreBinding extends QueryIterConvert {
-
-        public QueryIterRestoreBinding(QueryIterator input, ProjectedBindingsCache bindings, ExecutionContext execCxt) {
-            super(input, new ConverterExtendBlock(bindings) , execCxt) ;
-        }
-
-    }
-
     // Extend (with checking) an iterator stream of binding to have a common parent. 
     class ConverterExtendBlock implements QueryIterConvert.Converter {
         private ProjectedBindingsCache parentBindings ;
         
         ConverterExtendBlock(ProjectedBindingsCache parent) { parentBindings = parent ; }
         
-        public Binding convert(Binding b)
-        {
+        public Binding convert(Binding b) {
             if ( parentBindings == null || parentBindings.size() == 0 )
                 return b ;  
             

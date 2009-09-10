@@ -32,11 +32,14 @@ import javax.swing.border.BevelBorder;
 import javax.swing.border.Border;
 import javax.swing.table.DefaultTableModel;
 
+import com.hp.hpl.jena.graph.Node;
+import com.hp.hpl.jena.graph.TrackedNode;
 import com.hp.hpl.jena.query.QuerySolution;
 import com.hp.hpl.jena.rdf.model.Literal;
 import com.hp.hpl.jena.rdf.model.RDFNode;
 import com.hp.hpl.jena.rdf.model.Resource;
 import com.hp.hpl.jena.shared.PrefixMapping;
+import com.hp.hpl.jena.sparql.util.FmtUtils;
 
 public class QueryTab extends JPanel {
 	private static final long serialVersionUID = -135305652119452349L;
@@ -139,10 +142,11 @@ public class QueryTab extends JPanel {
 				continue;
 			} else if (n instanceof Resource) {
 				prefix = map.getNsURIPrefix(((Resource) n).getNameSpace());
-				if (prefix == null)
-					values.add("<" + ((Resource) n).getURI() + ">");
+				if (prefix == null) {
+					values.add("<" + ((Resource) n).getURI() + "> (" + TrackedNode.getProvenanceUri(n.asNode()) + ")");
+				}
 				else
-					values.add(prefix + ":" + ((Resource) n).getLocalName());
+					values.add(prefix + ":" + ((Resource) n).getLocalName() + " (" + TrackedNode.getProvenanceUri(n.asNode()) + ")");
 			} else if (n instanceof Literal) {
 				values.add(((Literal) n).getLexicalForm());
 			}
