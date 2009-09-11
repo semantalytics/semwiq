@@ -22,6 +22,7 @@ import at.jku.semwiq.mediator.Constants;
 import at.jku.semwiq.mediator.Mediator;
 import at.jku.semwiq.mediator.dataset.SemWIQDatasetGraph;
 import at.jku.semwiq.mediator.engine.op.OpExecutorSemWIQ;
+import at.jku.semwiq.mediator.engine.op.ProjectPushdown;
 import at.jku.semwiq.mediator.federator.FederatorBase;
 import at.jku.semwiq.mediator.federator.TransformOpFederator;
 
@@ -132,7 +133,8 @@ public class MediatorQueryEngine extends QueryEngineMain {
 			long start = System.currentTimeMillis();
 	    	
 			Op opt = Optimize.optimize(op, context);
-	    	
+	    	opt = ProjectPushdown.apply(opt);
+
 	    	context.set(Constants.EXEC_TIME_OPTIMIZE, System.currentTimeMillis() - start); 
 			context.set(Constants.OP_OPTIMIZED, opt);
 
@@ -141,7 +143,7 @@ public class MediatorQueryEngine extends QueryEngineMain {
 			Long[] estimates = new Long[3]; // collect estimates
 			
 			TransformOpFederator transform = new TransformOpFederator(mediator.getFederator());
-			Op fed = Transformer.transform(transform, op);
+			Op fed = Transformer.transform(transform, opt);
 			
 //			context.set(Constants.OP_FEDERATED, fed);
 

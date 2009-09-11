@@ -32,14 +32,13 @@ import at.jku.semwiq.mediator.registry.RegistryException;
 public class MediatorInstanceExample {
 
 	public static void main(String[] args) throws ConfigException, MediatorException, RegistryException {
-		Mediator mediator = new MediatorImpl("etc/semwiq-config.ttl");
+		Mediator mediator = new MediatorImpl();
 		mediator.getDataSourceRegistry().getManager().register(ExampleConstants.testEndpoint, ExampleConstants.monitoringProfile);
 		mediator.getDataSourceRegistry().getMonitor().waitUntilFinished();
 		
 		QueryExecution qe = mediator.createQueryExecution("SELECT DISTINCT ?t WHERE { ?s a ?t }");
 		ResultSet r = qe.execSelect();
-		ResultSetFormatter.out(r);
-		
+		ResultSetFormatter.outputAsXML(r);
 		mediator.shutdown();
 	}
 }
