@@ -45,6 +45,7 @@ public class TripleBasedFederator extends FederatorBase {
 		QueryIterator iter = input;
 		for (Iterator<Triple> it = opFed.getPattern().iterator(); it.hasNext(); ) {
 			Triple tp = it.next();
+			// TODO only hand over expressions relevant to tp
 			iter = new QueryIterBlockedUnion(iter, tp, opFed.getExprList(), getDataSourceRegistry(), context);
 		}
 		return iter;

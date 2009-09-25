@@ -52,6 +52,8 @@ public class LogDialog extends JFrame implements ActionListener {
 	public LogDialog() {
 		super("Log Window");
 		
+		setDefaultLookAndFeelDecorated(true);
+
 		logWin = new JTextArea();
 		logWin.setFont(new Font("Courier", Font.PLAIN, 10));
 		logWin.setEditable(false);

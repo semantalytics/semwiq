@@ -101,7 +101,6 @@ public class VoidUpdateWorker extends RemoteUpdateWorkerBase {
 			setUnavailable(ds, false); // remove unavailable flag if existed
 			scheduleNextUpdate(profile.getInterval());
 //			registry.reloadVocabularies(ds);
-
 		} catch (Throwable e) {
 			setUnavailable(ds, true);
 			log.error("Failed to update " + ds + ".", e);

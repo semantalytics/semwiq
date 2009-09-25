@@ -86,8 +86,8 @@ public class MediatorQueryEngine extends QueryEngineMain {
 
     @Override
     public QueryIterator eval(Op op, DatasetGraph dsg, Binding input, Context context) {
-    	// call with empty dataset to prevent ARQ from calling graphBaseFind() infinite loops cause this again create a new query execution on the SemWIQDataset
 
+    	// customized ARQ query engine
     	ARQ.setStrictMode(context);
     	context.set(ARQ.filterPlacement, true);
     	log.info("ARQ strict mode and filterPlacement enabled");
@@ -96,6 +96,7 @@ public class MediatorQueryEngine extends QueryEngineMain {
     		public OpExecutor create(ExecutionContext execCxt) { return new OpExecutorSemWIQ(execCxt); }
     	});
 
+    	// call with empty dataset to prevent ARQ from calling graphBaseFind() infinite loops cause this again create a new query execution on the SemWIQDataset
     	QueryIterator queryIter = super.eval(op, new DataSourceGraphImpl(), input, context);
     	
     	// intercept moveToNextBinding() in order to measure times
@@ -120,6 +121,7 @@ public class MediatorQueryEngine extends QueryEngineMain {
     			return super.moveToNextBinding();
     		}
     	};
+    	
     	return iter;
     }
     
@@ -128,28 +130,21 @@ public class MediatorQueryEngine extends QueryEngineMain {
 		try {
 			context.set(Constants.OP_ORIGINAL, op);
 			
-	    	// ARQ optimizations (simplify join identities, delabel, bind expr functions, property functions, break conjunctions, 
+	    	// optimizations (simplify join identities, delabel, bind expr functions, property functions, break conjunctions, 
 	    	// transform equality filters, filter placement, join/ljoin => sequence/conditional, flatten prop paths
 			long start = System.currentTimeMillis();
-	    	
 			Op opt = Optimize.optimize(op, context);
 	    	opt = ProjectPushdown.apply(opt);
-
 	    	context.set(Constants.EXEC_TIME_OPTIMIZE, System.currentTimeMillis() - start); 
 			context.set(Constants.OP_OPTIMIZED, opt);
 
 			Mediator mediator = ((SemWIQDatasetGraph) dataset).getMediator();
-
-			Long[] estimates = new Long[3]; // collect estimates
-			
 			TransformOpFederator transform = new TransformOpFederator(mediator.getFederator());
 			Op fed = Transformer.transform(transform, opt);
 			
-//			context.set(Constants.OP_FEDERATED, fed);
-
-			context.set(Constants.ESTIMATED_MIN_RESULTS, estimates[0]);
-			context.set(Constants.ESTIMATED_AVG_RESULTS, estimates[1]);
-			context.set(Constants.ESTIMATED_MAX_RESULTS, estimates[2]);
+//			context.set(Constants.ESTIMATED_MIN_RESULTS, estimates[0]);
+//			context.set(Constants.ESTIMATED_AVG_RESULTS, estimates[1]);
+//			context.set(Constants.ESTIMATED_MAX_RESULTS, estimates[2]);
 
 			return fed;
 		} catch (Exception e) {

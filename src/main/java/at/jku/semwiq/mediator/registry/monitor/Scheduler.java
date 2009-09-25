@@ -15,9 +15,8 @@
  */
 package at.jku.semwiq.mediator.registry.monitor;
 
-import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author dorgon
@@ -27,36 +26,10 @@ public class Scheduler extends ScheduledThreadPoolExecutor {
 
 	/**
 	 * @param corePoolSize
-	 * @param handler
-	 */
-	public Scheduler(int corePoolSize,
-			RejectedExecutionHandler handler) {
-		super(corePoolSize, handler);
-	}
-
-	/**
-	 * @param corePoolSize
-	 * @param threadFactory
-	 * @param handler
-	 */
-	public Scheduler(int corePoolSize, ThreadFactory threadFactory,
-			RejectedExecutionHandler handler) {
-		super(corePoolSize, threadFactory, handler);
-	}
-
-	/**
-	 * @param corePoolSize
-	 * @param threadFactory
-	 */
-	public Scheduler(int corePoolSize, ThreadFactory threadFactory) {
-		super(corePoolSize, threadFactory);
-	}
-
-	/**
-	 * @param corePoolSize
 	 */
 	public Scheduler(int corePoolSize) {
 		super(corePoolSize);
+		setKeepAliveTime(5, TimeUnit.SECONDS);
 	}
 
 	/**
@@ -65,5 +38,5 @@ public class Scheduler extends ScheduledThreadPoolExecutor {
 	public int getActiveCount() {
 		return super.getActiveCount();
 	}
-
+	
 }

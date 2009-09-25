@@ -17,6 +17,7 @@
 package at.jku.semwiq.mediator.registry.monitor;
 
 import java.util.HashSet;
+import java.util.Hashtable;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -42,22 +43,21 @@ import com.hp.hpl.jena.rdf.model.Model;
 public class DataSourceMonitorImpl implements DataSourceMonitor {
 	private static final Logger log = LoggerFactory.getLogger(DataSourceMonitorImpl.class);
 	
-	public static final int CONCURRENT_WORKERS = 10;
+	public static final int CONCURRENT_WORKERS = 2;
 	
 	private final DataSourceRegistry registry;
-	private final RDFStatsConfiguration globalConf;
 	private final Scheduler scheduler;
 
-	private final ConcurrentMap<DataSource, UpdateWorkerBase> workerReferences;
+	private final ConcurrentHashMap<DataSource, UpdateWorkerBase> workerReferences;
 	
 	public DataSourceMonitorImpl(DataSourceRegistry registry) {
 		this.registry = registry;
-		this.globalConf = registry.getConfig().getRdfStatsConfig();
 		this.workerReferences = new ConcurrentHashMap<DataSource, UpdateWorkerBase>();
 		this.scheduler = new Scheduler(CONCURRENT_WORKERS);
 	}
 
 	public void start() throws RegistryException {
+		// start monitoring all enabled data sources
 		for (DataSource ds : registry.getEnabledDataSources()) {
 			if (startMonitoring(ds, false) && log.isDebugEnabled()) {
 				MonitoringProfile profile = ds.getMonitoringProfile();
@@ -112,7 +112,7 @@ public class DataSourceMonitorImpl implements DataSourceMonitor {
 	 * @param ds
 	 * @return
 	 */
-	private synchronized boolean isMonitoring(DataSource ds) {
+	private boolean isMonitoring(DataSource ds) {
 		return workerReferences.containsKey(ds);
 	}
 	
@@ -128,7 +128,7 @@ public class DataSourceMonitorImpl implements DataSourceMonitor {
 	/* (non-Javadoc)
 	 * @see at.faw.semwiq.mediator.registry.monitor.DataSourceMonitor#isUpdating()
 	 */
-	public synchronized boolean isUpdating() {
+	public boolean isUpdating() {
 		return scheduler.getActiveCount() > 0;
 	}
 	
@@ -144,11 +144,13 @@ public class DataSourceMonitorImpl implements DataSourceMonitor {
 	 */
 	public void shutdown() {
 		log.info("Shutting down data source monitor...");
-		scheduler.shutdown();
+		scheduler.shutdownNow();
 		
 		// wait for update to complete
-		if (isUpdating())
+		if (isUpdating()) {
 			log.info("Update of a datasource is still in progress. Waiting for update to complete...");
+		}
+		
 		while (isUpdating()) {
 			try { Thread.sleep(100); } catch (InterruptedException ignore) {}
 		}		
