@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="sparkler" default="jar" basedir=".">
+    <description>
+    	SemWIQ endpoint build file (part of SemWIQ, http://semwiq.sourcefourge.net)
+    </description>
+
+	
+<!-- properties for source and target directories -->
+	
+	<property name="java.sourcedir" value="src" />
+	<property name="java.sourcedir.interface" value="src-interface" />
+	<property name="lib.dir" value="lib" />
+
+	<property name="java.builddir" value="build" />
+	<property name="target.dir" value="${lib.dir}" />
+
+	<target name="compose-classpaths">
+	    <path id="classpath">
+	    	<fileset dir="${lib.dir}">
+	    	    <include name="**/*.jar"/>
+	    	</fileset>
+		</path>
+		<pathconvert property="classpath" refid="classpath" pathsep=" " dirsep="/" />		
+	</target>
+	
+<!-- building -->
+
+	<target name="build" depends="compose-classpaths">
+		<mkdir dir="${java.builddir}" />
+		<javac srcdir="${java.sourcedir.interface}"
+			destdir="${java.builddir}"
+			classpathref="classpath"
+			verbose="on"
+			deprecation="on"
+			debug="on"
+			target="1.5"
+		/>
+		<copy todir="${java.builddir}">
+			<fileset dir="${java.sourcedir.interface}"
+				excludes="**/*.java" />
+		</copy>
+			
+		<javac srcdir="${java.sourcedir}"
+			destdir="${java.builddir}"
+			classpathref="classpath"
+			verbose="on"
+			deprecation="on"
+			debug="on"
+			target="1.5"
+		/>
+		<copy todir="${java.builddir}">
+			<fileset dir="${java.sourcedir}"
+				excludes="**/*.java" />
+		</copy>
+	</target>
+	
+	<target name="clean">
+		<delete dir="${java.builddir}" />
+		<mkdir dir="${java.builddir}" />
+	</target>
+	
+	<target name="jar" depends="build,rmic">
+		<jar destfile="${target.dir}/semwiq-rmi-interface.jar" index="true">
+			<fileset dir="${java.builddir}">
+	    		<include name="at/jku/semwiq/rmi/*"/>
+				<include name="**/*_Stub.class" />
+			</fileset>
+		</jar>
+		<jar destfile="${target.dir}/semwiq-endpoint.jar" index="true">
+			<fileset dir="${java.builddir}">
+				<include name="**/*"/>
+	    		<exclude name="at/jku/semwiq/rmi/*"/>
+			</fileset>
+		</jar>
+	</target>
+
+	<target name="rmic" depends="compose-classpaths,build">
+		<rmic classname="at.jku.semwiq.endpoint.daemon.EndpointDaemonImpl" base="${java.builddir}" classpathref="classpath" debug="true" />
+	</target>
+</project>
