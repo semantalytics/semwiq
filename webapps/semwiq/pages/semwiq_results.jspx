@@ -1,0 +1,105 @@
+<f:view xmlns:jsp="http://java.sun.com/JSP/Page"
+		xmlns:f="http://java.sun.com/jsf/core"
+        xmlns:h="http://java.sun.com/jsf/html"
+        xmlns:ice="http://www.icesoft.com/icefaces/component">
+    <html>
+    <head>
+		<title>SemWIQ</title>
+		<link rel="stylesheet" type="text/css" href="./css/semwiq_style.css"/>
+   	</head>
+    <body bgcolor="white">
+		<div id="semwiqHeader"> 
+	        <table width="100%" cellpadding="0" cellspacing="0"> 
+	            <tr> 
+	                <td valign="top"> 
+	                    <table width="100%" cellpadding="0" cellspacing="0"> 
+	                        <tr> 
+	                            <td background="images/semwiq_webapp_headerback.gif"><img src="images/semwiq_webapp_headerlogo.gif"/></td> 
+	                        </tr> 
+	                    </table> 
+	                </td> 
+	            </tr> 
+	        </table> 
+	    </div>
+
+		<ice:form id="semwiq_navigationForm" styleClass="pageNavigation">
+			<ice:panelGrid columns="8" width="100%" columnClasses="#{loginPopupHandler.columnClasses}">
+				<ice:commandButton id="semwiq_navigation_querybrowser" image="images/button_querybuilder.gif" action="navigation_querybrowser"></ice:commandButton>
+				<ice:commandButton id="semwiq_navigation_source" image="images/button_query.gif" action="navigation_source"></ice:commandButton>
+				<ice:commandButton id="semwiq_navigation_information" image="images/button_datasources.gif" action="#{informationHandler.navigationInformation}"></ice:commandButton>
+				<ice:commandButton id="semwiq_navigation_administration" image="images/button_administration.gif" action="#{loginPopupHandler.openPopup}" rendered="#{loginPopupHandler.normalNavRender}"></ice:commandButton>
+				<!-- <ice:commandButton id="semwiq_navigation_administration" image="images/button_administration_catalog.gif" action="#{loginPopupHandler.openPopup}" rendered="#{loginPopupHandler.adminNavRender}"></ice:commandButton>  -->
+				<ice:commandButton id="semwiq_navigation_admin_maintainance" image="images/button_administration_maintenance.gif" action="navigation_admin_maintainance" rendered="#{loginPopupHandler.adminNavRender}"></ice:commandButton>
+				<ice:commandButton id="semwiq_navigation_admin_configuration" image="images/button_administration_configuration.gif" action="navigation_admin_configuration" rendered="#{loginPopupHandler.adminNavRender}"></ice:commandButton>
+				<ice:commandButton id="semwiq_navigation_admin_logout" image="images/button_administration_logout.gif" action="#{loginPopupHandler.logout}" rendered="#{loginPopupHandler.adminNavRender}"></ice:commandButton>
+				<ice:panelGroup style="text-align: right;">
+					<ice:outputText value="logged in as: " />
+					<ice:outputText value="#{loginPopupHandler.accountName}" />
+				</ice:panelGroup>
+			</ice:panelGrid>
+		</ice:form>
+
+		<ice:form>
+			<ice:panelPopup modal="true" 
+							visible="#{loginPopupHandler.visible}" 
+							styleClass="icePanelPopup"
+							autoCentre="true" >
+                <f:facet name="header">
+	                    <ice:panelGrid width="100%" cellpadding="0" cellspacing="0" columns="2" styleClass="icePanelPopupHeader">
+	                        <ice:outputText value="user authentication"/>
+							<ice:commandButton value="X" action="#{loginPopupHandler.closePopup}" title="Close this draggable popup"/>
+	                    </ice:panelGrid>
+                </f:facet>
+                
+                <f:facet name="body">
+						<ice:panelGroup>
+		                    <ice:panelGrid width="100%" cellpadding="0" cellspacing="0" columns="2" styleClass="icePanelPopupBody">
+		                        <!-- <ice:outputText value="username: "/>
+								<ice:inputText value="#{loginPopupHandler.userName}"/> -->
+		                        <ice:outputText value="password: "/>
+								<ice:inputSecret value="#{loginPopupHandler.userPassword}"/>
+		                    </ice:panelGrid>
+						<ice:commandButton value="login" action="#{loginPopupHandler.verifyUser}" style="text-align: center"/>
+						</ice:panelGroup>
+                </f:facet>
+            </ice:panelPopup>
+		</ice:form>
+	
+
+		<div id="semwiqSourcePanel">
+			<ice:panelGroup styleClass="pageBody">
+			    <ice:form partialSubmit="true">
+			    	<ice:dataTable frame="box"
+			                       	var="rowItem"
+			                       	value="#{sourceHandler.rowModel}" 
+									style="width: 700px">
+						            <ice:columns value="#{sourceHandler.columnsModel}" var="columnItem">
+										<ice:outputText value="#{sourceHandler.entryItem}" />
+						            </ice:columns>
+					</ice:dataTable>
+
+					<a href="/downloadFile">save file</a>
+			    </ice:form>
+
+				<ice:panelGroup style="position:absolute; top:620px">
+					<ice:panelGrid columns="3" style="top: 700px">
+						<ice:outputLink value="http://www.faw.jku.at/">
+							<ice:outputText value="Institute for Application-Oriented Knowledge Processing (FAW)" />
+						</ice:outputLink>
+						<ice:outputText value=", " />
+						<ice:outputLink value="http://www.jku.at/">
+							<ice:outputText value="Johannes Kepler University Linz" />
+						</ice:outputLink>
+					</ice:panelGrid>
+				</ice:panelGroup>
+
+			</ice:panelGroup>
+		</div>
+    </body>
+    </html>
+</f:view>
+
+
+
+
+

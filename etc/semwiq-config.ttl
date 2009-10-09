@@ -1,0 +1,138 @@
+# SemWIQ configuration file
+@prefix rdfs:   <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xsd:    <http://www.w3.org/2001/XMLSchema#> .
+@prefix sq:     <http://purl.org/semwiq/mediator/config#> .
+@prefix rsc:	<http://purl.org/rdfstats/config#> .
+@prefix ja:     <http://jena.hpl.hp.com/2005/11/Assembler#> .
+@prefix tdb:     <http://jena.hpl.hp.com/2008/tdb#> .
+@prefix sdb:      <http://jena.hpl.hp.com/2007/sdb#> .
+@prefix :       <http://example.com/configuration#> .
+
+[] ja:loadClass "com.hp.hpl.jena.tdb.TDB" .
+# [] ja:loadClass "com.hp.hpl.jena.sdb.SDB" .
+# sdb:DatasetStore rdfs:subClassOf ja:RDFDataset .
+
+:config a sq:MediatorConfig ;
+	sq:adminPassword			"semwiq" ;
+	sq:store [
+		a tdb:GraphTDB ;
+		tdb:location "data/semwiq" ;
+# SDB (very slow, but stable)
+# a sdb:Model ;
+# sdb:dataset :statsDataset ;
+# File Model (loaded into RAM, not feasible for large statistics especially if including instance URIs)
+# a ja:FileModel ;
+# ja:directory <file:../data> ;
+#   ja:modelName "rdfstats.nt"
+	] ;
+	sq:guiConfig :gui ;
+	.
+
+:statsDataset rdf:type sdb:DatasetStore ;
+    sdb:store [
+    	a sdb:Store ;
+     	sdb:layout         "layout2" ;
+     	sdb:connection     :statsConn ;
+    ]
+    .
+
+:statsConn rdf:type sdb:SDBConnection ;
+     sdb:sdbType        "mysql" ;
+     sdb:driver         "com.mysql.jdbc.Driver" ;
+     sdb:jdbcURL        "jdbc:mysql://localhost/semwiq_stats" ;
+     sdb:sdbUser        "root" ;
+     sdb:sdbPassword    "" ;
+     .
+
+:gui a sq:GUIConfiguration ;
+	sq:prefixMapping [
+		sq:prefix "rdf" ;
+		sq:namespace <http://www.w3.org/1999/02/22-rdf-syntax-ns#> ] ;
+	sq:prefixMapping [
+		sq:prefix "rdfs" ;
+		sq:namespace <http://www.w3.org/2000/01/rdf-schema#> ] ;
+	sq:prefixMapping [
+		sq:prefix "xsd" ;
+		sq:namespace <http://www.w3.org/2001/XMLSchema#> ] ;
+	sq:prefixMapping [
+		sq:prefix "owl" ;
+		sq:namespace <http://www.w3.org/2002/07/owl#> ] ;
+	sq:prefixMapping [
+		sq:prefix "dc" ;
+		sq:namespace <http://purl.org/dc/elements/1.1/> ] ;
+	sq:prefixMapping [
+		sq:prefix "foaf" ;
+		sq:namespace <http://xmlns.com/foaf/0.1/> ] ;
+	sq:prefixMapping [
+		sq:prefix "vcard" ;
+		sq:namespace <http://www.w3.org/2006/vcard/ns#> ] ;
+	sq:prefixMapping [
+		sq:prefix "sci" ;
+		sq:namespace <http://semwiq.sourceforge.net/vocab/global/science/science.owl#> ] ;
+	sq:prefixMapping [
+		sq:prefix "obs" ;
+		sq:namespace <http://semwiq.sourceforge.net/vocab/global/science/observation.owl#> ] ;
+	sq:prefixMapping [
+		sq:prefix "sobs" ;
+		sq:namespace <http://semwiq.sourceforge.net/vocab/global/science/astronomy/solar-observation.owl#> ] ;
+	sq:sampleQuery [
+		sq:queryName "Sunspots/Otruba" ;
+		sq:queryString """SELECT ?dt ?groups ?spots ?r ?fn ?sn WHERE {
+	?s a sobs:SunspotRelativeNumbers ;
+		obs:dateTime ?dt ;
+		sobs:groups ?groups ;
+		sobs:spots ?spots ;
+		sobs:rValue ?r ;
+		dc:creator ?obs .
+	?obs a obs:Observer ;
+		foaf:firstName ?fn ;
+		foaf:surname ?sn ;
+	FILTER (?fn = "Wolfgang" && ?sn = "Otruba")
+}""" ] ;
+	sq:sampleQuery [
+		sq:queryName "Observers" ;
+		sq:queryString """SELECT ?obs ?fname ?sname ?em WHERE {
+	?obs a obs:Observer ;
+		foaf:surname ?sname ;
+		foaf:firstName ?fname .
+	OPTIONAL { ?obs foaf:mbox ?em }
+}""" ] ;
+	sq:sampleQuery [
+		sq:queryName "Sunspots+Observer" ;
+		sq:queryString """SELECT ?dt ?spots ?groups ?r ?fname ?sname ?em WHERE {
+	?s a sobs:SunspotRelativeNumbers ;
+		sobs:groups ?groups ;
+		sobs:spots ?spots ;
+		sobs:rValue ?r ;
+		obs:dateTime ?dt ;
+		dc:creator ?obs .
+		FILTER (?dt > "2006-01-01T00:00:00Z"^^xsd:dateTime && ?dt < "2006-01-01T00:00:00Z"^^xsd:dateTime)
+		?obs a obs:Observer ;
+			foaf:surname ?sname ;
+			foaf:firstName ?fname .
+		OPTIONAL { ?obs foaf:mbox ?em . }
+}""" ] ;
+	sq:sampleQuery [
+		sq:queryName "100 KSO only" ;
+		sq:queryString """SELECT * WHERE {
+	?s a sobs:SunspotRelativeNumbers ;
+		sobs:groups ?groups ;
+		sobs:spots ?spots ;
+		dc:creator ?obs ;
+		obs:site <http://ramses.faw.uni-linz.ac.at:8081/resource/SolarObservationSite_KSO> .
+} LIMIT 100""" ] ;
+	sq:sampleQuery [
+		sq:queryName "bnodes" ;
+		sq:queryString """SELECT DISTINCT * WHERE {
+	[] a obs:ScientificObservation ;
+		a ?type ;
+		?p []
+}""" ] ;
+	sq:sampleQuery [
+		sq:queryName "FOAF Persons" ;
+		sq:queryString """SELECT * WHERE {
+	?p a foaf:Person ;
+		foaf:name ?name ; foaf:mbox_sha1sum ?mbox ; dc:publisher ?pub ; dc:date ?date ; rdf:type ?types .
+}""" ] ;
+	.
