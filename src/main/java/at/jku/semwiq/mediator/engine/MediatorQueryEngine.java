@@ -23,16 +23,29 @@ import at.jku.semwiq.mediator.Mediator;
 import at.jku.semwiq.mediator.dataset.SemWIQDatasetGraph;
 import at.jku.semwiq.mediator.engine.op.OpExecutorSemWIQ;
 import at.jku.semwiq.mediator.engine.op.ProjectPushdown;
+import at.jku.semwiq.mediator.engine.op.TransformFilteredBGP;
 import at.jku.semwiq.mediator.federator.FederatorBase;
-import at.jku.semwiq.mediator.federator.TransformOpFederator;
 
 import com.hp.hpl.jena.query.ARQ;
 import com.hp.hpl.jena.query.Query;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
 import com.hp.hpl.jena.sparql.algebra.Op;
 import com.hp.hpl.jena.sparql.algebra.OpAsQuery;
+import com.hp.hpl.jena.sparql.algebra.OpWalker;
 import com.hp.hpl.jena.sparql.algebra.Transformer;
+import com.hp.hpl.jena.sparql.algebra.op.OpLabel;
+import com.hp.hpl.jena.sparql.algebra.opt.FilterPushdown;
+import com.hp.hpl.jena.sparql.algebra.opt.OpVisitorExprPrepare;
 import com.hp.hpl.jena.sparql.algebra.opt.Optimize;
+import com.hp.hpl.jena.sparql.algebra.opt.TransformEqualityFilter;
+import com.hp.hpl.jena.sparql.algebra.opt.TransformFilterImprove;
+import com.hp.hpl.jena.sparql.algebra.opt.TransformFilterPlacement;
+import com.hp.hpl.jena.sparql.algebra.opt.TransformJoinStrategy;
+import com.hp.hpl.jena.sparql.algebra.opt.TransformPathFlattern;
+import com.hp.hpl.jena.sparql.algebra.opt.TransformPropertyFunction;
+import com.hp.hpl.jena.sparql.algebra.opt.TransformRemoveLabels;
+import com.hp.hpl.jena.sparql.algebra.opt.TransformSimplify;
+import com.hp.hpl.jena.sparql.algebra.opt.TransformThetaJoins;
 import com.hp.hpl.jena.sparql.core.DataSourceGraphImpl;
 import com.hp.hpl.jena.sparql.core.DatasetGraph;
 import com.hp.hpl.jena.sparql.core.Substitute;
@@ -89,8 +102,7 @@ public class MediatorQueryEngine extends QueryEngineMain {
 
     	// customized ARQ query engine
     	ARQ.setStrictMode(context);
-    	context.set(ARQ.filterPlacement, true);
-    	log.info("ARQ strict mode and filterPlacement enabled");
+    	log.info("ARQ strict mode enabled");
     	
     	QC.setFactory(context, new OpExecutorFactory() {
     		public OpExecutor create(ExecutionContext execCxt) { return new OpExecutorSemWIQ(execCxt); }
@@ -130,18 +142,20 @@ public class MediatorQueryEngine extends QueryEngineMain {
 		try {
 			context.set(Constants.OP_ORIGINAL, op);
 			
-	    	// optimizations (simplify join identities, delabel, bind expr functions, property functions, break conjunctions, 
-	    	// transform equality filters, filter placement, join/ljoin => sequence/conditional, flatten prop paths
+	    	// optimizations:
+			// - break conjunctions, transform equality filters, join/ljoin => sequence/conditional, flatten prop paths
+			// - BUT NO filter placement => increases amount of BGPs, instead use OpFilteredBGP
+			// - push down projections
 			long start = System.currentTimeMillis();
-			Op opt = Optimize.optimize(op, context);
-	    	opt = ProjectPushdown.apply(opt);
-	    	context.set(Constants.EXEC_TIME_OPTIMIZE, System.currentTimeMillis() - start); 
-			context.set(Constants.OP_OPTIMIZED, opt);
+			Op opt = preOptimize(op);
+	    	context.set(Constants.EXEC_TIME_PREOPTIMIZE, System.currentTimeMillis() - start); 
+			context.set(Constants.OP_PREOPTIMIZED, opt);
 
+			// federate
 			Mediator mediator = ((SemWIQDatasetGraph) dataset).getMediator();
-			TransformOpFederator transform = new TransformOpFederator(mediator.getFederator());
-			Op fed = Transformer.transform(transform, opt);
-			
+			Op fed = mediator.getFederator().federate(op);
+
+// TODO provide estimates
 //			context.set(Constants.ESTIMATED_MIN_RESULTS, estimates[0]);
 //			context.set(Constants.ESTIMATED_AVG_RESULTS, estimates[1]);
 //			context.set(Constants.ESTIMATED_MAX_RESULTS, estimates[2]);
@@ -152,6 +166,23 @@ public class MediatorQueryEngine extends QueryEngineMain {
 		}
 	}
 	
+	/**
+	 * @param op
+	 * @return
+	 */
+	private Op preOptimize(Op op) {
+        op = Transformer.transform(new TransformFilterImprove(), op) ;
+        // push filters down before BGP (applied top-down) => also increases chances to apply Filter Equality
+        op = FilterPushdown.apply(op);
+        // done by pushdown already: op = Transformer.transfor(new TransformFlattenFilters(), op) ;
+        op = Transformer.transform(new TransformEqualityFilter(), op) ;
+        op = Transformer.transform(new TransformJoinStrategy(context), op) ;
+        op = Transformer.transform(new TransformThetaJoins(), op);
+    	op = Transformer.transform(new TransformFilteredBGP(), op);
+    	op = ProjectPushdown.apply(op);
+        return op ;
+	}
+
 	static public QueryEngineFactory getFactory() {
 		return factory;
 	}

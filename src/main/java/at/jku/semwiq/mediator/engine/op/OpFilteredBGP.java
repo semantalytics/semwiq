@@ -13,17 +13,40 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package at.jku.semwiq.mediator.federator;
+package at.jku.semwiq.mediator.engine.op;
 
-import com.hp.hpl.jena.sparql.algebra.Op;
+import com.hp.hpl.jena.sparql.algebra.op.OpBGP;
+import com.hp.hpl.jena.sparql.algebra.op.OpFilter;
+import com.hp.hpl.jena.sparql.core.BasicPattern;
+import com.hp.hpl.jena.sparql.expr.Expr;
+import com.hp.hpl.jena.sparql.expr.ExprList;
 
 /**
  * @author dorgon, Andreas Langegger, al@jku.at
  *
  */
-public interface Federator {
+public class OpFilteredBGP extends OpBGP {
+	protected OpFilter filterRef;
+	
+	public OpFilteredBGP() {
+		super();
+	}
+	
+	public OpFilteredBGP(BasicPattern pattern) {
+		super(pattern);
+	}
 
-	public Op federate(Op op) throws FederatorException;
-//	public QueryIterator federate(QueryIterator input, OpFederate op, ExecutionContext context) throws FederatorException;
-
+	/**
+	 * @param filterRef the filterRef to set
+	 */
+	public void setFilterReference(OpFilter filterRef) {
+		this.filterRef = filterRef;
+	}
+	
+	/**
+	 * @return the filterRef
+	 */
+	public OpFilter getFilterReference() {
+		return filterRef;
+	}
 }

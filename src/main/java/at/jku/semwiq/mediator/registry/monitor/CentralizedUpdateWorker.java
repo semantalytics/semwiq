@@ -38,8 +38,8 @@ public class CentralizedUpdateWorker extends UpdateWorkerBase {
 	/**
 	 * 
 	 */
-	public CentralizedUpdateWorker(DataSource ds, DataSourceRegistry reg, CentralizedMonitoringProfile profile) {
-		super(ds, reg);
+	public CentralizedUpdateWorker(DataSource ds, DataSourceMonitorImpl monitor, DataSourceRegistry reg, CentralizedMonitoringProfile profile) {
+		super(ds, monitor, reg);
 		this.profile = profile;
 	}
 	

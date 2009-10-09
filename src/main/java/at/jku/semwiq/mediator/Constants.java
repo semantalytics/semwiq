@@ -86,7 +86,8 @@ public class Constants {
 	// query execution context symbols
 	public static final Symbol QUERY = Symbol.create("semwiq.query"); // Query
 	public static final Symbol OP_ORIGINAL = Symbol.create("semwiq.plan.orig"); // Op
-	public static final Symbol OP_OPTIMIZED = Symbol.create("semwiq.plan.opt");
+	public static final Symbol OP_PREOPTIMIZED = Symbol.create("semwiq.plan.preopt");
+	public static final Symbol OP_POSTOPTIMIZED = Symbol.create("semwiq.plan.postopt");
 	public static final Symbol OP_FEDERATED = Symbol.create("semwiq.plan.fed");
 	
 	public static final Symbol ESTIMATED_MIN_RESULTS = Symbol.create("semwiq.estimate.min");		// Long, possibly null
@@ -94,10 +95,13 @@ public class Constants {
 	public static final Symbol ESTIMATED_MAX_RESULTS = Symbol.create("semwiq.estimate.max");		// Long, possibly null
 	
 	public static final Symbol EXEC_TIME_START = Symbol.create("semwiq.time.start"); // long - timestamp [ms]
-	public static final Symbol EXEC_TIME_OPTIMIZE = Symbol.create("semwiq.time.opt"); // long - durations [ms]
+	public static final Symbol EXEC_TIME_PREOPTIMIZE = Symbol.create("semwiq.time.preopt"); // long - durations [ms]
+	public static final Symbol EXEC_TIME_POSTOPTIMIZE = Symbol.create("semwiq.time.postopt"); // long - durations [ms]
 	public static final Symbol EXEC_TIME_FIRSTRESULT = Symbol.create("semwiq.time.first");  // long [ms]
 	public static final Symbol EXEC_TIME_ALLRESULTS = Symbol.create("semwiq.time.all");  // long [ms]
 	
 	public static final int BLOCK_SIZE = 200; // bindings
+	
+	public static final String DEFAULT_SUPERUSER_PASSWORD = "semwiq";
 
 }

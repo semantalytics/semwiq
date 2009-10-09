@@ -43,11 +43,8 @@
   	<level value="OFF"/>
   </logger>
   
-  <logger name="at.jku.semwiq.mediator.optimizer">
-    <level value="INFO"/>
-  </logger>
-  <logger name="at.jku.semwiq.mediator.registry">
-    <level value="INFO"/>
+  <logger name="at.jku.semwiq.mediator">
+    <level value="DEBUG"/>
   </logger>
   <logger name="at.jku.semwiq">
     <level value="INFO"/>
@@ -63,6 +60,9 @@
   </logger>
   <logger name="com.hp.hpl.jena">
     <level value="INFO"/>
+  </logger>
+  <logger name="com.hp.hpl.jena.sparql.engine.http">
+    <level value="DEBUG"/>
   </logger>
   <logger name="org.mortbay">
     <level value="INFO"/>

@@ -56,8 +56,8 @@ public abstract class RemoteUpdateWorkerBase extends UpdateWorkerBase {
 	/**
 	 * constructor
 	 */
-	public RemoteUpdateWorkerBase(DataSource ds, DataSourceRegistry reg) {
-		super(ds, reg);
+	public RemoteUpdateWorkerBase(DataSource ds, DataSourceMonitorImpl monitor, DataSourceRegistry reg) {
+		super(ds, monitor, reg);
 	}
 
 	public void checkAndDownload(String statsUrl, RDFStatsUpdatableModelExt stats, Date lastDownload, boolean onlyIfNewer) throws DataSourceMonitorException {
@@ -88,14 +88,14 @@ public abstract class RemoteUpdateWorkerBase extends UpdateWorkerBase {
 		if (newer || !onlyIfNewer) {
 			Model newStats = retrieveModelData(urlConnection, ds);
 			Date retrievedTimestamp = Calendar.getInstance().getTime();
-			Date modifiedTimestamp = new Date(urlConnection.getLastModified());
+			Date modifiedTimestamp = (urlConnection.getLastModified() > 0) ? new Date(urlConnection.getLastModified()) : null;
 			
 			// update internal existing stats
 			if (log.isInfoEnabled())
-				log.info("Importing up-to-date (from " + modifiedTimestamp + ") statistics for " + ds + ".");					
+				log.info("Attempt to import up-to-date " + ((modifiedTimestamp != null) ? "(from " + modifiedTimestamp + ") " : "") + "statistics for " + ds + ".");					
 			try {
-				stats.updateFrom(RDFStatsModelFactory.create(newStats), onlyIfNewer);
-				stats.setLastDownload(ds.getSPARQLEndpointURL(), retrievedTimestamp);
+				if (stats.updateFrom(RDFStatsModelFactory.create(newStats), onlyIfNewer))
+					stats.setLastDownload(ds.getSPARQLEndpointURL(), retrievedTimestamp);
 			} catch (Exception e) {
 				throw new DataSourceMonitorException("Failed to import statistics and set last download for " + ds + ".", e);
 			}

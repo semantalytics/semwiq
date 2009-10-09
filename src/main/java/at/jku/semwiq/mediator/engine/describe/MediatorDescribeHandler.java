@@ -17,7 +17,8 @@ package at.jku.semwiq.mediator.engine.describe;
 
 import java.util.List;
 
-import org.mortbay.log.Log;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import at.jku.semwiq.mediator.dataset.SemWIQDataset;
 import at.jku.semwiq.mediator.registry.RegistryException;
@@ -39,6 +40,8 @@ import com.hp.hpl.jena.sparql.util.Context;
  *
  */
 public class MediatorDescribeHandler implements DescribeHandler {
+	private static final Logger log = LoggerFactory.getLogger(MediatorDescribeHandler.class);
+	
 	private Dataset dataset;
     private Model acc ;
 	
@@ -59,7 +62,7 @@ public class MediatorDescribeHandler implements DescribeHandler {
 					http.execDescribe(acc);
 				}
 			} catch (RegistryException e) {
-				Log.warn("Failed to get available describing data sources for " + r + ".", e);
+				log.warn("Failed to get available describing data sources for " + r + ".", e);
 			}
     	}
     }

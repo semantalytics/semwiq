@@ -15,15 +15,18 @@
  */
 package at.jku.semwiq.mediator.registry;
 
+import at.jku.semwiq.mediator.registry.model.User;
+
 /**
  * @author dorgon, Andreas Langegger, al@jku.at
  *
  */
 public interface UserRegistry {
 
-	/**
-	 * 
-	 */
 	public void shutdown();
+	public User getUser(String username, String password);
+	public User getGuestUser();
+	public boolean isGuestUser(User user);
+	public boolean isSuperUser(User user);
 
 }

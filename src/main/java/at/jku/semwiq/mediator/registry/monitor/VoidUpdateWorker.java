@@ -51,8 +51,8 @@ public class VoidUpdateWorker extends RemoteUpdateWorkerBase {
 	 * @param registry
 	 * @param profile
 	 */
-	public VoidUpdateWorker(DataSource ds, DataSourceRegistry registry, VoidMonitoringProfile profile) {
-		super(ds, registry);
+	public VoidUpdateWorker(DataSource ds, DataSourceMonitorImpl monitor, DataSourceRegistry registry, VoidMonitoringProfile profile) {
+		super(ds, monitor, registry);
 		this.profile = profile;
 	}
 

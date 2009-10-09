@@ -13,17 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package at.jku.semwiq.mediator.federator;
+package at.jku.semwiq.mediator.federator.inst;
 
-import com.hp.hpl.jena.sparql.algebra.Op;
+import com.hp.hpl.jena.ontology.OntClass;
+import com.hp.hpl.jena.ontology.OntModel;
+import com.hp.hpl.jena.ontology.OntProperty;
 
 /**
- * @author dorgon, Andreas Langegger, al@jku.at
+ * @author dorgon
  *
  */
-public interface Federator {
-
-	public Op federate(Op op) throws FederatorException;
-//	public QueryIterator federate(QueryIterator input, OpFederate op, ExecutionContext context) throws FederatorException;
-
+public interface VocabularyManager {
+	
+	/**
+	 * the sub-process must take care of correctly locking the model when reading/writing!
+	 * @return
+	 */
+	public OntModel getVocabularyModel();
+	
+	public void loadVocabulary(String uri);
+	
+	public OntClass getOntClass(String uri);
+	
+	public OntProperty getOntProperty(String uri);
+	
+	public void close();
+	
 }

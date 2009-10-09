@@ -122,7 +122,7 @@ public class MediatorImpl implements Mediator {
 			else
 				this.dsRegistry = new DataSourceRegistryManagerImpl(this.config.getDataSourceRegistryConfig(), this.store);
 		} catch (Exception e) {
-			throw new MediatorException("Failed to start mediator." + e);
+			throw new MediatorException("Failed to start mediator.", e);
 		}
 		
 		this.userRegistry = new UserRegistryImpl(this.config.getUserRegistryConfig(), this.store);

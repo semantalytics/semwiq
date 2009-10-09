@@ -153,7 +153,7 @@ public class QueryIterBlockedService extends QueryIter {
 			Binding newBinding = new BindingMap();
 			for (String v : vars) {
 				Var var = Var.alloc(v);
-				newBinding.add(var, new TrackedNode(b.get(var), Node.createURI(sourceUri)));
+				newBinding.add(var, new TrackedNode(b.get(var), sourceUri));
 			}
 			return newBinding;
 		}

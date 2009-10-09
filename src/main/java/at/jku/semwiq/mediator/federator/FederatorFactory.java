@@ -17,6 +17,8 @@ package at.jku.semwiq.mediator.federator;
 
 import at.jku.semwiq.mediator.conf.ConfigException;
 import at.jku.semwiq.mediator.conf.FederatorConfig;
+import at.jku.semwiq.mediator.federator.inst.InstanceBasedFederator;
+import at.jku.semwiq.mediator.federator.triple.TripleBasedFederator;
 import at.jku.semwiq.mediator.registry.DataSourceRegistry;
 import at.jku.semwiq.mediator.registry.UserRegistry;
 import at.jku.semwiq.mediator.vocabulary.Config;

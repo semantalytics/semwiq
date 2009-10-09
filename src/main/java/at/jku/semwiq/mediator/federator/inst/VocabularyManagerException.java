@@ -13,17 +13,42 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package at.jku.semwiq.mediator.federator;
 
-import com.hp.hpl.jena.sparql.algebra.Op;
+package at.jku.semwiq.mediator.federator.inst;
 
 /**
- * @author dorgon, Andreas Langegger, al@jku.at
- *
+ * @author dorgon
+ * 
  */
-public interface Federator {
+public class VocabularyManagerException extends Exception {
+	private static final long serialVersionUID = 4519962719252005427L;
 
-	public Op federate(Op op) throws FederatorException;
-//	public QueryIterator federate(QueryIterator input, OpFederate op, ExecutionContext context) throws FederatorException;
+	/**
+	 * 
+	 */
+	public VocabularyManagerException() {
+	}
+
+	/**
+	 * @param message
+	 */
+	public VocabularyManagerException(String message) {
+		super(message);
+	}
+
+	/**
+	 * @param cause
+	 */
+	public VocabularyManagerException(Throwable cause) {
+		super(cause);
+	}
+
+	/**
+	 * @param message
+	 * @param cause
+	 */
+	public VocabularyManagerException(String message, Throwable cause) {
+		super(message, cause);
+	}
 
 }

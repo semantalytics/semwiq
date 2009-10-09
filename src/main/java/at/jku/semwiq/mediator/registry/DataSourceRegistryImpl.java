@@ -99,10 +99,9 @@ public class DataSourceRegistryImpl implements DataSourceRegistry {
 		this.globalStore = globalStore;
 		this.statsModel = new RDFStatsUpdatableModelExt(globalStore); // has extensions to get/set swq:lastDownload
 		
-		selfCheck();
-		
 		// initialize data source monitor
 		this.monitor = new DataSourceMonitorImpl(this);
+		selfCheck();		
 		this.monitor.start();
 	}
 	

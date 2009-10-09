@@ -13,17 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package at.jku.semwiq.mediator.federator;
+package at.jku.semwiq.mediator.registry.monitor;
 
-import com.hp.hpl.jena.sparql.algebra.Op;
+import at.jku.semwiq.mediator.registry.model.DataSource;
 
 /**
  * @author dorgon, Andreas Langegger, al@jku.at
  *
  */
-public interface Federator {
-
-	public Op federate(Op op) throws FederatorException;
-//	public QueryIterator federate(QueryIterator input, OpFederate op, ExecutionContext context) throws FederatorException;
-
+public interface DataSourceMonitorListener {
+	public void dataSourceUpdated(DataSource ds);
 }

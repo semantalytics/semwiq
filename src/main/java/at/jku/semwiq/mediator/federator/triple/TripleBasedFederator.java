@@ -13,22 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package at.jku.semwiq.mediator.federator;
-
-import java.util.Iterator;
+package at.jku.semwiq.mediator.federator.triple;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import at.jku.semwiq.mediator.engine.iter.QueryIterBlockedUnion;
-import at.jku.semwiq.mediator.engine.op.OpFederate;
+import at.jku.semwiq.mediator.federator.FederatorBase;
+import at.jku.semwiq.mediator.federator.FederatorException;
 import at.jku.semwiq.mediator.registry.DataSourceRegistry;
 import at.jku.semwiq.mediator.registry.UserRegistry;
 
-import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.rdf.model.Resource;
-import com.hp.hpl.jena.sparql.engine.ExecutionContext;
-import com.hp.hpl.jena.sparql.engine.QueryIterator;
+import com.hp.hpl.jena.sparql.algebra.Op;
 
 /**
  * @author dorgon, Andreas Langegger, al@jku.at
@@ -41,14 +37,16 @@ public class TripleBasedFederator extends FederatorBase {
 		super(conf, dsRegistry, userRegistry);
 	}
 
-	public QueryIterator federate(QueryIterator input, OpFederate opFed, ExecutionContext context) throws FederatorException {
-		QueryIterator iter = input;
-		for (Iterator<Triple> it = opFed.getPattern().iterator(); it.hasNext(); ) {
-			Triple tp = it.next();
-			// TODO only hand over expressions relevant to tp
-			iter = new QueryIterBlockedUnion(iter, tp, opFed.getExprList(), getDataSourceRegistry(), context);
+	/*
+	 * (non-Javadoc)
+	 * @see at.jku.semwiq.mediator.federator.Federator#federate(com.hp.hpl.jena.sparql.algebra.Op)
+	 */
+	public Op federate(Op op) throws FederatorException {
+		try {
+			return TripleBasedFederatorTransform.apply(this, op);
+		} catch (Throwable e) {
+			throw new FederatorException(e);
 		}
-		return iter;
 	}
 	
 //	private class QueryIterBlockedSubQuery extends QueryIterBlockedRepeatApply {

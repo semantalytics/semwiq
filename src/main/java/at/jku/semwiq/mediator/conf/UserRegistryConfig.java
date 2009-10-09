@@ -20,7 +20,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.hp.hpl.jena.rdf.model.Resource;
+import com.hp.hpl.jena.rdf.model.Statement;
 
+import at.jku.semwiq.mediator.Constants;
 import at.jku.semwiq.mediator.vocabulary.Config;
 import at.jku.semwiq.mediator.vocabulary.VocabUtils;
 
@@ -31,6 +33,8 @@ import at.jku.semwiq.mediator.vocabulary.VocabUtils;
 public class UserRegistryConfig {
 	private static final Logger log = LoggerFactory.getLogger(UserRegistryConfig.class);
 
+	private final String superUserPassword;
+	
 	/**
 	 * @throws ConfigException
 	 * 
@@ -46,11 +50,26 @@ public class UserRegistryConfig {
 	public UserRegistryConfig(Resource conf) throws ConfigException {
 		VocabUtils.unknownPropertyWarnings(conf, Config.MediatorConfig.getModel(), log);
 		if (conf != null) {
-			// configure...
+			
+			// super user password
+			Statement s = conf.getProperty(Config.superuserPassword);
+			if (s != null && s.getObject().isLiteral())
+				superUserPassword = s.getString();
+			else {
+				log.warn("WARNING! Using default super user password: " + Constants.DEFAULT_SUPERUSER_PASSWORD);
+				superUserPassword = Constants.DEFAULT_SUPERUSER_PASSWORD;
+			}
 			
 		} else {
-			// defaults...
-			
+			log.warn("WARNING! Using default super user password: " + Constants.DEFAULT_SUPERUSER_PASSWORD);
+			superUserPassword = Constants.DEFAULT_SUPERUSER_PASSWORD;			
 		}
+	}
+	
+	/**
+	 * @return the superUserPassword
+	 */
+	public String getSuperUserPassword() {
+		return superUserPassword;
 	}
 }

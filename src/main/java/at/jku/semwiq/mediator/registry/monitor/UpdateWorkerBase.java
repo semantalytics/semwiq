@@ -33,12 +33,14 @@ public abstract class UpdateWorkerBase implements Runnable {
 	private static final Logger log = LoggerFactory.getLogger(UpdateWorkerBase.class);
 	
 	protected final DataSource ds;
+	protected final DataSourceMonitorImpl monitor;
 	protected final DataSourceRegistry registry;
-	
+
 	protected static final Set<DataSource> currentlyUpdating = new HashSet<DataSource>();
 	
-	public UpdateWorkerBase(DataSource ds, DataSourceRegistry reg) {
+	public UpdateWorkerBase(DataSource ds, DataSourceMonitorImpl monitor, DataSourceRegistry reg) {
 		this.ds = ds;
+		this.monitor = monitor;
 		this.registry = reg;
 	}
 
@@ -78,6 +80,7 @@ public abstract class UpdateWorkerBase implements Runnable {
 		} catch (Exception e) {
 			log.error("Failed to run data source update.", e);
 		} finally {
+			monitor.notifyListenersAboutUpdate(ds);
 			setUpdating(ds, false);
 		}
 	}

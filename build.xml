@@ -51,8 +51,9 @@
 	
 <!-- Section: vocabulary generation -->
 
-  <target name="vocab" depends="vocab.void,vocab.dcterms,vocab.sdv,vocab.skos-core,vocab.config" />
-		
+  <target name="vocab" depends="vocab.void,vocab.dcterms,vocab.sdv,vocab.suv,vocab.skos-core,vocab.config" />
+
+<!-- voiD VOCAB -->
   <target name="vocab.void" depends="vocab-check.void,compose-classpath" unless="vocab-nobuild.void">
     <java classname="jena.schemagen" classpathref="cp" fork="yes" failonerror="true">
       <arg value="-i" />
@@ -75,6 +76,7 @@
        targetFile="${vocab.targetdir}/voiD.java" />
   </target>
 
+<!-- DC Terms VOCAB -->
   <target name="vocab.dcterms" depends="vocab-check.dcterms,compose-classpath" unless="vocab-nobuild.dcterms">
     <java classname="jena.schemagen" classpathref="cp" fork="yes" failonerror="true">
       <arg value="-i" />
@@ -120,6 +122,29 @@
     </java>
   </target>
 	
+<!-- SUV VOCAB -->
+  <target name="vocab-check.suv">
+    <uptodate
+       property="vocab-nobuild.suv"
+       srcFile="${vocab.sourcedir}/purl.org/semwiq/mediator/suv.n3"
+       targetFile="${vocab.targetdir}/SUV.java" />
+  </target>
+	
+  <target name="vocab.suv" depends="vocab-check.suv,compose-classpath" unless="vocab-nobuild.suv">
+    <java classname="jena.schemagen" classpathref="cp" fork="yes" failonerror="true">
+      <arg value="-i" />
+      <arg value="file:${vocab.sourcedir}/purl.org/semwiq/mediator/suv.n3" />
+      <arg value="-o" />
+      <arg value="${vocab.targetdir}" />
+      <arg value="-n" />
+      <arg value="SUV" />
+      <arg value="--inference" />
+      <arg value="--owl" />
+      <arg value="-c" />
+      <arg value="${vocab.template}" />
+    </java>
+  </target>
+		
 <!-- SKOS CORE VOCAB -->
   <target name="vocab-check.skos-core">
     <uptodate
@@ -182,6 +207,12 @@
 		<arg value="RDF/XML-ABBREV"/>
 	</java>
 	<java classname="jena.rdfcopy" classpathref="cp" fork="yes"
+		output="${vocab.sourcedir}/purl.org/semwiq/mediator/suv" failonerror="true">
+		<arg value="${vocab.sourcedir}/purl.org/semwiq/mediator/suv.n3"/>
+		<arg value="N3"/>
+		<arg value="RDF/XML-ABBREV"/>
+	</java>
+  	<java classname="jena.rdfcopy" classpathref="cp" fork="yes"
 		output="${vocab.sourcedir}/purl.org/semwiq/mediator/sparql-explain" failonerror="true">
 		<arg value="${vocab.sourcedir}/purl.org/semwiq/mediator/sparql-explain.n3"/>
 		<arg value="N3"/>

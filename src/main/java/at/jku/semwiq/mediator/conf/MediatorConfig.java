@@ -38,13 +38,8 @@ import com.hp.hpl.jena.vocabulary.RDF;
 public class MediatorConfig {
 	private static final Logger log = LoggerFactory.getLogger(MediatorConfig.class);
 	
-	public static final String DEFAULT_ADMIN_PASSWORD = "semwiq";
-
 	/** using config file (can be null if constructed via API), kept for log output */
 	protected final String configFile;
-	
-	/** admin password / currently just use single password and no user model */
-	private final String adminPassword;
 	
 	/** assembler model Config for global store */
 	protected final Resource storeAssemblerModel;
@@ -87,13 +82,6 @@ public class MediatorConfig {
 				else
 					storeAssemblerModel = null;
 
-				// admin password
-				s = mediatorConfig.getProperty(Config.adminPassword);
-				if (s != null && s.getObject().isLiteral())
-					adminPassword = s.getString();
-				else
-					throw new ConfigException("Admin password not set in Config!");
-				
 				// initialize sub Configs
 				s = mediatorConfig.getProperty(Config.dataSourceRegistryConfig);
 				if (s != null && s.getObject().isResource())
@@ -119,13 +107,14 @@ public class MediatorConfig {
 				else
 					federatorConfig = new FederatorConfig(null);
 	
+				// don't close configModel since some parts of it are required at runtime (e.g. federator config)
+				
 			} catch (Exception e) {
 				throw new ConfigException("Initialization failed. (Config file: '" + configFile + "'.)", e);	
 			}
 		} else {
 			configFile = null;
 			storeAssemblerModel = null;
-			adminPassword = DEFAULT_ADMIN_PASSWORD;
 			
 			guiConfig = new GUIConfig();
 			federatorConfig = new FederatorConfig();
@@ -147,10 +136,6 @@ public class MediatorConfig {
 			try { configModel.close(); } catch (Exception ignore) {}
 			throw new ConfigException("Couldn't find an instance of <" + Config.MediatorConfig + "> in '" + configFile + "'.");
 		}
-	}
-	
-	public String getAdminPassword() {
-		return adminPassword;
 	}
 	
 	public String getConfigFile() {

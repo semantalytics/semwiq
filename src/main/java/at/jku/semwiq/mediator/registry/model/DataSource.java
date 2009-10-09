@@ -202,9 +202,8 @@ public class DataSource extends UpdatableResource {
 	}
 
 	/**
-	 * returns true if the data source has the property isEnabled explicitly set
-	 * to true returns false if there is no isEnabled property or if its value
-	 * is false
+	 * returns false if data source has property "disabled" set to true
+	 * otherwise returns true
 	 * 
 	 * @return
 	 */

@@ -13,12 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package at.jku.semwiq.mediator.federator;
+package at.jku.semwiq.mediator.engine.op;
 
-import at.jku.semwiq.mediator.engine.op.OpFederate;
 
 import com.hp.hpl.jena.sparql.algebra.Op;
-import com.hp.hpl.jena.sparql.algebra.TransformBase;
 import com.hp.hpl.jena.sparql.algebra.TransformCopy;
 import com.hp.hpl.jena.sparql.algebra.op.OpBGP;
 import com.hp.hpl.jena.sparql.algebra.op.OpFilter;
@@ -27,34 +25,25 @@ import com.hp.hpl.jena.sparql.algebra.op.OpFilter;
  * @author dorgon, Andreas Langegger, al@jku.at
  *
  */
-public class TransformOpFederator extends TransformCopy {
-	private final FederatorBase federator;
-	
-	/**
-	 * 
-	 */
-	public TransformOpFederator(FederatorBase federator) {
-		this.federator = federator;
-	}
-	
+public class TransformFilteredBGP extends TransformCopy {
+
 	/* (non-Javadoc)
-	 * @see com.hp.hpl.jena.sparql.algebra.TransformBase#transform(com.hp.hpl.jena.sparql.algebra.op.OpFilter, com.hp.hpl.jena.sparql.algebra.Op)
-	 */
-	@Override
-	public Op transform(OpFilter opFilter, Op subOp) {
-		// add filter expressions to OpFederate, this is bottom up - OpFederate exists
-		if (subOp instanceof OpFederate) {
-			((OpFederate) subOp).setExprList(opFilter.getExprs());
-			return subOp;
-		} else
-			return opFilter;
-	}
-	
-	/* (non-Javadoc)
-	 * @see com.hp.hpl.jena.sparql.algebra.TransformBase#transform(com.hp.hpl.jena.sparql.algebra.op.OpBGP)
+	 * @see com.hp.hpl.jena.sparql.algebra.TransformCopy#transform(com.hp.hpl.jena.sparql.algebra.op.OpBGP)
 	 */
 	@Override
 	public Op transform(OpBGP opBGP) {
-		return new OpFederate(opBGP, federator);
+		return new OpFilteredBGP(opBGP.getPattern());
+	}
+	
+	/* (non-Javadoc)
+	 * @see com.hp.hpl.jena.sparql.algebra.TransformCopy#transform(com.hp.hpl.jena.sparql.algebra.op.OpFilter, com.hp.hpl.jena.sparql.algebra.Op)
+	 */
+	@Override
+	public Op transform(OpFilter opFilter, Op sub) {
+		if (sub instanceof OpFilteredBGP) {
+			((OpFilteredBGP) sub).setFilterReference(opFilter);
+			return opFilter; // still keep filter
+		} else
+			return super.transform(opFilter, sub);
 	}
 }

@@ -80,7 +80,7 @@ public abstract class QueryProcessingTask<T, V> extends SwingWorker<T, V> {
         			Context ctx = queryExec.getContext();
         			log.info("Total time: " + ctx.get(Constants.EXEC_TIME_ALLRESULTS) +
         					" ms, first result: " + ctx.get(Constants.EXEC_TIME_FIRSTRESULT) +
-        					" ms, optimize: " + ctx.get(Constants.EXEC_TIME_OPTIMIZE));
+        					" ms, optimize: " + ctx.get(Constants.EXEC_TIME_PREOPTIMIZE));
         		}
             } catch (Exception e) {
             	client.getProgressBar().setString("Failed");

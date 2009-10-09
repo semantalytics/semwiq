@@ -60,7 +60,7 @@ public class DataSourceRegistryManagerImpl extends DataSourceRegistryImpl implem
 	 * @see at.jku.semwiq.mediator.registry.DataSourceRegistryManager#register(java.lang.String)
 	 */
 	public boolean register(String sparqlEndpoint) throws RegistryException {
-		return register(sparqlEndpoint, MonitoringProfile.getDefaultCentralizedProfile());
+		return register(sparqlEndpoint, null);
 	}
 	
 	/**
@@ -74,7 +74,9 @@ public class DataSourceRegistryManagerImpl extends DataSourceRegistryImpl implem
 	public boolean register(String sparqlEndpoint, MonitoringProfile monitProfile) throws RegistryException {
 		Model regData = ModelFactory.createDefaultModel();
 		boolean registered = false;
-
+		if (monitProfile == null)
+			monitProfile = MonitoringProfile.getDefaultCentralizedProfile();
+		
 		try {
 			// create a basic void:Dataset
 			Resource ds = regData.createResource(null, voiD.Dataset);

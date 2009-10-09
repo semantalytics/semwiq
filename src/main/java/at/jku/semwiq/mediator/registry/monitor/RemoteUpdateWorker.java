@@ -35,8 +35,8 @@ public class RemoteUpdateWorker extends RemoteUpdateWorkerBase {
 	
 	protected final RemoteMonitoringProfile profile;
 	
-	public RemoteUpdateWorker(DataSource ds, DataSourceRegistry reg, RemoteMonitoringProfile profile) {
-		super(ds, reg);
+	public RemoteUpdateWorker(DataSource ds, DataSourceMonitorImpl monitor, DataSourceRegistry reg, RemoteMonitoringProfile profile) {
+		super(ds, monitor, reg);
 		this.profile = profile;
 	}
 	

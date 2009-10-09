@@ -13,23 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package at.jku.semwiq.mediator.federator;
+package at.jku.semwiq.mediator.federator.inst;
+
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.hp.hpl.jena.rdf.model.Resource;
 import com.hp.hpl.jena.sparql.algebra.Op;
-import com.hp.hpl.jena.sparql.algebra.table.TableN;
-import com.hp.hpl.jena.sparql.engine.ExecutionContext;
-import com.hp.hpl.jena.sparql.engine.QueryIterator;
-import com.hp.hpl.jena.sparql.engine.iterator.QueryIter;
-import com.hp.hpl.jena.sparql.util.Context;
+import com.hp.hpl.jena.sparql.algebra.Transformer;
 
-
-import at.jku.semwiq.mediator.engine.op.OpFederate;
+import at.jku.rdfstats.RDFStatsModelException;
+import at.jku.semwiq.mediator.federator.FederatorBase;
+import at.jku.semwiq.mediator.federator.FederatorException;
 import at.jku.semwiq.mediator.registry.DataSourceRegistry;
 import at.jku.semwiq.mediator.registry.UserRegistry;
+import at.jku.semwiq.mediator.registry.model.DataSource;
 import at.jku.semwiq.mediator.vocabulary.Config;
 import at.jku.semwiq.mediator.vocabulary.VocabUtils;
 
@@ -42,6 +42,12 @@ public class InstanceBasedFederator extends FederatorBase {
 	
 	public final static boolean DEFAULT_INFERTYPES = true;
 	public final static boolean DEFAULT_SUBSUMPTION = true;
+	
+	/** vocabulary manager */
+	private final VocabularyManager vocMgr;
+	
+	/** type detector */
+	private final TypeDetector typeDetector;
 	
 	/** type inference */
 	private boolean inferTypes;
@@ -56,6 +62,9 @@ public class InstanceBasedFederator extends FederatorBase {
 	public InstanceBasedFederator(Resource conf, DataSourceRegistry dsRegistry, UserRegistry userRegistry) {
 		super(conf, dsRegistry, userRegistry);
 		
+		if (log.isInfoEnabled())
+			log.info("Initializing instance-based federator...");
+		
 		if (conf != null) {
 			VocabUtils.unknownPropertyWarnings(conf, Config.inferTypes.getModel(), log);
 			
@@ -69,6 +78,22 @@ public class InstanceBasedFederator extends FederatorBase {
 			this.subsumption = DEFAULT_SUBSUMPTION;
 		}
 
+		if (log.isInfoEnabled()) {
+			log.info("Type inference " + (inferTypes ? "enabled" : "disabled"));
+			log.info("Query-time subsumption reasoning " + (subsumption ? "enabled" : "disabled"));
+		}
+
+		// init vocabulary manager
+		this.vocMgr = new VocabularyManagerImpl();
+		try {
+			Set<String> props = dsRegistry.getRDFStatsModel().getProperties();
+			for (String p : props)
+				vocMgr.getOntProperty(p);
+		} catch (RDFStatsModelException e) {
+			log.error("Failed to initialize vocabulary manager.", e);
+		}
+		
+		this.typeDetector = new TypeDetector(inferTypes, vocMgr);
 	}
 
 	/**
@@ -85,11 +110,24 @@ public class InstanceBasedFederator extends FederatorBase {
 		return subsumption;
 	}
 
-	/* (non-Javadoc)
-	 * @see at.jku.semwiq.mediator.federator.Federator#federate(com.hp.hpl.jena.sparql.engine.QueryIterator, at.jku.semwiq.mediator.engine.op.OpFederate, com.hp.hpl.jena.sparql.engine.ExecutionContext)
+	/**
+	 * @return the vocMgr
 	 */
-	public QueryIterator federate(QueryIterator input, OpFederate op, ExecutionContext context) throws FederatorException {
-		throw new FederatorException("Instance-based federation not implemented");
+	public VocabularyManager getVocabularyManager() {
+		return vocMgr;
+	}
+	
+	/*
+	 * (non-Javadoc)
+	 * @see at.jku.semwiq.mediator.federator.Federator#federate(com.hp.hpl.jena.sparql.algebra.Op)
+	 */
+	public Op federate(Op op) throws FederatorException {
+		try {
+			SubjectTypeCache types = typeDetector.detectTypes(op);
+			return InstanceBasedFederatorTransform.apply(this, types, op);
+		} catch (Throwable e) {
+			throw new FederatorException(e);
+		}
 	}
 	
 }

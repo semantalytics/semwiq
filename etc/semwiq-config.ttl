@@ -13,39 +13,56 @@
 # [] ja:loadClass "com.hp.hpl.jena.sdb.SDB" .
 # sdb:DatasetStore rdfs:subClassOf ja:RDFDataset .
 
+# main configuration
+
 :config a sq:MediatorConfig ;
-	sq:adminPassword			"semwiq" ;
 	sq:store [
 		a tdb:GraphTDB ;
 		tdb:location "data/semwiq" ;
-# SDB (very slow, but stable)
-# a sdb:Model ;
-# sdb:dataset :statsDataset ;
+
+# SDB (slower than TDB)
+#		a sdb:Model ;
+#		sdb:dataset :sdbDataset ;
+
 # File Model (loaded into RAM, not feasible for large statistics especially if including instance URIs)
-# a ja:FileModel ;
-# ja:directory <file:../data> ;
-#   ja:modelName "rdfstats.nt"
+#		a ja:FileModel ;
+#		ja:directory <file:../data> ;
+#		ja:modelName "rdfstats.nt"
 	] ;
-	sq:guiConfig :gui ;
+	
+#	sq:dataSourceRegistryConfig [ ... ] ;
+	sq:federatorConfig [
+		a sq:TripleBasedFederatorConfig ;
+#		a sq:InstanceBasedFederatorConfig ;
+#		sq:inferTypes "true" ;
+#		sq:subsumption "true" ;
+	] ;
+	
+	sq:guiConfig :guiConfig ;
+	sq:userRegistryConfig [
+		a sq:UserRegistryConfig ;
+		:adminPassword "semwiq" ;
+	] ;
 	.
 
-:statsDataset rdf:type sdb:DatasetStore ;
-    sdb:store [
-    	a sdb:Store ;
-     	sdb:layout         "layout2" ;
-     	sdb:connection     :statsConn ;
-    ]
-    .
+:sdbDataset rdf:type sdb:DatasetStore ;
+	sdb:store [
+		a sdb:Store ;
+		sdb:layout         "layout2" ;
+		sdb:connection    [
+			a sdb:SDBConnection ;
+			sdb:sdbType        "mysql" ;
+			sdb:driver         "com.mysql.jdbc.Driver" ;
+			sdb:jdbcURL        "jdbc:mysql://localhost/semwiq_stats" ;
+			sdb:sdbUser        "root" ;
+			sdb:sdbPassword    ""
+		]
+	]
+.
 
-:statsConn rdf:type sdb:SDBConnection ;
-     sdb:sdbType        "mysql" ;
-     sdb:driver         "com.mysql.jdbc.Driver" ;
-     sdb:jdbcURL        "jdbc:mysql://localhost/semwiq_stats" ;
-     sdb:sdbUser        "root" ;
-     sdb:sdbPassword    "" ;
-     .
+# sub configurations
 
-:gui a sq:GUIConfiguration ;
+:guiConfig a sq:GUIConfiguration ;
 	sq:prefixMapping [
 		sq:prefix "rdf" ;
 		sq:namespace <http://www.w3.org/1999/02/22-rdf-syntax-ns#> ] ;

@@ -52,4 +52,11 @@ public interface DataSourceMonitor {
 
 	/** block thread execution until monitor has finished updating */
 	public void waitUntilFinished();
+	
+	/** register a data source monitor listener */
+	public void addListener(DataSourceMonitorListener listener);
+	
+	/** unregister listener */
+	public void removeListener(DataSourceMonitorListener listener);
+	
 }

@@ -18,6 +18,7 @@ package at.jku.semwiq.mediator.registry.monitor;
 
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -47,6 +48,7 @@ public class DataSourceMonitorImpl implements DataSourceMonitor {
 	
 	private final DataSourceRegistry registry;
 	private final Scheduler scheduler;
+	private final Set<DataSourceMonitorListener> listeners = new HashSet<DataSourceMonitorListener>();
 
 	private final ConcurrentHashMap<DataSource, UpdateWorkerBase> workerReferences;
 	
@@ -83,17 +85,17 @@ public class DataSourceMonitorImpl implements DataSourceMonitor {
 			
 		} else if (profile.getInterval() > 0) {
 			if (profile instanceof RemoteMonitoringProfile) {
-				task = new RemoteUpdateWorker(ds, registry, (RemoteMonitoringProfile) profile);
+				task = new RemoteUpdateWorker(ds, this, registry, (RemoteMonitoringProfile) profile);
 				workerReferences.put(ds, task);
 				scheduler.scheduleWithFixedDelay(task, (updateImmediately || profile.updateOnStartup()) ? 0 : profile.getInterval(), profile.getInterval(), TimeUnit.SECONDS);
 				return true;
 			} else if (profile instanceof CentralizedMonitoringProfile) {
-				task = new CentralizedUpdateWorker(ds, registry, (CentralizedMonitoringProfile) profile);
+				task = new CentralizedUpdateWorker(ds, this, registry, (CentralizedMonitoringProfile) profile);
 				workerReferences.put(ds, task);
 				scheduler.scheduleWithFixedDelay(task, (updateImmediately || profile.updateOnStartup()) ? 0 : profile.getInterval(), profile.getInterval(), TimeUnit.SECONDS);
 				return true;
 			} else if (profile instanceof VoidMonitoringProfile) {
-				task = new VoidUpdateWorker(ds, registry, (VoidMonitoringProfile) profile);
+				task = new VoidUpdateWorker(ds, this, registry, (VoidMonitoringProfile) profile);
 				workerReferences.put(ds, task);
 				scheduler.scheduleWithFixedDelay(task, (updateImmediately || profile.updateOnStartup()) ? 0 : profile.getInterval(), profile.getInterval(), TimeUnit.SECONDS);
 				return true;
@@ -190,5 +192,23 @@ public class DataSourceMonitorImpl implements DataSourceMonitor {
 		while (isUpdating())
 			try { Thread.sleep(500); } catch (InterruptedException e) {}
 	}
+
+	/* (non-Javadoc)
+	 * @see at.jku.semwiq.mediator.registry.monitor.DataSourceMonitor#addListener(at.jku.semwiq.mediator.registry.monitor.DataSourceMonitorListener)
+	 */
+	public void addListener(DataSourceMonitorListener listener) {
+		listeners.add(listener);
+	}
 	
+	/* (non-Javadoc)
+	 * @see at.jku.semwiq.mediator.registry.monitor.DataSourceMonitor#removeListener(at.jku.semwiq.mediator.registry.monitor.DataSourceMonitorListener)
+	 */
+	public void removeListener(DataSourceMonitorListener listener) {
+		listeners.remove(listener);
+	}
+	
+	public void notifyListenersAboutUpdate(DataSource ds) {
+		for (DataSourceMonitorListener l : listeners)
+			l.dataSourceUpdated(ds);
+	}
 }

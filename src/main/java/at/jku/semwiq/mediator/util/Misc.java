@@ -13,17 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package at.jku.semwiq.mediator.federator;
+package at.jku.semwiq.mediator.util;
 
-import com.hp.hpl.jena.sparql.algebra.Op;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * @author dorgon, Andreas Langegger, al@jku.at
  *
  */
-public interface Federator {
+public class Misc {
 
-	public Op federate(Op op) throws FederatorException;
-//	public QueryIterator federate(QueryIterator input, OpFederate op, ExecutionContext context) throws FederatorException;
+	public static Set<Class<? extends Throwable>> getExceptionChain(Throwable t) {
+		Set<Class<? extends Throwable>> chain = new HashSet<Class<? extends Throwable>>();
+		chain.add(t.getClass());
 
+		Throwable next = t;
+		while ((next = next.getCause()) != null)
+			chain.add(next.getClass());
+		return chain;
+	}
 }

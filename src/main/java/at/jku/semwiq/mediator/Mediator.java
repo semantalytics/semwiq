@@ -52,6 +52,9 @@ public interface Mediator {
 	/** initiate shutdown */
 	public void shutdown();
 	
+	/** true after termination */
+	public boolean isTerminated();
+	
 	// create query execution
 	
 	/** create a new query execution from query string */
