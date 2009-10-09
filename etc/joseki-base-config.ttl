@@ -16,6 +16,7 @@ swq:service
     rdfs:label          "__TITLE__" ;
     rdf:type            joseki:Service ;
     joseki:serviceRef   "__SPARQLPATH__" ;          # web.xml just route this name to Joseki
+    joseki:generateRDFStats	"true"^^xsd:boolean ;
     joseki:dataset      swq:dataset ;
     joseki:processor    joseki:ProcessorSPARQL_FixedDS ;
     .
@@ -23,7 +24,6 @@ swq:service
 swq:dataset
 	rdfs:label			"__TITLE__" ;
 	rdfs:comment		"__DESCRIPTION__" ;
-    joseki:generateStats "true"^^xsd:boolean ;
     # the rest is configured at runtime (see JosekiInstance.createJosekiConfig())
 	.	
 
