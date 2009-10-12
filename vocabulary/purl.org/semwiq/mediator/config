@@ -91,15 +91,15 @@
     <rdfs:domain rdf:resource="http://purl.org/semwiq/mediator/config#InstanceBasedFederatorConfig"/>
     <rdfs:comment>enable subsumption reasoning if not supported natively by a data source, default is true</rdfs:comment>
   </rdf:Property>
-  <rdf:Property rdf:about="http://purl.org/semwiq/mediator/config#adminPassword">
-    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
-    <rdfs:domain rdf:resource="http://purl.org/semwiq/mediator/config#MediatorConfig"/>
-    <rdfs:comment>administrator password for the control panel</rdfs:comment>
-  </rdf:Property>
   <rdf:Property rdf:about="http://purl.org/semwiq/mediator/config#prefixMapping">
     <rdfs:range rdf:resource="http://purl.org/semwiq/mediator/config#PrefixMapping"/>
     <rdfs:domain rdf:resource="http://purl.org/semwiq/mediator/config#GUIConfig"/>
     <rdfs:comment>Adds a prefix mapping to the query widget (HTML form in the Web application or Java SWING text widget.</rdfs:comment>
+  </rdf:Property>
+  <rdf:Property rdf:about="http://purl.org/semwiq/mediator/config#superuserPassword">
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+    <rdfs:domain rdf:resource="http://purl.org/semwiq/mediator/config#UserRegistryConfig"/>
+    <rdfs:comment>Password for super user</rdfs:comment>
   </rdf:Property>
   <rdf:Property rdf:about="http://purl.org/semwiq/mediator/config#prefix">
     <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>

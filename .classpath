@@ -14,8 +14,6 @@
 	<classpathentry kind="lib" path="lib/log4j-over-slf4j-1.5.5.jar"/>
 	<classpathentry kind="lib" path="lib/slf4j-api-1.5.5.jar"/>
 	<classpathentry kind="lib" path="lib/jcl-over-slf4j-1.5.5.jar"/>
-	<classpathentry kind="lib" path="lib/jsp-2.1.jar"/>
-	<classpathentry kind="lib" path="lib/jsp-api-2.1.jar"/>
 	<classpathentry kind="lib" path="lib/commons-cli-1.1.jar"/>
 	<classpathentry kind="lib" path="lib/logback-classic-0.9.11.jar"/>
 	<classpathentry kind="lib" path="lib/logback-core-0.9.11.jar"/>

@@ -50,6 +50,7 @@ import com.hp.hpl.jena.util.iterator.NullIterator;
 public class SemWIQVirtualGraph extends GraphBase implements Graph {
 	private Logger log = LoggerFactory.getLogger(SemWIQVirtualGraph.class);
 	private final Mediator mediator;
+	private final Capabilities capabilities = new SemWIQCapabilities();
 	
 	/**
 	 * constructor
@@ -58,8 +59,6 @@ public class SemWIQVirtualGraph extends GraphBase implements Graph {
 		this.mediator = m;
 	}
 	
-	private final Capabilities capabilities = new SemWIQCapabilities();
-
 	public void close() {
 		mediator.shutdown();
 	}
