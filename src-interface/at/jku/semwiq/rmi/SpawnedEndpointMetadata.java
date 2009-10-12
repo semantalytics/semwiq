@@ -17,6 +17,10 @@ package at.jku.semwiq.rmi;
 
 import java.io.Serializable;
 
+import org.slf4j.LoggerFactory;
+
+import org.slf4j.Logger;
+
 /**
  * @author dorgon
  * 
@@ -26,6 +30,7 @@ import java.io.Serializable;
  */
 public class SpawnedEndpointMetadata extends EndpointMetadata implements Serializable {
 	private static final long serialVersionUID = 1542561340567362927L;
+	private static final Logger log = LoggerFactory.getLogger(SpawnedEndpointMetadata.class);
 
 	/** reference to remote registry */
 	private transient DaemonRegistry reg; // set by the EndpointController after spawning succeeded
@@ -79,6 +84,8 @@ public class SpawnedEndpointMetadata extends EndpointMetadata implements Seriali
 			desc = RuntimeReplacements.apply(meta.getDescription(), this);
 		else
 			desc = null;
+		log.info("Spawned endpoint meta data: " + toString() + " (sparqlPath = " + this.sparqlPath + ", sparqlEndpointUri = " + this.sparqlEndpointUri + ", dataSetBase = " + this.dataSetBase + ", " +
+				"homepage = " + this.homepage + ", title = " + this.title + ", desc = " + this.desc + ")");
 	}
 
 	/**

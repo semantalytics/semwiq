@@ -35,7 +35,7 @@ public class EndpointMetadata implements Serializable {
 		this.title = CommonConstants.DEFAULT_TITLE;
 		this.desc = CommonConstants.DEFAULT_DESCRIPTION;
 		this.homepage = "http://" + CommonConstants.REPLACE_HOSTNAME + CommonConstants.REPLACE_PORT + "/";
-		this.dataSetBase = homepage + "resource";
+		this.dataSetBase = homepage + CommonConstants.PUBBY_RESOURCE_PREFIX;
 	}
 	
 	// getters

@@ -55,7 +55,7 @@ public class CommonConstants {
 	public static final String SPARQL_ENDPOINT_PATH_PREFIX = "sparql";
 
 	// pubby resource prefix is fixed
-	public static final String PUBBY_RESOURCE_PREFIX = "resource";
+	public static final String PUBBY_RESOURCE_PREFIX = "resource/";
 
 	// RMI configuration
 	public static int RMI_REGISTRY_PORT = Registry.REGISTRY_PORT;

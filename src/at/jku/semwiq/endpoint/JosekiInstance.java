@@ -32,7 +32,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import at.jku.semwiq.rmi.CommonConstants;
-import at.jku.semwiq.rmi.EndpointMetadata;
 import at.jku.semwiq.rmi.SemWIQInterfaceException;
 import at.jku.semwiq.rmi.SpawnedEndpointMetadata;
 
@@ -45,7 +44,6 @@ import com.hp.hpl.jena.tdb.TDBFactory;
 import com.hp.hpl.jena.tdb.assembler.VocabTDB;
 import com.hp.hpl.jena.util.FileManager;
 import com.hp.hpl.jena.vocabulary.RDF;
-import com.hp.hpl.jena.vocabulary.RDFS;
 
 import de.fuberlin.wiwiss.pubby.Configuration;
 
@@ -56,10 +54,14 @@ import de.fuberlin.wiwiss.pubby.Configuration;
 public class JosekiInstance {
 	private static final Logger log = LoggerFactory.getLogger(JosekiInstance.class);
 	
-	private final int port;
+	private static JosekiInstance lastCreatedInstance;
+	
+	private final SpawnedEndpointMetadata meta;
+	private final String pubbyPrefix;
+	private final String usingTempDir;
+	
 	private final Server server;
 	private final WebAppContext cxt;
-	private final String usingTempDir;
 	
 	private boolean running = false;
 	
@@ -138,11 +140,12 @@ public class JosekiInstance {
 	 * @param prefixMap
 	 * @throws SemWIQInterfaceException
 	 */
-	private JosekiInstance(SpawnedEndpointMetadata meta, Model cfg, String usingTempDir, Map<String, String> prefixMap) throws SemWIQInterfaceException {		
-		this.port = meta.getPort();
+	private JosekiInstance(SpawnedEndpointMetadata meta, Model cfg, String usingTempDir, Map<String, String> prefixMap) throws SemWIQInterfaceException {
+		lastCreatedInstance = this;
+		this.meta = meta;
 		this.usingTempDir = usingTempDir;
 		
-		log.info("Starting new Joseki instance on port " + port + "...");
+		log.info("Starting new Joseki instance on port " + meta.getPort() + "...");
 		
 		try {
 			ServiceRegistry registry = (ServiceRegistry) Registry.find(RDFServer.ServiceRegistryName) ;
@@ -152,18 +155,20 @@ public class JosekiInstance {
 				registry = (ServiceRegistry) Registry.find(RDFServer.ServiceRegistryName) ;
 			}
 
+			Configuration pubbyConfig = createPubbyConfig(meta);
+			this.pubbyPrefix = ((de.fuberlin.wiwiss.pubby.Dataset) pubbyConfig.getDatasets().iterator().next()).getWebResourcePrefix();
+			
 			new org.joseki.Configuration(cfg, registry, getBaseURL(meta));
 			Dispatcher.setConfiguration(cfg, getBaseURL(meta));
-			
-			server = new Server(port);
+			server = new Server(meta.getPort());
 
 			// use Random (/dev/urandom) instead of SecureRandom to generate session keys - otherwise Jetty may hang during startup waiting for enough entropy
 			// see http://jira.codehaus.org/browse/JETTY-331 and http://docs.codehaus.org/display/JETTY/Connectors+slow+to+startup
 			server.setSessionIdManager(new HashSessionIdManager(new Random()));
 			
 			cxt = new WebAppContext(server, Constants.JOSEKI_WEBAPP_DIR, "");
-			cxt.setAttribute(Constants.ENDPOINT_METADATA_ATTRIB, meta); // required by diverse servlets at runtime
-			cxt.setAttribute(Constants.PUBBY_CONFIG_ATTRIB, createPubbyConfig(meta)); // used by Pubby via (equal to BaseServlet.SERVER_CONFIGURATION)
+			cxt.setAttribute(Constants.ENDPOINT_METADATA_ATTRIB, meta); // required by diverse servlets at runtime			
+			cxt.setAttribute(Constants.PUBBY_CONFIG_ATTRIB, pubbyConfig); // used by Pubby via (equal to BaseServlet.SERVER_CONFIGURATION)
 			cxt.setAttribute(Constants.PREFIX_MAPPING_ATTRIB, prefixMap); // required by NamespaceServlet
 
 			server.addHandler(cxt);
@@ -175,7 +180,7 @@ public class JosekiInstance {
 
 			running = true;
 		} catch (Throwable e) {
-			String msg = "Failed to launch Joseki on port " + port + ".";
+			String msg = "Failed to launch Joseki on port " + meta.getPort() + ".";
 			log.error(msg, e);
 			throw new SemWIQInterfaceException(msg, e);
 		}
@@ -190,6 +195,7 @@ public class JosekiInstance {
 		log.info("Using Pubby base configuration: " + Constants.PUBBY_BASE_CONFIGFILE);
 
 		try {
+			TDB.init(); // use new RIOT parser, in this case the old one is troublesome
 			Model m  = Utils.loadFiltered(Constants.PUBBY_BASE_CONFIGFILE, meta);
 			return new Configuration(m);
 		} catch (Exception e) {
@@ -240,9 +246,9 @@ public class JosekiInstance {
 			if (usingTempDir != null)
 				log.info("Deleting temporary files in " + usingTempDir + "...");
 			
-			log.info("Joseki instance on port " + port + " successfully shut down.");
+			log.info("Joseki instance on port " + meta.getPort() + " successfully shut down.");
 		} catch (Exception e) {
-			String msg = "Failed to shutdown Joseki running on port " + port + ".";
+			String msg = "Failed to shutdown Joseki running on port " + meta.getPort() + ".";
 			log.error(msg, e);
 			throw new SemWIQInterfaceException(msg, e);
 		}
@@ -259,7 +265,16 @@ public class JosekiInstance {
 	 * @return
 	 */
 	public int getPort() {
-		return port;
+		return meta.getPort();
+	}
+
+	/** get last endpoint metadata (used for singleton usage of JosekiInstance) */
+	public static SpawnedEndpointMetadata getLastSpawnedEndpointMetadata() {
+		return lastCreatedInstance.meta;
 	}
 	
+	/** get last pubby path prefix (used for singleton usage of JosekiInstance) */
+	public static String getLastPubbyPathPrefix() {
+		return lastCreatedInstance.pubbyPrefix;
+	}
 }
