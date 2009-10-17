@@ -50,16 +50,16 @@ public class OpExecutorSemWIQ extends OpExecutor {
 		return super.execute(opBGP, input);
 	}
 	
-//	/* (non-Javadoc)
-//	 * @see com.hp.hpl.jena.sparql.engine.main.OpExecutor#execute(com.hp.hpl.jena.sparql.algebra.op.OpService, com.hp.hpl.jena.sparql.engine.QueryIterator)
-//	 */
-//	@Override
-//	protected QueryIterator execute(OpService opService, QueryIterator input) {
+	/* (non-Javadoc)
+	 * @see com.hp.hpl.jena.sparql.engine.main.OpExecutor#execute(com.hp.hpl.jena.sparql.algebra.op.OpService, com.hp.hpl.jena.sparql.engine.QueryIterator)
+	 */
+	@Override
+	protected QueryIterator execute(OpService opService, QueryIterator input) {
 //		if (opService instanceof OpBlockedService)
 //			return new QueryIterBlockedService(input, (OpBlockedService) opService, execCxt) ;
 //		else
-//			return super.execute(opService, input);
-//	}
+			return super.execute(opService, input);
+	}
 //	
 //	/* (non-Javadoc)
 //	 * @see com.hp.hpl.jena.sparql.engine.main.OpExecutor#execute(com.hp.hpl.jena.sparql.algebra.op.OpUnion, com.hp.hpl.jena.sparql.engine.QueryIterator)

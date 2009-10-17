@@ -26,20 +26,10 @@ import com.hp.hpl.jena.sparql.expr.ExprList;
  *
  */
 public class OpFilteredBGP extends OpBGP {
-	protected OpFilter filterRef;
+	protected final OpFilter filterRef;
 	
-	public OpFilteredBGP() {
-		super();
-	}
-	
-	public OpFilteredBGP(BasicPattern pattern) {
+	public OpFilteredBGP(BasicPattern pattern, OpFilter filterRef) {
 		super(pattern);
-	}
-
-	/**
-	 * @param filterRef the filterRef to set
-	 */
-	public void setFilterReference(OpFilter filterRef) {
 		this.filterRef = filterRef;
 	}
 	

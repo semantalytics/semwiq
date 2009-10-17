@@ -85,7 +85,7 @@ public class GraphVizWriter {
 			out.write("\tnode [shape=ellipse]\n");
 	
 			// write connections
-		//TODO 	op.visit(new GraphVizWriterVisitor());
+		 	op.visit(new GraphVizWriterVisitor());
 			
 			// write labels
 			out.write("\n");
@@ -137,55 +137,56 @@ public class GraphVizWriter {
 		}
 	}
 
-//	/** visitor for Op */
-//	private class GraphVizWriterVisitor extends OpVisitorByType {
-//		@Override
-//		public void visit(OpLabel op) { op.getSubOp().visit(this); }
-//		
-//		protected void visit0(Op0 op) {
-//			try {
-//				out.write("\t" + getId(op) + ";\n");
-//			} catch (IOException e) {
-//				throw new RuntimeException(e);
-//			}
-//		}
-//		
-//		protected void visitExt(OpExt op) {}
-//
-//		protected void visit1(Op1 op) throws RuntimeException {
-//			try {
-//				out.write("\t" + getId(op) + " -> " + getId(op.getSubOp()) + "\n");
-//				op.getSubOp().visit(this);
-//			} catch (IOException e) {
-//				throw new RuntimeException(e);
-//			}
-//		}
-//
-//		protected void visit2(Op2 op) {
-//			try {
-//				Op left = op.getLeft();
-//				Op right = op.getRight();
-//				out.write("\t" + getId(op) + " -> " + getId(left) + " [label=left];\n");
-//				left.visit(this);
-//				out.write("\t" + getId(op) + " -> " + getId(right) + " [label=right];\n");
-//				right.visit(this);
-//			} catch (IOException e) {
-//				throw new RuntimeException(e);
-//			}			
-//		}
-//
-//		protected void visitN(OpN op) {
-//			try {
-//				Iterator<Op> it = op.getElements().iterator();
-//				while (it.hasNext()) {
-//					Op sub = it.next();
-//					out.write("\t" + getId(op) + " -> " + getId(sub) + ";\n");
-//				}
-//			} catch (IOException e) {
-//				throw new RuntimeException(e);
-//			}
-//		}
-//	}
+	/** visitor for Op */
+	private class GraphVizWriterVisitor extends OpVisitorByType {
+		@Override
+		public void visit(OpLabel op) { op.getSubOp().visit(this); }
+		
+		protected void visit0(Op0 op) {
+			try {
+				out.write("\t" + getId(op) + ";\n");
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+		}
+		
+		protected void visitExt(OpExt op) {}
+
+		protected void visit1(Op1 op) throws RuntimeException {
+			try {
+				out.write("\t" + getId(op) + " -> " + getId(op.getSubOp()) + "\n");
+				op.getSubOp().visit(this);
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+		}
+
+		protected void visit2(Op2 op) {
+			try {
+				Op left = op.getLeft();
+				Op right = op.getRight();
+				out.write("\t" + getId(op) + " -> " + getId(left) + " [label=left];\n");
+				left.visit(this);
+				out.write("\t" + getId(op) + " -> " + getId(right) + " [label=right];\n");
+				right.visit(this);
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}			
+		}
+
+		protected void visitN(OpN op) {
+			try {
+				Iterator<Op> it = op.getElements().iterator();
+				while (it.hasNext()) {
+					Op sub = it.next();
+					out.write("\t" + getId(op) + " -> " + getId(sub) + ";\n");
+					sub.visit(this);
+				}
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+		}
+	}
 
 //	/** visitor for AnnotatedOp */
 //	private GraphVizWriterVisitor extends AnnotatedOpVisitorSimple {
@@ -237,13 +238,13 @@ public class GraphVizWriter {
 //		}
 //	}
 //
-//	protected String getId(Op op) {
-//		String id = ids.get(op);
-//		if (id == null) {
-//			id = "node" + sequence++;
-//			ids.put(op, id);
-//			String name = getName(op);
-//
+	protected String getId(Op op) {
+		String id = ids.get(op);
+		if (id == null) {
+			id = "node" + sequence++;
+			ids.put(op, id);
+			String name = getName(op);
+
 //			if (op instanceof AnnotatedOp) {
 //				AnnotatedOp aOp = (AnnotatedOp) op;
 //				name += "\\n";
@@ -257,122 +258,50 @@ public class GraphVizWriter {
 //				else
 //					name += "(estimates n/a)";
 //			}
-//			labels.put(op, name);
-//		}
-//		return id;
-//	}
-//	
-//	protected String getName(Op op) {
-//		if (op instanceof OpService) {
-//			return "SERVICE\\n" + ((OpService) op).getService().getURI();
-//		} else if (op instanceof AnnotatedOpService) {
-//			return "SERVICE\\n" + ((AnnotatedOpService) op).getServiceEndpoint();
-//			
-//		} else if (op instanceof OpFilter) {
-//			StringBuilder sb = new StringBuilder();
-//			sb.append("FILTER");
-//			ExprList expr = ((OpFilter) op).getExprs();
-//			if (expr != null) {
-//				sb.append("\\n");
-//				Iterator<Expr> e = expr.iterator();
-//				while (e.hasNext()) {
-//					sb.append(e.next());
-//					if (e.hasNext()) sb.append("\\n");
-//				}
-//			}
-//			return sb.toString();
-//		} else if (op instanceof AnnotatedOpFilter) {
-//			StringBuilder sb = new StringBuilder();
-//			sb.append("FILTER");
-//			ExprList expr = ((AnnotatedOpFilter) op).getExprs();
-//			if (expr != null) {
-//				sb.append("\\n");
-//				Iterator<Expr> e = expr.iterator();
-//				while (e.hasNext()) {
-//					sb.append(e.next());
-//					if (e.hasNext()) sb.append("\\n");
-//				}
-//			}
-//			return sb.toString();
-//			
-//		} else if (op instanceof OpProject)
-//			return "PROJECT\\n" + ((OpProject) op).getVars();
-//		else if (op instanceof AnnotatedOpProject)
-//			return "PROJECT\\n" + ((AnnotatedOpProject) op).getProjectionVars();
-//		
-//		else if (op instanceof OpOrder)
-//			return "ORDER\\n" + ((OpOrder) op).getConditions();
-//		else if (op instanceof AnnotatedOpOrder)
-//			return "ORDER\\n" + ((AnnotatedOpOrder) op).getConditions();
-//		
-//		else if (op instanceof AnnotatedOpDistinct)
-//			return "DISTINCT\\nVars: " + ((AnnotatedOpDistinct) op).getKnownVariables();
-//		
-//		else if (op instanceof OpBGP) {
-//			StringBuilder sb = new StringBuilder();
-//			sb.append("BGP\\n");
-//			Iterator<Triple> p = ((OpBGP) op).getPattern().iterator();
-//			while (p.hasNext()) {
-//				sb.append(p.next().toString(query.getPrefixMapping()));
-//				if (p.hasNext()) sb.append("\\n");
-//			}
-//			return sb.toString();
-//		} else if (op instanceof AnnotatedOpBGP) {
-//			StringBuilder sb = new StringBuilder();
-//			sb.append("BGP\\n");
-//			AnnotatedOpBGP bgp = (AnnotatedOpBGP) op;
-//			Iterator<Triple> p = bgp.getPattern().iterator();
-//			while (p.hasNext()) {
-//				Triple t = p.next();
-//				sb.append(t.toString(query.getPrefixMapping()));
-//				long est = bgp.getTripleEstimation(t);
-//				if (est >= 0) 
-//					sb.append(" (~").append(est).append(")");
-//				else
-//					sb.append(" (~ n/a)");
-//				if (p.hasNext()) sb.append("\\n");
-//			}
-//			return sb.toString();
-//		
-//		} else if (op instanceof OpTable) {
-//			return "TABLE\\n" + ((OpTable) op).getTable().size() + " bindings";
-//		} else if (op instanceof AnnotatedOpTable) {
-//			return "TABLE\\n" + ((AnnotatedOpTable) op).getTableSize() + " bindings";
-//			
-//		} else if (op instanceof AnnotatedOpJoin) {
-//			StringBuilder sb = new StringBuilder();
-//			sb.append("JOIN\\n");
-//			
-//			Set<Var> joinVars = ((AnnotatedOpJoin) op).getJoinVars();
-//			if (joinVars.size() > 0)
-//				sb.append(joinVars);
-//			else
-//				sb.append("cross product");
-//			
-//			return sb.toString();
-//		} else if (op instanceof AnnotatedOpLeftJoin) {
-//			StringBuilder sb = new StringBuilder();
-//			sb.append("LEFTJOIN\\n");
-//			
-//			Set<Var> joinVars = ((AnnotatedOpLeftJoin) op).getJoinVars();
-//			if (joinVars.size() > 0)
-//				sb.append(joinVars);
-//			else
-//				sb.append("cross product");
-//
-//			ExprList expr = ((AnnotatedOpLeftJoin) op).getExprs();
-//			if (expr != null) {
-//				sb.append("\\nfilter ");
-//				Iterator<Expr> e = expr.iterator();
-//				while (e.hasNext()) {
-//					sb.append(e.next());
-//					if (e.hasNext()) sb.append("\\n");
-//				}
-//			}
-//			return sb.toString();
-//			
-//		} else
-//			return op.getName().toUpperCase();
-//	}
+			labels.put(op, name);
+		}
+		return id;
+	}
+	
+	protected String getName(Op op) {
+		if (op instanceof OpService) {
+			return "SERVICE\\n" + ((OpService) op).getService().getURI();
+			
+		} else if (op instanceof OpFilter) {
+			StringBuilder sb = new StringBuilder();
+			sb.append("FILTER");
+			ExprList expr = ((OpFilter) op).getExprs();
+			if (expr != null) {
+				sb.append("\\n");
+				Iterator<Expr> e = expr.iterator();
+				while (e.hasNext()) {
+					sb.append(e.next());
+					if (e.hasNext()) sb.append("\\n");
+				}
+			}
+			return sb.toString();
+
+		} else if (op instanceof OpProject)
+			return "PROJECT\\n" + ((OpProject) op).getVars();
+		
+		else if (op instanceof OpOrder)
+			return "ORDER\\n" + ((OpOrder) op).getConditions();
+		
+		else if (op instanceof OpBGP) {
+			StringBuilder sb = new StringBuilder();
+			sb.append("BGP\\n");
+			Iterator<Triple> p = ((OpBGP) op).getPattern().iterator();
+			while (p.hasNext()) {
+				sb.append(p.next().toString(query.getPrefixMapping()));
+				if (p.hasNext()) sb.append("\\n");
+			}
+			return sb.toString();
+		
+		} else if (op instanceof OpTable) {
+			return "TABLE\\n" + ((OpTable) op).getTable().size() + " bindings";
+			
+		} else
+			return op.getName().toUpperCase();
+	}
 	
 }

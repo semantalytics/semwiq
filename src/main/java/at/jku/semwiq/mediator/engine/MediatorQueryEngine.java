@@ -18,54 +18,41 @@ package at.jku.semwiq.mediator.engine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import at.jku.rdfstats.PlanCalculator;
 import at.jku.semwiq.mediator.Constants;
 import at.jku.semwiq.mediator.Mediator;
 import at.jku.semwiq.mediator.dataset.SemWIQDatasetGraph;
+import at.jku.semwiq.mediator.engine.op.CostBasedJoinReorder;
 import at.jku.semwiq.mediator.engine.op.OpExecutorSemWIQ;
-import at.jku.semwiq.mediator.engine.op.ProjectPushdown;
 import at.jku.semwiq.mediator.engine.op.TransformFilteredBGP;
-import at.jku.semwiq.mediator.federator.FederatorBase;
+import at.jku.semwiq.mediator.federator.Federator;
+import at.jku.semwiq.mediator.util.GraphVizWriter;
 
 import com.hp.hpl.jena.query.ARQ;
 import com.hp.hpl.jena.query.Query;
-import com.hp.hpl.jena.rdf.model.ModelFactory;
 import com.hp.hpl.jena.sparql.algebra.Op;
 import com.hp.hpl.jena.sparql.algebra.OpAsQuery;
-import com.hp.hpl.jena.sparql.algebra.OpWalker;
 import com.hp.hpl.jena.sparql.algebra.Transformer;
-import com.hp.hpl.jena.sparql.algebra.op.OpLabel;
+import com.hp.hpl.jena.sparql.algebra.op.OpNull;
 import com.hp.hpl.jena.sparql.algebra.opt.FilterPushdown;
-import com.hp.hpl.jena.sparql.algebra.opt.OpVisitorExprPrepare;
-import com.hp.hpl.jena.sparql.algebra.opt.Optimize;
 import com.hp.hpl.jena.sparql.algebra.opt.TransformEqualityFilter;
 import com.hp.hpl.jena.sparql.algebra.opt.TransformFilterImprove;
-import com.hp.hpl.jena.sparql.algebra.opt.TransformFilterPlacement;
 import com.hp.hpl.jena.sparql.algebra.opt.TransformJoinStrategy;
-import com.hp.hpl.jena.sparql.algebra.opt.TransformPathFlattern;
-import com.hp.hpl.jena.sparql.algebra.opt.TransformPropertyFunction;
-import com.hp.hpl.jena.sparql.algebra.opt.TransformRemoveLabels;
-import com.hp.hpl.jena.sparql.algebra.opt.TransformSimplify;
 import com.hp.hpl.jena.sparql.algebra.opt.TransformThetaJoins;
 import com.hp.hpl.jena.sparql.core.DataSourceGraphImpl;
 import com.hp.hpl.jena.sparql.core.DatasetGraph;
-import com.hp.hpl.jena.sparql.core.Substitute;
 import com.hp.hpl.jena.sparql.engine.ExecutionContext;
 import com.hp.hpl.jena.sparql.engine.Plan;
 import com.hp.hpl.jena.sparql.engine.QueryEngineFactory;
 import com.hp.hpl.jena.sparql.engine.QueryEngineRegistry;
 import com.hp.hpl.jena.sparql.engine.QueryIterator;
 import com.hp.hpl.jena.sparql.engine.binding.Binding;
-import com.hp.hpl.jena.sparql.engine.iterator.QueryIterRoot;
-import com.hp.hpl.jena.sparql.engine.iterator.QueryIteratorBase;
-import com.hp.hpl.jena.sparql.engine.iterator.QueryIteratorCheck;
 import com.hp.hpl.jena.sparql.engine.iterator.QueryIteratorWrapper;
 import com.hp.hpl.jena.sparql.engine.main.OpExecutor;
 import com.hp.hpl.jena.sparql.engine.main.OpExecutorFactory;
 import com.hp.hpl.jena.sparql.engine.main.QC;
 import com.hp.hpl.jena.sparql.engine.main.QueryEngineMain;
-import com.hp.hpl.jena.sparql.serializer.QuerySerializer;
 import com.hp.hpl.jena.sparql.util.Context;
-import com.hp.hpl.jena.tdb.graph.GraphFactory;
 
 /**
  * Extended QueryEngineMain for the SemWIQ mediator.
@@ -141,26 +128,45 @@ public class MediatorQueryEngine extends QueryEngineMain {
 	protected Op modifyOp(Op op) {
 		try {
 			context.set(Constants.OP_ORIGINAL, op);
+			Query q = (Query) context.get(Constants.QUERY);
+			if (LoggerFactory.getLogger(Constants.RENDER_PLANS_DUMMYLOGGER).isInfoEnabled())
+				GraphVizWriter.write(op, q, Constants.RENDER_ORIGINAL_FILENAME);
 			
-	    	// optimizations:
-			// - break conjunctions, transform equality filters, join/ljoin => sequence/conditional, flatten prop paths
-			// - BUT NO filter placement => increases amount of BGPs, instead use OpFilteredBGP
-			// - push down projections
+			// pre-optimize
 			long start = System.currentTimeMillis();
 			Op opt = preOptimize(op);
 	    	context.set(Constants.EXEC_TIME_PREOPTIMIZE, System.currentTimeMillis() - start); 
 			context.set(Constants.OP_PREOPTIMIZED, opt);
-
+			if (LoggerFactory.getLogger(Constants.RENDER_PLANS_DUMMYLOGGER).isInfoEnabled())
+				GraphVizWriter.write(opt, q, Constants.RENDER_PREOPT_FILENAME);
+				
 			// federate
-			Mediator mediator = ((SemWIQDatasetGraph) dataset).getMediator();
-			Op fed = mediator.getFederator().federate(op);
+			Federator federator = getMediator().getFederator();
+			start = System.currentTimeMillis();
+			Op fed = federator.federate(opt);
+	    	context.set(Constants.EXEC_TIME_FEDERATE, System.currentTimeMillis() - start); 
+			context.set(Constants.OP_FEDERATED, fed);
+			if (LoggerFactory.getLogger(Constants.RENDER_PLANS_DUMMYLOGGER).isInfoEnabled())
+				GraphVizWriter.write(fed, q, Constants.RENDER_FEDERATED_FILENAME);
 
-// TODO provide estimates
-//			context.set(Constants.ESTIMATED_MIN_RESULTS, estimates[0]);
-//			context.set(Constants.ESTIMATED_AVG_RESULTS, estimates[1]);
-//			context.set(Constants.ESTIMATED_MAX_RESULTS, estimates[2]);
+			// post-optimize
+			start = System.currentTimeMillis();
+			Op postOpt = postOptimize(fed);
+			context.set(Constants.EXEC_TIME_POSTOPTIMIZE, System.currentTimeMillis() - start); 
+			context.set(Constants.OP_POSTOPTIMIZED, postOpt);
+			if (LoggerFactory.getLogger(Constants.RENDER_PLANS_DUMMYLOGGER).isInfoEnabled())
+				GraphVizWriter.write(postOpt, q, Constants.RENDER_POSTOPT_FILENAME);
+		
+			Long[] estimates = new PlanCalculator(getMediator().getDataSourceRegistry().getRDFStatsModel()).calculate(postOpt);			 
+			if (estimates[PlanCalculator.MAX] == 0)
+				postOpt = OpNull.create();
+			log.debug("Estimated results: " + estimates[PlanCalculator.MIN] + " (min), " + estimates[PlanCalculator.AVG] + " (avg), " + estimates[PlanCalculator.MAX] + " (max)");
 
-			return fed;
+			context.set(Constants.ESTIMATED_MIN_RESULTS, estimates[PlanCalculator.MIN]);
+			context.set(Constants.ESTIMATED_AVG_RESULTS, estimates[PlanCalculator.AVG]);
+			context.set(Constants.ESTIMATED_MAX_RESULTS, estimates[PlanCalculator.MAX]);
+
+			return postOpt;
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
@@ -176,13 +182,32 @@ public class MediatorQueryEngine extends QueryEngineMain {
         op = FilterPushdown.apply(op);
         // done by pushdown already: op = Transformer.transfor(new TransformFlattenFilters(), op) ;
         op = Transformer.transform(new TransformEqualityFilter(), op) ;
+//        op = ProjectPushdown.apply(op);
         op = Transformer.transform(new TransformJoinStrategy(context), op) ;
         op = Transformer.transform(new TransformThetaJoins(), op);
     	op = Transformer.transform(new TransformFilteredBGP(), op);
-    	op = ProjectPushdown.apply(op);
         return op ;
 	}
 
+	/**
+	 * @param op
+	 * @return
+	 */
+	private Op postOptimize(Op op) {
+		op = FilterPushdown.apply(op);
+        op = Transformer.transform(new TransformEqualityFilter(), op) ;
+//        op = ProjectPushdown.apply(op);
+        op = CostBasedJoinReorder.applyTransformations(getMediator().getDataSourceRegistry().getRDFStatsModel(), op);
+        op = Transformer.transform(new TransformJoinStrategy(context), op) ;
+        op = Transformer.transform(new TransformThetaJoins(), op);
+    	op = Transformer.transform(new TransformFilteredBGP(), op);
+        return op ;
+	}
+	
+	private Mediator getMediator() {
+		return ((SemWIQDatasetGraph) dataset).getMediator();
+	}
+	
 	static public QueryEngineFactory getFactory() {
 		return factory;
 	}

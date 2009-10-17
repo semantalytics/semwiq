@@ -40,7 +40,7 @@
 
 <!-- special logger which exports all query plans (original/federated/optimized) into GraphViz .dot and .png files into the working directory -->
   <logger name="render-plans">
-  	<level value="OFF"/>
+  	<level value="ON"/>
   </logger>
   
   <logger name="at.jku.semwiq.mediator">

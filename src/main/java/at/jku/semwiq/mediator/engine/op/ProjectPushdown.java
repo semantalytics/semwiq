@@ -62,7 +62,8 @@ public class ProjectPushdown extends TransformBase {
 	protected final IdentityHashMap<Op, Op> child2parent = new IdentityHashMap<Op, Op>();
 
 	public static Op apply(Op op) {
-		return new ProjectPushdown().applyTransformations(op);
+		throw new RuntimeException("untested");
+		//return new ProjectPushdown().applyTransformations(op);
 	}
 	
 	public Op applyTransformations(Op op) {
@@ -123,11 +124,15 @@ public class ProjectPushdown extends TransformBase {
 
 		// handled vars including any join variables (OpJoin and OpLeftJoin)
 		Set<Var> vars = new HashSet<Var>();
-		vars.addAll(origProjVars);		
-		if (op2 instanceof OpJoin)
-			vars.addAll(((OpJoin) op2).getExprs().getVarsMentioned());
-		else if (op2 instanceof OpLeftJoin)
-			vars.addAll(((OpJoin) op2).getExprs().getVarsMentioned());
+		vars.addAll(origProjVars);
+		
+		if (op2 instanceof OpJoin) {
+			if (((OpJoin) op2).getExprs() != null)
+				vars.addAll(((OpJoin) op2).getExprs().getVarsMentioned());
+		} else if (op2 instanceof OpLeftJoin) {
+			if (((OpLeftJoin) op2).getExprs() != null)
+				vars.addAll(((OpLeftJoin) op2).getExprs().getVarsMentioned());
+		}
 
 		Set<Var> leftScope = OpVars.allVars(left);
 		Set<Var> rightScope = OpVars.allVars(right);

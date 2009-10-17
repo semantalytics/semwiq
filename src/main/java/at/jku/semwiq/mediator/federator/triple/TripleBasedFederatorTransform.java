@@ -94,7 +94,7 @@ public class TripleBasedFederatorTransform extends TransformCopy {
 					pattern.add(tp);
 					OpBGP bgp = new OpBGP(pattern);
 					OpService s = new OpService(Node.createURI(d.getSPARQLEndpointURL()), bgp);
-					prevUnion = (prevUnion == null) ? bgp : new OpUnion(prevUnion, s);
+					prevUnion = (prevUnion == null) ? s : new OpUnion(prevUnion, s);
 				}
 				
 				// add to join sequence

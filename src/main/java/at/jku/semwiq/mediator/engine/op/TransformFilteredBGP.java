@@ -28,21 +28,13 @@ import com.hp.hpl.jena.sparql.algebra.op.OpFilter;
 public class TransformFilteredBGP extends TransformCopy {
 
 	/* (non-Javadoc)
-	 * @see com.hp.hpl.jena.sparql.algebra.TransformCopy#transform(com.hp.hpl.jena.sparql.algebra.op.OpBGP)
-	 */
-	@Override
-	public Op transform(OpBGP opBGP) {
-		return new OpFilteredBGP(opBGP.getPattern());
-	}
-	
-	/* (non-Javadoc)
 	 * @see com.hp.hpl.jena.sparql.algebra.TransformCopy#transform(com.hp.hpl.jena.sparql.algebra.op.OpFilter, com.hp.hpl.jena.sparql.algebra.Op)
 	 */
 	@Override
 	public Op transform(OpFilter opFilter, Op sub) {
-		if (sub instanceof OpFilteredBGP) {
-			((OpFilteredBGP) sub).setFilterReference(opFilter);
-			return opFilter; // still keep filter
+		if (sub instanceof OpBGP) {
+			Op op = new OpFilteredBGP(((OpBGP) sub).getPattern(), opFilter);
+			return opFilter; // only add reference, still keep OpFilter in plan
 		} else
 			return super.transform(opFilter, sub);
 	}

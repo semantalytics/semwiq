@@ -21,6 +21,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.InetAddress;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import at.jku.rdfstats.vocabulary.SCOVO;
 import at.jku.rdfstats.vocabulary.Stats;
 import at.jku.semwiq.mediator.conf.MediatorConfig;
@@ -87,8 +90,8 @@ public class Constants {
 	public static final Symbol QUERY = Symbol.create("semwiq.query"); // Query
 	public static final Symbol OP_ORIGINAL = Symbol.create("semwiq.plan.orig"); // Op
 	public static final Symbol OP_PREOPTIMIZED = Symbol.create("semwiq.plan.preopt");
-	public static final Symbol OP_POSTOPTIMIZED = Symbol.create("semwiq.plan.postopt");
 	public static final Symbol OP_FEDERATED = Symbol.create("semwiq.plan.fed");
+	public static final Symbol OP_POSTOPTIMIZED = Symbol.create("semwiq.plan.postopt");
 	
 	public static final Symbol ESTIMATED_MIN_RESULTS = Symbol.create("semwiq.estimate.min");		// Long, possibly null
 	public static final Symbol ESTIMATED_AVG_RESULTS = Symbol.create("semwiq.estimate.avg");		// Long, possibly null
@@ -96,6 +99,7 @@ public class Constants {
 	
 	public static final Symbol EXEC_TIME_START = Symbol.create("semwiq.time.start"); // long - timestamp [ms]
 	public static final Symbol EXEC_TIME_PREOPTIMIZE = Symbol.create("semwiq.time.preopt"); // long - durations [ms]
+	public static final Symbol EXEC_TIME_FEDERATE = Symbol.create("semwiq.time.fed"); // long - durations [ms]
 	public static final Symbol EXEC_TIME_POSTOPTIMIZE = Symbol.create("semwiq.time.postopt"); // long - durations [ms]
 	public static final Symbol EXEC_TIME_FIRSTRESULT = Symbol.create("semwiq.time.first");  // long [ms]
 	public static final Symbol EXEC_TIME_ALLRESULTS = Symbol.create("semwiq.time.all");  // long [ms]
@@ -104,4 +108,10 @@ public class Constants {
 	
 	public static final String DEFAULT_SUPERUSER_PASSWORD = "semwiq";
 
+	// graph viz output of query plans
+	public static final String RENDER_PLANS_DUMMYLOGGER = "render-plans";
+	public static final String RENDER_ORIGINAL_FILENAME = "plan_orig";
+	public static final String RENDER_PREOPT_FILENAME = "plan_preoptimized";
+	public static final String RENDER_FEDERATED_FILENAME = "plan_federated";
+	public static final String RENDER_POSTOPT_FILENAME = "plan_final";
 }

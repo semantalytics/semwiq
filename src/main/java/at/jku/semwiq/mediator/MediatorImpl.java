@@ -51,7 +51,6 @@ import com.hp.hpl.jena.tdb.store.GraphTDB;
  */
 public class MediatorImpl implements Mediator {
 	private static final Logger log = LoggerFactory.getLogger(MediatorImpl.class);
-	private static final Logger renderPlans = LoggerFactory.getLogger("render-plans");
 	
 	/** configuration */
 	private final MediatorConfig config;

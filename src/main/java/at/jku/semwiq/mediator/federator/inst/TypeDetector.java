@@ -276,11 +276,11 @@ public class TypeDetector {
 				else
 					return type.getJavaClass().newInstance();
 			} catch (Exception e1) {
-				log.debug(e1.getMessage(), e1);
+//				log.debug(e1.getMessage(), e1);
 				try {
 					return type.getJavaClass().cast("");
 				} catch (Exception e2) {
-					log.debug(e2.getMessage(), e2);
+//					log.debug(e2.getMessage(), e2);
 					return "";
 				}
 			}
