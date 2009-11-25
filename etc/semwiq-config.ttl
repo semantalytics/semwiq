@@ -32,10 +32,10 @@
 	
 #	sq:dataSourceRegistryConfig [ ... ] ;
 	sq:federatorConfig [
-#		a sq:TripleBasedFederatorConfig ;
-		a sq:InstanceBasedFederatorConfig ;
-		sq:inferTypes "true" ;
-		sq:subsumption "true" ;
+		a sq:TripleBasedFederatorConfig ;
+#		a sq:InstanceBasedFederatorConfig ;
+#		sq:inferTypes "true" ;
+#		sq:subsumption "true" ;
 	] ;
 	
 	sq:guiConfig :guiConfig ;

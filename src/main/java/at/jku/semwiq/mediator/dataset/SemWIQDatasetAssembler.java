@@ -15,7 +15,6 @@
  */
 package at.jku.semwiq.mediator.dataset;
 
-import at.jku.semwiq.mediator.Constants;
 import at.jku.semwiq.mediator.Mediator;
 import at.jku.semwiq.mediator.MediatorImpl;
 import at.jku.semwiq.mediator.vocabulary.Config;
@@ -35,18 +34,17 @@ public class SemWIQDatasetAssembler extends DatasetAssembler {
 	public Object open(Assembler ass, Resource description, Mode mode) {
 		Statement s = description.getProperty(Config.configFile);
 		String configFile;
-		if (s != null) {
-			if (s.getObject().isLiteral())
-				configFile = s.getString();
-			else
-				configFile = s.getResource().getURI();			
-		} else if (System.getProperty(Constants.SYSTEMPROPERTY_CONFIGFILE) != null)
-			configFile = System.getProperty(Constants.SYSTEMPROPERTY_CONFIGFILE);
-		else
-			configFile = null;
-		
+		Mediator m;
 		try {
-			Mediator m = new MediatorImpl(configFile);
+			if (s != null) {
+				if (s.getObject().isLiteral())
+					configFile = s.getString();
+				else
+					configFile = s.getResource().getURI();			
+				m = new MediatorImpl(configFile);
+			} else
+				m = new MediatorImpl();
+		
 			return new SemWIQDataset(m);
 		} catch (Exception e) {
 			throw new RuntimeException("Failed to assemble virtual dataset: " + e);

@@ -91,13 +91,7 @@ public class MediatorImpl implements Mediator {
 		log.info("=== Initializing SemWIQ mediator on " + Constants.HOSTNAME + " ===");			
 		log.info("Java runtime: " + System.getProperty("java.version") + ", " + System.getProperty("os.arch"));
 
-		String sysPropCfg = System.getProperty(Constants.SYSTEMPROPERTY_CONFIGFILE);
-		if (config != null)
-			this.config = config;
-		else if (sysPropCfg != null)
-			this.config = new MediatorConfig(sysPropCfg);
-		else
-			this.config = new MediatorConfig();
+		this.config = (config != null) ? config : new MediatorConfig();
 
 		Resource storeAssemblerModelDesc = this.config.getStoreAssemblerModelDesc();
 		if (storeAssemblerModelDesc != null) {

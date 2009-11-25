@@ -15,6 +15,7 @@
  */
 package at.jku.semwiq.mediator.engine.iter;
 
+import com.hp.hpl.jena.sparql.ARQNotImplemented;
 import com.hp.hpl.jena.sparql.algebra.Op;
 import com.hp.hpl.jena.sparql.algebra.table.TableN;
 import com.hp.hpl.jena.sparql.engine.ExecutionContext;
@@ -35,14 +36,13 @@ import com.hp.hpl.jena.sparql.util.Utils;
 public class QueryIterBlockedOptionalIndex extends QueryIterBlockedRepeatApply {
     private Op op ;
 
-    public QueryIterBlockedOptionalIndex(QueryIterator input, Op op, ExecutionContext context)
-    {
-        super(input, context) ;
-        this.op = op ;
+    public QueryIterBlockedOptionalIndex(QueryIterBlocked input, Op op, ExecutionContext context) {
+        super(input, context);
+        this.op = op;
     }
 
     @Override
-    protected QueryIterator nextStage(TableN bindings)
+    protected QueryIterBlocked nextStage(TableN bindings)
     {
 //        Op op2 = QC.substitute(op, binding) ;
     	// TODO
@@ -51,7 +51,8 @@ public class QueryIterBlockedOptionalIndex extends QueryIterBlockedRepeatApply {
 //        
 //        QueryIterator cIter = QC.execute(op, thisStep, super.getExecContext()) ;
 //        cIter = new QueryIterDefaulting(cIter, binding, getExecContext()) ;
-        return null; // cIter ;
+//    	return null; // cIter ;
+    	throw new ARQNotImplemented();
     }
     
     @Override

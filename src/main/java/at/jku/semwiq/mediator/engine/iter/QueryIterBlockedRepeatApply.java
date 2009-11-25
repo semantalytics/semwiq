@@ -16,60 +16,55 @@
 package at.jku.semwiq.mediator.engine.iter;
 
 import java.util.NoSuchElementException;
-import java.util.Set;
 
-import at.jku.semwiq.mediator.Constants;
-import at.jku.semwiq.mediator.engine.op.ProjectedBindingsCache;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.hp.hpl.jena.sparql.algebra.table.TableN;
-import com.hp.hpl.jena.sparql.core.Var;
 import com.hp.hpl.jena.sparql.engine.ExecutionContext;
 import com.hp.hpl.jena.sparql.engine.QueryIterator;
 import com.hp.hpl.jena.sparql.engine.binding.Binding;
-import com.hp.hpl.jena.sparql.engine.iterator.QueryIter1;
-import com.hp.hpl.jena.sparql.engine.iterator.QueryIterConvert;
-import com.hp.hpl.jena.sparql.engine.iterator.QueryIterRepeatApply;
 import com.hp.hpl.jena.sparql.util.ALog;
 import com.hp.hpl.jena.sparql.util.Utils;
 
 /**
  * @author dorgon, Andreas Langegger, al@jku.at
  * 
- * stage with TableN bindings
- * initialized with an input or piped TableN
- * 
- * fetches {@link Constants#}.BLOCK_SIZE bindings from input for next stage
+ * stage with bindings block
+ * initialized with a normal or a blocked iterator with TableN bindings
  */
-public abstract class QueryIterBlockedRepeatApply extends QueryIter1 {
-	private QueryIterator currentStage;
-	private TableN bindings;
-	
-	public QueryIterBlockedRepeatApply(TableN input, ExecutionContext context) {
-		super(null, context);
-		
-		this.currentStage = null;
-		this.bindings = input;
-	}
-	
-	public QueryIterBlockedRepeatApply(QueryIterator input, ExecutionContext context) {
+public abstract class QueryIterBlockedRepeatApply extends QueryIterBlocked {
+	private static final Logger log = LoggerFactory.getLogger(QueryIterBlockedRepeatApply.class);
+	private QueryIterBlocked currentStage;
+
+	/**
+	 * @param input
+	 * @param context
+	 */
+	public QueryIterBlockedRepeatApply(QueryIterBlocked input, ExecutionContext context) {
 		super(input, context);
 		this.currentStage = null;
 
 		if (input == null) {
-			ALog.fatal(this, "[QueryIterRepeatApply] Repeated application to null input iterator");
+			ALog.fatal(this, "[QueryIterBlockedRepeatApply] Repeated application to null input iterator");
 			return;
 		}
 	}
 
-	protected QueryIterator getCurrentStage() {
+	@Override
+	protected QueryIterBlocked getInput() {
+		return (QueryIterBlocked) super.getInput();
+	}
+	
+	protected QueryIterBlocked getCurrentStage() {
 		return currentStage;
 	}
 
-	protected ProjectedBindingsCache createBindingsCache(TableN table, Set<Var> scopedVars) {
-		return new ProjectedBindingsCache(table, scopedVars);
-	}
-	
-	protected abstract QueryIterator nextStage(TableN bindings);
+	/**
+	 * @param bindings
+	 * @return
+	 */
+	protected abstract QueryIterBlocked nextStage(TableN bindings);
 
 	@Override
 	protected boolean hasNextBinding() {
@@ -97,27 +92,28 @@ public abstract class QueryIterBlockedRepeatApply extends QueryIter1 {
 	@Override
 	protected Binding moveToNextBinding() {
 		if (!hasNextBinding())
-			throw new NoSuchElementException(Utils.className(this)
-					+ ".next()/finished");
+			throw new NoSuchElementException(Utils.className(this) + ".next()/finished");
 		return currentStage.nextBinding();
 	}
 
-	private QueryIterator makeNextStage() {
-		if (bindings != null) // use bindings table
-			return nextStage(bindings);
-
-		// otherwise use input iterator and build next TableN
-		if (!getInput().hasNext()) {
-			getInput().close();
+	protected TableN moveToNextBindingsBlock() {
+		if (!hasNextBindingsBlock())
+			throw new NoSuchElementException(Utils.className(this) + ".next()/finished");
+		return currentStage.nextBindingsBlock();
+	}
+	
+	private QueryIterBlocked makeNextStage() {
+		QueryIterBlocked input = getInput();
+		if (input == null)
+			return null;
+		
+		if (!input.hasNextBindingsBlock()) {
+			input.close();
 			return null;
 		}
 		
-		TableN nextBindings = new TableN();
-		QueryIterator input = getInput();
-		for (int i=0; i<Constants.BLOCK_SIZE && input.hasNext(); i++) // will have at least one in final stage cause input has next
-			nextBindings.addBinding(input.next());
-
-		QueryIterator iter = nextStage(nextBindings);
+		TableN bindings = ((QueryIterBlocked) input).nextBindingsBlock();
+		QueryIterBlocked iter = nextStage(bindings);
 		return iter;
 	}
 

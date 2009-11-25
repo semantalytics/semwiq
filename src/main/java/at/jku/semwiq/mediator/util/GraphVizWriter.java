@@ -125,6 +125,8 @@ public class GraphVizWriter {
 			String out = sbOut.toString();
 			err = sbErr.toString();
 			if (err == "") err = out;
+			
+			Thread.sleep(10); // wait for p to exit
 			if (p.exitValue() > 0)
 				log.warn("Error executing graphviz: " + err);
 			else {

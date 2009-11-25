@@ -17,8 +17,14 @@ package at.jku.semwiq.mediator.engine.op;
 
 import java.util.List;
 
+import at.jku.semwiq.mediator.engine.iter.QueryIterBlocked;
+import at.jku.semwiq.mediator.engine.iter.QueryIterBlockedOptionalIndex;
+import at.jku.semwiq.mediator.engine.iter.QueryIterBlockedService;
+import at.jku.semwiq.mediator.engine.iter.QueryIterBlockedUnion;
+
 import com.hp.hpl.jena.sparql.algebra.Op;
 import com.hp.hpl.jena.sparql.algebra.op.OpBGP;
+import com.hp.hpl.jena.sparql.algebra.op.OpConditional;
 import com.hp.hpl.jena.sparql.algebra.op.OpExt;
 import com.hp.hpl.jena.sparql.algebra.op.OpService;
 import com.hp.hpl.jena.sparql.algebra.op.OpUnion;
@@ -29,6 +35,7 @@ import com.hp.hpl.jena.sparql.engine.iterator.QueryIterRoot;
 import com.hp.hpl.jena.sparql.engine.iterator.QueryIterSingleton;
 import com.hp.hpl.jena.sparql.engine.main.OpExecutor;
 import com.hp.hpl.jena.sparql.engine.main.iterator.QueryIterJoin;
+import com.hp.hpl.jena.sparql.engine.main.iterator.QueryIterOptionalIndex;
 import com.hp.hpl.jena.sparql.engine.main.iterator.QueryIterService;
 import com.hp.hpl.jena.sparql.engine.main.iterator.QueryIterUnion;
 
@@ -42,37 +49,27 @@ public class OpExecutorSemWIQ extends OpExecutor {
 		super(cxt);
 	}
 	
-	/* (non-Javadoc)
-	 * @see com.hp.hpl.jena.sparql.engine.main.OpExecutor#execute(com.hp.hpl.jena.sparql.algebra.op.OpBGP, com.hp.hpl.jena.sparql.engine.QueryIterator)
-	 */
-	@Override
-	protected QueryIterator execute(OpBGP opBGP, QueryIterator input) {
-		return super.execute(opBGP, input);
-	}
-	
-	/* (non-Javadoc)
-	 * @see com.hp.hpl.jena.sparql.engine.main.OpExecutor#execute(com.hp.hpl.jena.sparql.algebra.op.OpService, com.hp.hpl.jena.sparql.engine.QueryIterator)
-	 */
 	@Override
 	protected QueryIterator execute(OpService opService, QueryIterator input) {
-//		if (opService instanceof OpBlockedService)
-//			return new QueryIterBlockedService(input, (OpBlockedService) opService, execCxt) ;
-//		else
-			return super.execute(opService, input);
+		return new QueryIterBlockedService(new QueryIterBlocked(input, execCxt), opService, execCxt);
 	}
-//	
-//	/* (non-Javadoc)
-//	 * @see com.hp.hpl.jena.sparql.engine.main.OpExecutor#execute(com.hp.hpl.jena.sparql.algebra.op.OpUnion, com.hp.hpl.jena.sparql.engine.QueryIterator)
-//	 */
-//	@Override
-//	protected QueryIterator execute(OpUnion opUnion, QueryIterator input) {
-//        List<Op> x = flattenUnion(opUnion) ;
-//        for (Op op : x) {
-//        	if (!(op instanceof OpService))
-//        		return super.execute(opUnion, input);
-//        }
-//        
-//        QueryIterator qIter = new QueryIterBlockedUnion(input, x, execCxt) ;		
-//        return qIter ;
-//	}
+
+	@Override
+	protected QueryIterator execute(OpUnion opUnion, QueryIterator input) {
+        List<Op> x = flattenUnion(opUnion);
+        for (Op op : x) {
+        	if (!(op instanceof OpService))
+        		return super.execute(opUnion, input);
+        }
+        
+        QueryIterator qIter = new QueryIterBlockedUnion(new QueryIterBlocked(input, execCxt), x, execCxt);		
+        return qIter ;
+	}
+	
+	@Override
+	protected QueryIterator execute(OpConditional opCondition, QueryIterator input) {
+		QueryIterator left = executeOp(opCondition.getLeft(), input);
+		QueryIterator qIter = new QueryIterBlockedOptionalIndex(new QueryIterBlocked(input, execCxt), opCondition.getRight(), execCxt);
+		return qIter;
+	}
 }

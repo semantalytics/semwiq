@@ -15,15 +15,19 @@
  */
 package at.jku.semwiq.mediator.engine.iter;
 
+import java.util.List;
+
 import at.jku.semwiq.mediator.registry.DataSourceRegistry;
 import at.jku.semwiq.mediator.registry.RegistryException;
 import at.jku.semwiq.mediator.registry.model.DataSource;
 
 import com.hp.hpl.jena.graph.Triple;
+import com.hp.hpl.jena.sparql.algebra.Op;
 import com.hp.hpl.jena.sparql.algebra.table.TableN;
 import com.hp.hpl.jena.sparql.engine.ExecutionContext;
 import com.hp.hpl.jena.sparql.engine.QueryIterator;
 import com.hp.hpl.jena.sparql.engine.iterator.QueryIterConcat;
+import com.hp.hpl.jena.sparql.engine.main.QC;
 import com.hp.hpl.jena.sparql.expr.ExprList;
 import com.hp.hpl.jena.sparql.serializer.SerializationContext;
 import com.hp.hpl.jena.sparql.util.FmtUtils;
@@ -35,56 +39,39 @@ import com.hp.hpl.jena.sparql.util.Utils;
  *
  */
 public class QueryIterBlockedUnion extends QueryIterBlockedRepeatApply {
-	private final Triple tp;
-	private final ExprList exprs;
-	private final DataSourceRegistry dsRegistry;
-	
+    protected List<Op> subOps;
+    
     /**
      * @param input
-     * @param opFed
+     * @param subOps
      * @param context
      */
-    public QueryIterBlockedUnion(QueryIterator input, Triple tp, ExprList exprs, DataSourceRegistry dsRegistry, ExecutionContext context) {
+    public QueryIterBlockedUnion(QueryIterBlocked input, List<Op> subOps, ExecutionContext context) {
         super(input, context);
-        this.tp = tp;
-        this.exprs = exprs;
-        this.dsRegistry = dsRegistry;
+        this.subOps = subOps;
     }
     
-    /* (non-Javadoc)
-     * @see at.jku.semwiq.mediator.engine.op.QueryIterBlockedRepeatApply#nextStage(com.hp.hpl.jena.sparql.algebra.table.TableN)
-     */
     @Override
-    protected QueryIterator nextStage(TableN bindings) {
-    	QueryIterConcat unionQIter = new QueryIterConcat(getExecContext()) ;
+    protected QueryIterBlocked nextStage(TableN bindings) {
+    	QueryIterConcat unionQIter = new QueryIterConcat(getExecContext());
     	
-        try {
-			for (DataSource ds : dsRegistry.getAvailableRelevantDataSources(tp.getSubject(), tp.getPredicate(), tp.getObject(), exprs)) {        	
-//            subOp = QC.substitute(subOp, binding) ;
-//            QueryIterator parent = new QueryIterSingleton(binding, getExecContext()) ;
-//            QueryIterator qIter = QC.execute(subOp, parent, getExecContext()) ;
-//            unionQIter.add(qIter) ;
-
-				QueryIterBlockedService qIter = new QueryIterBlockedService(bindings, ds.getSPARQLEndpointURL(), tp, exprs, getExecContext());
-			    unionQIter.add(qIter);
-			}
-		} catch (RegistryException e) {
-			throw new RuntimeException("Failed to federate " + tp + ".", e);
-		}
+        for (Op subOp : subOps) {
+        	QueryIterator parent = bindings.iterator(getExecContext());
+        	QueryIterator qIter = QC.execute(subOp, parent, getExecContext());
+        	unionQIter.add(qIter);
+        }
         
-        return unionQIter ;
+        return new QueryIterBlocked(unionQIter, getExecContext());
     }
-    
+
     @Override
     public void output(IndentedWriter out, SerializationContext sCxt)
     { 
         out.println(Utils.className(this)) ;
         out.incIndent() ;
-        if (exprs != null)
-        	out.print(exprs);
-        out.print(FmtUtils.stringForTriple(tp));
+        for (Op op : subOps)
+            op.output(out, sCxt) ;
         out.decIndent() ;
         out.ensureStartOfLine() ;
     }
-
 }

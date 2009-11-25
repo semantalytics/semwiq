@@ -33,14 +33,9 @@
 <!--    </connectionSource>-->
 <!--  </appender>-->
 
-<!-- special logger which writes Drools events into [working-directory]/optimizer-events.log to disk for debugging -->
-  <logger name="drools-events">
-  	<level value="OFF"/>
-  </logger>
-
 <!-- special logger which exports all query plans (original/federated/optimized) into GraphViz .dot and .png files into the working directory -->
   <logger name="render-plans">
-  	<level value="ON"/>
+  	<level value="OFF"/>
   </logger>
   
   <logger name="at.jku.semwiq.mediator">

@@ -19,6 +19,7 @@ package at.jku.semwiq.mediator.conf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import at.jku.semwiq.mediator.Constants;
 import at.jku.semwiq.mediator.vocabulary.Config;
 import at.jku.semwiq.mediator.vocabulary.VocabUtils;
 
@@ -65,7 +66,16 @@ public class MediatorConfig {
 	 * @throws ConfigException
 	 */
 	public MediatorConfig(String configFile) throws ConfigException {
-		this.configFile = configFile;
+		if (configFile != null)
+			this.configFile = configFile;
+		else {
+			// check for system property
+			String sysPropCfg = System.getProperty(Constants.SYSTEMPROPERTY_CONFIGFILE);
+			if (sysPropCfg != null)
+				this.configFile = sysPropCfg;
+			else
+				this.configFile = null; // default
+		}
 
 		if (this.configFile != null) {
 			Model configModel = null;
@@ -113,13 +123,13 @@ public class MediatorConfig {
 				throw new ConfigException("Initialization failed. (Config file: '" + configFile + "'.)", e);	
 			}
 		} else {
-			configFile = null;
+			// default configuration
 			storeAssemblerModel = null;
 			
 			guiConfig = new GUIConfig();
 			federatorConfig = new FederatorConfig();
 			userRegistryConfig = new UserRegistryConfig();
-			dataSourceRegistryConfig = new DataSourceRegistryConfig();
+			dataSourceRegistryConfig = new DataSourceRegistryConfig();		
 		}
 	}
 	

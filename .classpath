@@ -24,6 +24,6 @@
 	<classpathentry kind="lib" path="lib/tdb-0.8.1.jar"/>
 	<classpathentry kind="lib" path="lib/logback-dispatcher.jar" sourcepath="/logback-dispatcher"/>
 	<classpathentry kind="lib" path="lib/arq.jar" sourcepath="/ARQ-2.7.0"/>
-	<classpathentry kind="lib" path="lib/rdfstats.jar" sourcepath="/rdfstats"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/rdfstats"/>
 	<classpathentry kind="output" path="build"/>
 </classpath>

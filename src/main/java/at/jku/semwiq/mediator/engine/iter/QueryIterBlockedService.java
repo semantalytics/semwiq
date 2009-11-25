@@ -35,6 +35,7 @@ import com.hp.hpl.jena.sparql.algebra.OpAsQuery;
 import com.hp.hpl.jena.sparql.algebra.OpVars;
 import com.hp.hpl.jena.sparql.algebra.op.OpBGP;
 import com.hp.hpl.jena.sparql.algebra.op.OpFilter;
+import com.hp.hpl.jena.sparql.algebra.op.OpService;
 import com.hp.hpl.jena.sparql.algebra.table.TableN;
 import com.hp.hpl.jena.sparql.core.BasicPattern;
 import com.hp.hpl.jena.sparql.core.Var;
@@ -56,87 +57,50 @@ import com.hp.hpl.jena.sparql.expr.ExprList;
  * @author dorgon, Andreas Langegger, al@jku.at
  *
  */
-public class QueryIterBlockedService extends QueryIter {
+public class QueryIterBlockedService extends QueryIterBlockedRepeatApply {
 
-	private static final Logger log = LoggerFactory.getLogger(QueryIterService.class);
-	private final TableN bindings;
-	private final String endpointURL;
-	private final Triple tp;
-	private final ExprList exprs;
-	
-	private final QueryIterator iterator;
+	private static final Logger log = LoggerFactory.getLogger(QueryIterBlockedService.class);
+	private OpService opService;
+	private Query query;
 	
     /**
 	 * @param bindings
-	 * @param endpointURL
-	 * @param tp
-	 * @param exprs
 	 */
-	public QueryIterBlockedService(TableN bindings, String endpointURL, Triple tp, ExprList exprs, ExecutionContext execCxt) {
-		super(execCxt);
-		this.bindings = bindings;
-		this.endpointURL = endpointURL;
-		this.tp = tp;
-		this.exprs = exprs;
-		
-		this.iterator = init();
+	public QueryIterBlockedService(QueryIterBlocked input, OpService opService, ExecutionContext execCxt) {
+		super(input, execCxt);
+		this.opService = opService;
+		this.query = OpAsQuery.asQuery(opService.getSubOp());
 	}
 
-	private QueryIterator init() {
-    	try {
-    		Op op;
-    		BasicPattern bp = new BasicPattern();
-    		bp.add(tp);
-    		op = new OpBGP(bp);
-    		if (exprs != null)
-    			op = OpFilter.filter(exprs, op);
-    		
-    		Query query = OpAsQuery.asQuery(op);
-    		
-    		ProjectedBindingsCache cache = new ProjectedBindingsCache(bindings, OpVars.allVars(op));
-    	    query.setInitialBindingTable(cache.getProjectedBindingsTable());
-    	    
-	        HttpQuery httpQuery = new HttpQuery(endpointURL);
-	        httpQuery.addParam(HttpParams.pQuery, query.toString() );
-	        httpQuery.setAccept(HttpParams.contentTypeResultsXML) ;
-	        InputStream in = httpQuery.exec() ;
+	@Override
+	protected QueryIterBlocked nextStage(TableN bindings) {
+		String endpointUri = opService.getService().getURI();
+
+		try {
+//    		ProjectedBindingsCache cache = new ProjectedBindingsCache(bindings, OpVars.allVars(opService));
+//    	    query.setInitialBindingTable(cache.getProjectedBindingsTable());
+			query.setInitialBindingTable(bindings);
+			
+    	    String queryStr = query.toString(query.getSyntax());
+	        HttpQuery httpQuery = new HttpQuery(endpointUri);
+	        httpQuery.addParam(HttpParams.pQuery, queryStr);
+	        httpQuery.setAccept(HttpParams.contentTypeResultsXML);
+	        InputStream in = httpQuery.exec();
 	        
-	        ResultSet rs = ResultSetFactory.fromXML(in) ;
-	        QueryIterator qIter = new QueryIteratorResultSet(rs) ;
+	        ResultSet rs = ResultSetFactory.fromXML(in);
+	        QueryIterator qIter = new QueryIteratorResultSet(rs);
 	        
-	        QueryIterator qIter2 = cache.addCachedBindings(qIter, getExecContext());
-	        QueryIterator qIterProvenance = new QueryIterConvert(qIter2, new ProvenanceConverter(rs.getResultVars(), endpointURL), getExecContext());
-	        return qIterProvenance;
+//	        QueryIterator qIter2 = cache.addCachedBindings(qIter, getExecContext());
+//	        QueryIterator qIterProvenance = new QueryIterConvert(qIter2, new ProvenanceConverter(rs.getResultVars(), endpointUri), getExecContext());
+//	        QueryIterBlocked blockedIter = new QueryIterBlocked(qIterProvenance, getExecContext());
+	        QueryIterBlocked blockedIter = new QueryIterBlocked(qIter, getExecContext());
+	        return blockedIter;
     	} catch (Exception e) {
-    		log.error("Error during query processing. Ignoring data for { " + tp + " } from endpoint <" + endpointURL + ">.", e);
-    		return QueryIterRoot.create(getExecContext());
+    		log.error("Error during query processing. Ignoring data from endpoint <" + endpointUri + ">.", e);
+    		return new QueryIterBlocked(QueryIterRoot.create(getExecContext()), getExecContext());
     	}
 	}
 	
-	/* (non-Javadoc)
-	 * @see com.hp.hpl.jena.sparql.engine.iterator.QueryIteratorBase#closeIterator()
-	 */
-	@Override
-	protected void closeIterator() {
-		iterator.close();
-	}
-
-	/* (non-Javadoc)
-	 * @see com.hp.hpl.jena.sparql.engine.iterator.QueryIteratorBase#hasNextBinding()
-	 */
-	@Override
-	protected boolean hasNextBinding() {
-		return iterator.hasNext();
-	}
-	
-	/* (non-Javadoc)
-	 * @see com.hp.hpl.jena.sparql.engine.iterator.QueryIteratorBase#moveToNextBinding()
-	 */
-	@Override
-	protected Binding moveToNextBinding() {
-		return iterator.next();
-	}
-    
 	class ProvenanceConverter implements Converter {
 		private final List<String> vars;
 		private final String sourceUri;

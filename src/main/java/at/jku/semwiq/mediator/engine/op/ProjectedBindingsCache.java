@@ -36,6 +36,8 @@ import com.hp.hpl.jena.sparql.util.ALog;
 /**
  * @author dorgon, Andreas Langegger, al@jku.at
  *
+ * Used for row-blocking based execution of distributed semi-join.
+ * Projects bindings from a TableN, caches them, and merges them again to the obtained results.
  */
 public class ProjectedBindingsCache {
 	private final Collection<Var> origBindingVars;

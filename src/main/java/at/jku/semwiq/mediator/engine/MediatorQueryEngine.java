@@ -89,7 +89,7 @@ public class MediatorQueryEngine extends QueryEngineMain {
 
     	// customized ARQ query engine
     	ARQ.setStrictMode(context);
-    	log.info("ARQ strict mode enabled");
+    	log.debug("ARQ strict mode enabled");
     	
     	QC.setFactory(context, new OpExecutorFactory() {
     		public OpExecutor create(ExecutionContext execCxt) { return new OpExecutorSemWIQ(execCxt); }
@@ -183,8 +183,8 @@ public class MediatorQueryEngine extends QueryEngineMain {
         // done by pushdown already: op = Transformer.transfor(new TransformFlattenFilters(), op) ;
         op = Transformer.transform(new TransformEqualityFilter(), op) ;
 //        op = ProjectPushdown.apply(op);
-        op = Transformer.transform(new TransformJoinStrategy(context), op) ;
-        op = Transformer.transform(new TransformThetaJoins(), op);
+//        op = Transformer.transform(new TransformJoinStrategy(context), op) ;
+//        op = Transformer.transform(new TransformThetaJoins(), op);
     	op = Transformer.transform(new TransformFilteredBGP(), op);
         return op ;
 	}
@@ -197,9 +197,9 @@ public class MediatorQueryEngine extends QueryEngineMain {
 		op = FilterPushdown.apply(op);
         op = Transformer.transform(new TransformEqualityFilter(), op) ;
 //        op = ProjectPushdown.apply(op);
-        op = CostBasedJoinReorder.applyTransformations(getMediator().getDataSourceRegistry().getRDFStatsModel(), op);
         op = Transformer.transform(new TransformJoinStrategy(context), op) ;
         op = Transformer.transform(new TransformThetaJoins(), op);
+        op = CostBasedJoinReorder.applyTransformations(getMediator().getDataSourceRegistry().getRDFStatsModel(), op);
     	op = Transformer.transform(new TransformFilteredBGP(), op);
         return op ;
 	}
