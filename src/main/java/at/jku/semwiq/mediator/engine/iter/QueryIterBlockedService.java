@@ -77,9 +77,8 @@ public class QueryIterBlockedService extends QueryIterBlockedRepeatApply {
 		String endpointUri = opService.getService().getURI();
 
 		try {
-//    		ProjectedBindingsCache cache = new ProjectedBindingsCache(bindings, OpVars.allVars(opService));
-//    	    query.setInitialBindingTable(cache.getProjectedBindingsTable());
-			query.setInitialBindingTable(bindings);
+    		ProjectedBindingsCache cache = new ProjectedBindingsCache(bindings, OpVars.allVars(opService));
+    	    query.setInitialBindingTable(cache.getProjectedBindingsTable());
 			
     	    String queryStr = query.toString(query.getSyntax());
 	        HttpQuery httpQuery = new HttpQuery(endpointUri);
@@ -89,11 +88,11 @@ public class QueryIterBlockedService extends QueryIterBlockedRepeatApply {
 	        
 	        ResultSet rs = ResultSetFactory.fromXML(in);
 	        QueryIterator qIter = new QueryIteratorResultSet(rs);
-	        
-//	        QueryIterator qIter2 = cache.addCachedBindings(qIter, getExecContext());
-//	        QueryIterator qIterProvenance = new QueryIterConvert(qIter2, new ProvenanceConverter(rs.getResultVars(), endpointUri), getExecContext());
-//	        QueryIterBlocked blockedIter = new QueryIterBlocked(qIterProvenance, getExecContext());
-	        QueryIterBlocked blockedIter = new QueryIterBlocked(qIter, getExecContext());
+
+	        // provenance first
+	        QueryIterator qIterProvenance = new QueryIterConvert(qIter, new ProvenanceConverter(rs.getResultVars(), endpointUri), getExecContext());
+	        QueryIterator qIter2 = cache.addCachedBindings(qIterProvenance, getExecContext());
+	        QueryIterBlocked blockedIter = new QueryIterBlocked(qIter2, getExecContext());
 	        return blockedIter;
     	} catch (Exception e) {
     		log.error("Error during query processing. Ignoring data from endpoint <" + endpointUri + ">.", e);
