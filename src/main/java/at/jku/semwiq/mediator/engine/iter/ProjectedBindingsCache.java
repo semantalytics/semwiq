@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package at.jku.semwiq.mediator.engine.op;
+package at.jku.semwiq.mediator.engine.iter;
 
 import java.util.Collection;
 import java.util.HashSet;

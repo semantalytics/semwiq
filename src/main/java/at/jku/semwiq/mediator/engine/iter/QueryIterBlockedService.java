@@ -21,7 +21,6 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import at.jku.semwiq.mediator.engine.op.ProjectedBindingsCache;
 
 import com.hp.hpl.jena.graph.Node;
 import com.hp.hpl.jena.graph.TrackedNode;
@@ -81,6 +80,7 @@ public class QueryIterBlockedService extends QueryIterBlockedRepeatApply {
     	    query.setInitialBindingTable(cache.getProjectedBindingsTable());
 			
     	    String queryStr = query.toString(query.getSyntax());
+    	    log.debug("Delegated sub-query: " + queryStr);
 	        HttpQuery httpQuery = new HttpQuery(endpointUri);
 	        httpQuery.addParam(HttpParams.pQuery, queryStr);
 	        httpQuery.setAccept(HttpParams.contentTypeResultsXML);
@@ -116,7 +116,10 @@ public class QueryIterBlockedService extends QueryIterBlockedRepeatApply {
 			Binding newBinding = new BindingMap();
 			for (String v : vars) {
 				Var var = Var.alloc(v);
-				newBinding.add(var, new TrackedNode(b.get(var), sourceUri));
+//				newBinding.add(var, new TrackedNode(b.get(var), sourceUri));
+				Node n = b.get(var);
+				n.setSource(sourceUri);
+				newBinding.add(var, n);
 			}
 			return newBinding;
 		}

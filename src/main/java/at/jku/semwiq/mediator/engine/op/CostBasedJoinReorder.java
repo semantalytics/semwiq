@@ -15,6 +15,7 @@
  */
 package at.jku.semwiq.mediator.engine.op;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeMap;
 
@@ -108,12 +109,17 @@ public class CostBasedJoinReorder extends TransformCopy {
 	
 	@Override
 	public Op transform(OpSequence opSequence, List<Op> elts) {
-		TreeMap<Long, Op> cSub = new TreeMap<Long, Op>();
+		TreeMap<Long, List<Op>> cSub = new TreeMap<Long, List<Op>>();
 		long maxTotal = 0;
 		for (Op sub : elts) {
 			Long[] cost = new PlanCalculator(stats, currentDataset).calculate(sub);
 			maxTotal += cost[PlanCalculator.MAX];
-			cSub.put(cost[PlanCalculator.AVG], sub);
+			List<Op> entry = cSub.get(cost[PlanCalculator.AVG]);
+			if (entry == null) {
+				entry = new ArrayList<Op>();
+				cSub.put(cost[PlanCalculator.AVG], entry);
+			}
+			entry.add(sub);
 		}
 		
 		if (maxTotal == 0)
@@ -121,8 +127,10 @@ public class CostBasedJoinReorder extends TransformCopy {
 		
 		// create new sequence with ops ordered by costs
 		OpSequence seq = OpSequence.create();
-		for (Op sub : cSub.values())
-			seq.add(sub);
+		for (List<Op> entry : cSub.values()) {
+			for (Op sub : entry)
+				seq.add(sub);
+		}
 		return seq;
 	}
 	

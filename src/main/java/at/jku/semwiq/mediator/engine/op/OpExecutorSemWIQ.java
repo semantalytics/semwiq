@@ -68,8 +68,12 @@ public class OpExecutorSemWIQ extends OpExecutor {
 	
 	@Override
 	protected QueryIterator execute(OpConditional opCondition, QueryIterator input) {
+//        QueryIterator left = executeOp(opCondition.getLeft(), input) ;
+//        QueryIterator qIter = new QueryIterOptionalIndex(left, opCondition.getRight(), execCxt) ;
+//        return qIter ;
+		
 		QueryIterator left = executeOp(opCondition.getLeft(), input);
-		QueryIterator qIter = new QueryIterBlockedOptionalIndex(new QueryIterBlocked(input, execCxt), opCondition.getRight(), execCxt);
+		QueryIterator qIter = new QueryIterBlockedOptionalIndex(new QueryIterBlocked(left, execCxt), opCondition.getRight(), execCxt);
 		return qIter;
 	}
 }

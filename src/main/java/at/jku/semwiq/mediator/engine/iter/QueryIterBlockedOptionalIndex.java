@@ -15,16 +15,31 @@
  */
 package at.jku.semwiq.mediator.engine.iter;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Hashtable;
+import java.util.List;
+import java.util.Set;
+
+import com.hp.hpl.jena.query.ResultSet;
 import com.hp.hpl.jena.sparql.ARQNotImplemented;
 import com.hp.hpl.jena.sparql.algebra.Op;
+import com.hp.hpl.jena.sparql.algebra.OpVars;
 import com.hp.hpl.jena.sparql.algebra.table.TableN;
+import com.hp.hpl.jena.sparql.core.Var;
 import com.hp.hpl.jena.sparql.engine.ExecutionContext;
 import com.hp.hpl.jena.sparql.engine.QueryIterator;
 import com.hp.hpl.jena.sparql.engine.binding.Binding;
+import com.hp.hpl.jena.sparql.engine.iterator.QueryIter;
 import com.hp.hpl.jena.sparql.engine.iterator.QueryIterDefaulting;
+import com.hp.hpl.jena.sparql.engine.iterator.QueryIterDistinct;
+import com.hp.hpl.jena.sparql.engine.iterator.QueryIterProject;
 import com.hp.hpl.jena.sparql.engine.iterator.QueryIterRoot;
 import com.hp.hpl.jena.sparql.engine.iterator.QueryIterSingleton;
+import com.hp.hpl.jena.sparql.engine.iterator.QueryIteratorCopy;
 import com.hp.hpl.jena.sparql.engine.main.QC;
+import com.hp.hpl.jena.sparql.engine.main.iterator.QueryIterJoin;
+import com.hp.hpl.jena.sparql.engine.main.iterator.QueryIterLeftJoin;
 import com.hp.hpl.jena.sparql.serializer.SerializationContext;
 import com.hp.hpl.jena.sparql.util.IndentedWriter;
 import com.hp.hpl.jena.sparql.util.Utils;
@@ -34,25 +49,43 @@ import com.hp.hpl.jena.sparql.util.Utils;
  *
  */
 public class QueryIterBlockedOptionalIndex extends QueryIterBlockedRepeatApply {
-    private Op op ;
+    private Op right ;
 
-    public QueryIterBlockedOptionalIndex(QueryIterBlocked input, Op op, ExecutionContext context) {
+    public QueryIterBlockedOptionalIndex(QueryIterBlocked input, Op right, ExecutionContext context) {
         super(input, context);
-        this.op = op;
+        this.right = right;
     }
 
     @Override
-    protected QueryIterBlocked nextStage(TableN bindings)
-    {
-//        Op op2 = QC.substitute(op, binding) ;
-    	// TODO
-//    	((OpInputBindings) op).setBindings(bindings);
-//        QueryIterator thisStep = QueryIterRoot.create(getExecContext()) ;
-//        
-//        QueryIterator cIter = QC.execute(op, thisStep, super.getExecContext()) ;
-//        cIter = new QueryIterDefaulting(cIter, binding, getExecContext()) ;
-//    	return null; // cIter ;
-    	throw new ARQNotImplemented();
+    protected QueryIterBlocked nextStage(TableN bindings) {
+//    	OptionalBindingsCache cache = new OptionalBindingsCache(bindings, OpVars.allVars(right));
+//    	TableN projected = cache.getProjectedBindingsTable();
+//    	if (projected != null)
+//    		bindings = projected;
+    	ExecutionContext execCxt = getExecContext();
+
+    	// get distinct left join bindings
+    	ResultSet l = bindings.toResultSet();
+		List<String> leftVars = l.getResultVars();
+		Set<Var> origBindingVars = new HashSet<Var>();
+		for (String v : leftVars)
+			origBindingVars.add(Var.alloc(v));		
+    	
+		Set<Var> joinVars = new HashSet<Var>();
+		joinVars.addAll(origBindingVars);
+		joinVars.retainAll(OpVars.allVars(right));
+		
+    	List<Var> varList = new ArrayList<Var>(joinVars);
+    	QueryIterator left = bindings.iterator(execCxt);
+    	QueryIterator proj = new QueryIterProject(left, varList, execCxt);
+    	QueryIterator semiLeft = new QueryIterDistinct(proj, execCxt);
+
+    	// execute with right plan
+    	QueryIterator optionals = QC.execute(right, semiLeft, execCxt);
+    	
+    	// OpConditional has no filter expressions (wrapped in filter)
+    	QueryIterator result = new QueryIterLeftJoin(bindings.iterator(execCxt), optionals, null, execCxt);    	
+        return new QueryIterBlocked(result, execCxt);
     }
     
     @Override
@@ -60,7 +93,7 @@ public class QueryIterBlockedOptionalIndex extends QueryIterBlockedRepeatApply {
     {
         out.println(Utils.className(this)) ;
         out.incIndent() ;
-        op.output(out, sCxt) ;
+        right.output(out, sCxt) ;
         out.decIndent() ;
     }
 

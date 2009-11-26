@@ -47,7 +47,9 @@ public class TrackedNode extends Node {
 	public static String getProvenanceUri(Node n) {
 		if (n instanceof TrackedNode)
 			return ((TrackedNode) n).getProvenanceUri();
-		else return null;
+		else 
+			return n.getSource(); // now hacked into Node
+//		return null;
 	}
 	
 	/**

@@ -181,7 +181,7 @@ public class MediatorQueryEngine extends QueryEngineMain {
         // push filters down before BGP (applied top-down) => also increases chances to apply Filter Equality
         op = FilterPushdown.apply(op);
         // done by pushdown already: op = Transformer.transfor(new TransformFlattenFilters(), op) ;
-        op = Transformer.transform(new TransformEqualityFilter(), op) ;
+//        op = Transformer.transform(new TransformEqualityFilter(), op) ;
 //        op = ProjectPushdown.apply(op);
 //        op = Transformer.transform(new TransformJoinStrategy(context), op) ;
 //        op = Transformer.transform(new TransformThetaJoins(), op);
@@ -195,7 +195,7 @@ public class MediatorQueryEngine extends QueryEngineMain {
 	 */
 	private Op postOptimize(Op op) {
 		op = FilterPushdown.apply(op);
-        op = Transformer.transform(new TransformEqualityFilter(), op) ;
+//        op = Transformer.transform(new TransformEqualityFilter(), op) ;
 //        op = ProjectPushdown.apply(op);
         op = Transformer.transform(new TransformJoinStrategy(context), op) ;
         op = Transformer.transform(new TransformThetaJoins(), op);
