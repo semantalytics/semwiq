@@ -55,6 +55,8 @@ public class OntTools extends com.hp.hpl.jena.ontology.OntTools {
 	}
 
 	/**
+	 * generates combinations of sub-types
+	 * 
 	 * @param subTypes
 	 * @return
 	 */

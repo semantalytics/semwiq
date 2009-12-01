@@ -104,12 +104,10 @@ public class TripleBasedFederatorTransform extends TransformCopy {
 		}
 
 		// add data source specific plans to join sequence
-		if (dsPlans.size() > 0) {
-			for (DataSource d : dsPlans.keySet()) {
-				OpBGP bgp = new OpBGP(dsPlans.get(d));
-				OpService s = new OpService(Node.createURI(d.getSPARQLEndpointURL()), bgp);
-				prevJoin = (prevJoin == null) ? s : OpJoin.create(prevJoin, s);
-			}
+		for (DataSource d : dsPlans.keySet()) {
+			OpBGP bgp = new OpBGP(dsPlans.get(d));
+			OpService s = new OpService(Node.createURI(d.getSPARQLEndpointURL()), bgp);
+			prevJoin = (prevJoin == null) ? s : OpJoin.create(prevJoin, s);
 		}
 		
 		if (prevJoin == null)
@@ -118,33 +116,4 @@ public class TripleBasedFederatorTransform extends TransformCopy {
 			return prevJoin;
 	}
 	
-//	public QueryIterator federate(QueryIterator input, OpFederate opFed, ExecutionContext context) throws FederatorException {
-//		// build a hashset for triple patterns
-//		Set<Triple> triplePatterns = new HashSet<Triple>();
-//		triplePatterns.addAll(opFed.getPattern().getList());
-//		
-//		// calculate costs, order triple patterns
-//		TreeMap<Integer, Triple> costs = new TreeMap<Integer, Triple>();
-//		for (Triple t : triplePatterns) {
-//			try {
-//				for (DataSource ds : dsRegistry.getAvailableDataSources()) {
-//					RDFStatsDataset stats = dsRegistry.getRDFStatsModel().getDataset(ds.getSPARQLEndpointURL());
-//					int c = stats.triplesForFilteredPattern(t.getSubject(), t.getPredicate(), t.getObject(), opFed.getExprList());
-//					costs.put(c, t);
-//				}
-//			} catch (Exception e) {
-//				throw new FederatorException("Failed to calculate costs for triple pattern " + t + ".", e);
-//			}
-//		}
-//		
-//		QueryIterator iter = input;
-//		for (Iterator<Triple> it = opFed.getPattern().iterator(); it.hasNext(); ) {
-//			Triple tp = it.next();
-//			// TODO only hand over expressions relevant to tp
-//			iter = new QueryIterBlockedUnion(iter, tp, opFed.getExprList(), getDataSourceRegistry(), context);
-//		}
-//		return iter;
-//	}
-//	
-
 }

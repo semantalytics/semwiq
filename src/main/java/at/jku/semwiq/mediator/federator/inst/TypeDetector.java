@@ -92,11 +92,11 @@ public class TypeDetector {
 		FakeModelBuilder b = new FakeModelBuilder();
 		OpWalker.walk(op, b);
 		OntModel data = b.getModel();
-		if (log.isDebugEnabled()) {
-			try {
-				data.write(new FileOutputStream("fake-graph.n3"), "N3");
-			} catch (FileNotFoundException ignore) {}
-		}
+//		if (log.isDebugEnabled()) {
+//			try {
+//				data.write(new FileOutputStream("fake-graph.n3"), "N3");
+//			} catch (FileNotFoundException ignore) {}
+//		}
 		
 		if (infModel != null) {
 			log.info("Detecting types (this may take a while)...");
@@ -117,16 +117,12 @@ public class TypeDetector {
 		SubjectTypeCache types = new SubjectTypeCache();
 		
 		while (subjIter.hasNext()) {
-			subject = subjIter.nextResource();
-			
+			subject = subjIter.nextResource();			
 			Set<OntClass> typeSet = new HashSet<OntClass>();
+
 			// bootstrap with rdsf:Resource (will be removed or be left as the most general type)
 			typeSet.add(vocMgr.getOntClass(RDFS.Resource.getURI()));
 			
-			//Set<OntClass> closure = new HashSet<OntClass>();
-			OntClass newType;
-
-			// for all types known for subject
 			Set<Resource> resTypes = new HashSet<Resource>();
 			try {
 				// lock the vocabulary sub model
@@ -138,6 +134,7 @@ public class TypeDetector {
 				vocModel.leaveCriticalSection();
 			}
 			
+			OntClass newType;
 			for (Resource nextType : resTypes) {
 				if (!nextType.isURIResource() || nextType.getURI().startsWith(FAKE_NS))
 					continue;

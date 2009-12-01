@@ -27,7 +27,8 @@ import com.hp.hpl.jena.ontology.OntClass;
 /**
  * @author dorgon
  *
- * Caches subject type sets.
+ * minimal conjuctive type set for a BGP which has triple patterns with equal subject
+ * 
  * To match a BGP, the conjunction of all classes in the associated set has to be satisfied.
  */
 public class SubjectTypeCache {

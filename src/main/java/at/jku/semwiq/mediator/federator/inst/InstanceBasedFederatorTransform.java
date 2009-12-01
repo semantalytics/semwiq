@@ -213,8 +213,6 @@ public class InstanceBasedFederatorTransform extends TransformCopy {
 									prevUnionOp = newDS;
 								else {
 									OpUnion union = new OpUnion(prevUnionOp, newDS);
-									union.setLeft(prevUnionOp);
-									union.setRight(newDS);
 									prevUnionOp = union; //TODO improve code
 								}
 //							}
@@ -314,8 +312,8 @@ public class InstanceBasedFederatorTransform extends TransformCopy {
 	 */
 	private Op createSubPlan(DataSource ds, Node subj, Set<OntClass> typeSet) throws FederatorException {
 		try {		
-			// look at sub-class hierarchies for each type cl in typeSet
-			if (federator.isSubsumption() || ds.hasSubsumption()) { //TODO (config.isSubsumption() && !ds.hasSubsumption()) || ds.hasSubsumption() => also if ds has subsumption?, only include DS in plan, but no unions!
+			// subsumption result? (either by ds itself or union-plan) -> query RDFStats for sub-class hierarchies for each type cl in typeSet
+			if (federator.isSubsumption() || ds.hasSubsumption()) {
 	
 				Map<OntClass, Set<OntClass>> subTypes = new Hashtable<OntClass, Set<OntClass>>();
 				Set<OntClass> sub;
@@ -343,7 +341,7 @@ public class InstanceBasedFederatorTransform extends TransformCopy {
 				else
 					return createSubsumptionPlan(ds, subj, subTypes);
 				
-			// no subsumption enabled in config && data source does no subsumption itself, need only check for top classes cl in typeSet
+			// no subsumption enabled in config && data source does no subsumption itself, only check RDFStats for top classes cl in typeSet
 			} else {
 					for (OntClass cl : typeSet) {
 						RDFStatsDataset statsDs = stats.getDataset(ds.getSPARQLEndpointURL());
@@ -371,7 +369,7 @@ public class InstanceBasedFederatorTransform extends TransformCopy {
 	
 	/** create a union sequence for each sub-types combination
 	 * 
-	 * @param ds
+	 * @param ds //TODO not needed
 	 * @param subj
 	 * @param subTypes
 	 * @return
