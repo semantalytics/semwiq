@@ -84,7 +84,8 @@ public class SpawnedEndpointMetadata extends EndpointMetadata implements Seriali
 			desc = RuntimeReplacements.apply(meta.getDescription(), this);
 		else
 			desc = null;
-		log.info("Spawned endpoint meta data: " + toString() + " (sparqlPath = " + this.sparqlPath + ", sparqlEndpointUri = " + this.sparqlEndpointUri + ", dataSetBase = " + this.dataSetBase + ", " +
+		if (log.isDebugEnabled())
+			log.debug("Created spawned endpoint meta data: " + toString() + " (sparqlPath = " + this.sparqlPath + ", sparqlEndpointUri = " + this.sparqlEndpointUri + ", dataSetBase = " + this.dataSetBase + ", " +
 				"homepage = " + this.homepage + ", title = " + this.title + ", desc = " + this.desc + ")");
 	}
 

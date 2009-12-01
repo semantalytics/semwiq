@@ -15,6 +15,7 @@
  */
 package at.jku.semwiq.endpoint.daemon;
 
+
 import java.rmi.Naming;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
@@ -22,6 +23,7 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.Hashtable;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,7 +49,7 @@ public class EndpointDaemonImpl extends UnicastRemoteObject implements RemoteEnd
 	/** static instance for self-configuration using static createInstance() */
 	private static RemoteEndpointDaemon daemon;
 
-	private final Map<SpawnedEndpointMetadata, JosekiInstance> endpoints;
+	private final ConcurrentHashMap<SpawnedEndpointMetadata, JosekiInstance> endpoints;
 	private final String name;
 	private final PortManager portManager;
 
@@ -80,7 +82,7 @@ public class EndpointDaemonImpl extends UnicastRemoteObject implements RemoteEnd
 	 */
 	public EndpointDaemonImpl(int startPort) throws RemoteException {
 		name =  CommonConstants.HOSTNAME + ":" + CommonConstants.RMI_REGISTRY_PORT;
-		endpoints = new Hashtable<SpawnedEndpointMetadata, JosekiInstance>();
+		endpoints = new ConcurrentHashMap<SpawnedEndpointMetadata, JosekiInstance>();
 		portManager = new PortManager(startPort);
 
 		log.info("Registered endpoint daemon " + getName() + ", waiting for requests from controller...");

@@ -115,6 +115,7 @@ public class endpoint {
 					CommonConstants.HOSTNAME = cmd.getOptionValue("h"); // override static HOSTNAME constant
 
 				SpawnedEndpointMetadata meta = new SpawnedEndpointMetadata(CommonConstants.HOSTNAME, p, CommonConstants.SPARQL_ENDPOINT_PATH_PREFIX);
+
 				if (cmd.hasOption("T"))
 					meta.setTitle(cmd.getOptionValue("T"));
 				if (cmd.hasOption("D"))
