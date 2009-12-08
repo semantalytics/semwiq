@@ -95,8 +95,8 @@ public class MediatorQueryEngine extends QueryEngineMain {
     		public OpExecutor create(ExecutionContext execCxt) { return new OpExecutorSemWIQ(execCxt); }
     	});
 
-    	// call with empty dataset to prevent ARQ from calling graphBaseFind() infinite loops cause this again create a new query execution on the SemWIQDataset
-    	QueryIterator queryIter = super.eval(op, new DataSourceGraphImpl(), input, context);
+    	// TODO check: call with empty dataset to prevent ARQ from calling graphBaseFind() infinite loops cause this again create a new query execution on the SemWIQDataset
+    	QueryIterator queryIter = super.eval(op, dsg, input, context); // new DataSourceGraphImpl(), input, context);
     	
     	// intercept moveToNextBinding() in order to measure times
     	final Context ctx = context;

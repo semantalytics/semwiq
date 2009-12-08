@@ -129,5 +129,8 @@ public class InstanceBasedFederator extends FederatorBase {
 			throw new FederatorException(e);
 		}
 	}
-	
+
+	public String getName() {
+		return "Instance-based federator";
+	}
 }

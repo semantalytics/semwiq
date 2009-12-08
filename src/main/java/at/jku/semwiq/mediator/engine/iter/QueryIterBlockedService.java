@@ -22,6 +22,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
+import at.jku.semwiq.mediator.MediatorImpl;
+import at.jku.semwiq.mediator.dataset.SemWIQDatasetGraph;
+import at.jku.semwiq.mediator.registry.DataSourceRegistryManager;
+import at.jku.semwiq.mediator.registry.RegistryException;
+import at.jku.semwiq.mediator.registry.model.DataSource;
+
 import com.hp.hpl.jena.graph.Node;
 import com.hp.hpl.jena.graph.TrackedNode;
 import com.hp.hpl.jena.graph.Triple;
@@ -37,6 +43,7 @@ import com.hp.hpl.jena.sparql.algebra.op.OpFilter;
 import com.hp.hpl.jena.sparql.algebra.op.OpService;
 import com.hp.hpl.jena.sparql.algebra.table.TableN;
 import com.hp.hpl.jena.sparql.core.BasicPattern;
+import com.hp.hpl.jena.sparql.core.DatasetGraph;
 import com.hp.hpl.jena.sparql.core.Var;
 import com.hp.hpl.jena.sparql.engine.ExecutionContext;
 import com.hp.hpl.jena.sparql.engine.QueryIterator;
@@ -46,6 +53,7 @@ import com.hp.hpl.jena.sparql.engine.http.HttpParams;
 import com.hp.hpl.jena.sparql.engine.http.HttpQuery;
 import com.hp.hpl.jena.sparql.engine.iterator.QueryIter;
 import com.hp.hpl.jena.sparql.engine.iterator.QueryIterConvert;
+import com.hp.hpl.jena.sparql.engine.iterator.QueryIterNullIterator;
 import com.hp.hpl.jena.sparql.engine.iterator.QueryIterRoot;
 import com.hp.hpl.jena.sparql.engine.iterator.QueryIteratorResultSet;
 import com.hp.hpl.jena.sparql.engine.iterator.QueryIterConvert.Converter;
@@ -80,7 +88,7 @@ public class QueryIterBlockedService extends QueryIterBlockedRepeatApply {
     	    query.setInitialBindingTable(cache.getProjectedBindingsTable());
 			
     	    String queryStr = query.toString(query.getSyntax());
-    	    log.debug("Delegated sub-query: " + queryStr);
+    	    log.debug("Delegating sub-query to " + endpointUri + ": " + queryStr);
 	        HttpQuery httpQuery = new HttpQuery(endpointUri);
 	        httpQuery.addParam(HttpParams.pQuery, queryStr);
 	        httpQuery.setAccept(HttpParams.contentTypeResultsXML);
@@ -94,9 +102,24 @@ public class QueryIterBlockedService extends QueryIterBlockedRepeatApply {
 	        QueryIterator qIter2 = cache.addCachedBindings(qIterProvenance, getExecContext());
 	        QueryIterBlocked blockedIter = new QueryIterBlocked(qIter2, getExecContext());
 	        return blockedIter;
-    	} catch (Exception e) {
+    	} catch (Throwable e) {
     		log.error("Error during query processing. Ignoring data from endpoint <" + endpointUri + ">.", e);
-    		return new QueryIterBlocked(QueryIterRoot.create(getExecContext()), getExecContext());
+    		DatasetGraph ds = getExecContext().getDataset();
+    		if (ds instanceof SemWIQDatasetGraph) {
+    			try {
+    				DataSourceRegistryManager mgr = ((SemWIQDatasetGraph) ds).getMediator().getDataSourceRegistry().getManager();
+    				DataSource source = mgr.getDataSourceByEndpointUri(endpointUri);
+    				source.requestExclusiveWriteLock();
+    				try {
+    					source.setUnavailable(true);
+    				} finally {
+    					source.returnExclusiveWriteLock();
+    				}
+				} catch (RegistryException e1) {
+					log.error("Failed to set data source (SPARQL endpoint: " + endpointUri + ") offline.", e);
+				}
+    		}
+    		return null; // return new QueryIterBlocked(new QueryIterNullIterator(getExecContext()), getExecContext());
     	}
 	}
 	

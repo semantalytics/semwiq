@@ -51,7 +51,7 @@ public abstract class MonitoringProfile extends WrappedResource {
 	static {
 		Resource voidProfile = ModelFactory.createDefaultModel().createResource(defaultVoidProfileUri, SDV.VoidMonitoringProfile);
 		defaultVoidProfile = new VoidMonitoringProfile(voidProfile) {
-			@Override public int getInterval() { return 600; }
+			@Override public int getInterval() { return Integer.MAX_VALUE; } // TODO set to almost infinity for testing
 			@Override public String getLabel() { return "default voiD monitoring profile"; }
 			@Override public boolean updateOnlyIfNewer() { return true; }
 		};

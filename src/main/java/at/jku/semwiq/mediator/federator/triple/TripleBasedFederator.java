@@ -204,4 +204,8 @@ public class TripleBasedFederator extends FederatorBase {
 //	
 //		}
 //	}
+	
+	public String getName() {
+		return "Triple-based federator";
+	}
 }

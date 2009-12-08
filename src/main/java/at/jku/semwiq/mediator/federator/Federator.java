@@ -26,4 +26,6 @@ public interface Federator {
 	public Op federate(Op op) throws FederatorException;
 //	public QueryIterator federate(QueryIterator input, OpFederate op, ExecutionContext context) throws FederatorException;
 
+	public String getName();
+	
 }
