@@ -4,7 +4,7 @@
 	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
 	id="WebApp_ID" version="2.5">
 	
-	<display-name>SemWIQ Web Application</display-name>
+	<display-name>SemWIQ Mediator Web Application</display-name>
 	
 	<welcome-file-list>
 		<welcome-file>index.html</welcome-file>
@@ -19,17 +19,16 @@
 		<listener-class>at.jku.semwiq.webapp.StartupListener</listener-class>
 	</listener>
 	
-	<servlet>
-		<description>simple query servlet</description>
-		<display-name>QueryServlet</display-name>
-		<servlet-name>QueryServlet</servlet-name>
-		<servlet-class>at.jku.semwiq.webapp.simple.QueryServlet</servlet-class>
-		<load-on-startup>0</load-on-startup>
-	</servlet>
-	<servlet-mapping>
-		<servlet-name>QueryServlet</servlet-name>
-		<url-pattern>/query</url-pattern>
-	</servlet-mapping>
+<!--	<servlet>-->
+<!--		<description>simple query servlet</description>-->
+<!--		<display-name>QueryServlet</display-name>-->
+<!--		<servlet-name>QueryServlet</servlet-name>-->
+<!--		<servlet-class>at.jku.semwiq.webapp.simple.QueryServlet</servlet-class>-->
+<!--		<load-on-startup>0</load-on-startup>-->
+<!--	</servlet>-->
+	
+	
+<!-- Servlets -->
 	
 	<servlet>
 		<description></description>
@@ -38,22 +37,6 @@
 		<servlet-class>at.jku.semwiq.webapp.simple.RegistryServlet</servlet-class>
 		<load-on-startup>0</load-on-startup>
 	</servlet>
-	<servlet-mapping>
-		<servlet-name>RegistryServlet</servlet-name>
-		<url-pattern>/registry</url-pattern>
-	</servlet-mapping>
-	
-	<servlet>
-		<description></description>
-		<display-name>CatalogServlet</display-name>
-		<servlet-name>CatalogServlet</servlet-name>
-		<servlet-class>at.jku.semwiq.webapp.simple.CatalogServlet</servlet-class>
-		<load-on-startup>0</load-on-startup>
-	</servlet>
-	<servlet-mapping>
-		<servlet-name>CatalogServlet</servlet-name>
-		<url-pattern>/catalog</url-pattern>
-	</servlet-mapping>
 	
 	<servlet>
 		<description></description>
@@ -61,9 +44,77 @@
 		<servlet-name>VocabularyServlet</servlet-name>
 		<servlet-class>at.jku.semwiq.webapp.simple.VocabularyServlet</servlet-class>
 	</servlet>
+
+  <servlet>
+	<servlet-name>Logging Servlet</servlet-name>
+	<servlet-class>at.jku.semwiq.webapp.LoggingServlet</servlet-class>
+  </servlet>
+  
+  <servlet>
+    <servlet-name>SPARQL service processor</servlet-name>
+    <servlet-class>org.joseki.http.Servlet</servlet-class>
+
+    <!-- Configuration file -->
+    <init-param>
+      <param-name>org.joseki.rdfserver.config</param-name>
+      <param-value>joseki-config.ttl</param-value>
+    </init-param>
+
+  </servlet>
+  
+  <servlet>
+    <servlet-name>Validator</servlet-name>
+    <servlet-class>
+      org.joseki.validator.Validator
+    </servlet-class>
+  </servlet>
+  
+<!-- Snorql Namespace servlet called from JavaScript -->
+  <servlet>
+    <servlet-name>NamespaceServlet</servlet-name>
+    <servlet-class>at.jku.semwiq.webapp.NamespaceServlet</servlet-class>
+  </servlet>
+  
+<!-- Servlet mappings -->
+
+<!--	<servlet-mapping>-->
+<!--		<servlet-name>QueryServlet</servlet-name>-->
+<!--		<url-pattern>/query</url-pattern>-->
+<!--	</servlet-mapping>-->
+	<servlet-mapping>
+		<servlet-name>RegistryServlet</servlet-name>
+		<url-pattern>/registry</url-pattern>
+	</servlet-mapping>
 	<servlet-mapping>
 		<servlet-name>VocabularyServlet</servlet-name>
 		<url-pattern>/vocab</url-pattern>
 	</servlet-mapping>
 	
+  <servlet-mapping>
+	<servlet-name>Logging Servlet</servlet-name>
+	<url-pattern>/logs</url-pattern>
+  </servlet-mapping>
+  
+  <servlet-mapping>
+    <servlet-name>SPARQL service processor</servlet-name>
+    <url-pattern>/sparql</url-pattern>
+  </servlet-mapping>
+  
+  <servlet-mapping>
+    <servlet-name>NamespaceServlet</servlet-name>
+    <url-pattern>/snorql/namespaces.js</url-pattern>
+  </servlet-mapping>
+  
+<!-- Security -->
+
+  <security-constraint>
+    <web-resource-collection>
+      <web-resource-name>Joseki</web-resource-name>
+      <url-pattern>/*</url-pattern>
+      <http-method>GET</http-method>
+      <http-method>POST</http-method>
+      <!-- <http-method>OPTIONS</http-method> -->
+    </web-resource-collection>
+  </security-constraint>
+  
 </web-app>

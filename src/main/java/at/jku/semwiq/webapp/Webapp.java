@@ -22,6 +22,7 @@ import com.hp.hpl.jena.sparql.core.describe.DescribeHandlerRegistry;
 public class Webapp {
 	// mediator reference handling
 	public static final String MEDIATOR_REF = MediatorImpl.class.getCanonicalName();
+	public static final String SPARQL_SERVICE_NAME = "sparql"; // if changed, also adjust web.xml!
 
 	public static void putIntoServletContext(Mediator mediator, ServletContext context) {
 		context.setAttribute(MEDIATOR_REF, mediator);

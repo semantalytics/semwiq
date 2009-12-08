@@ -16,7 +16,6 @@
 package semwiq;
 
 import java.io.File;
-import java.net.InetAddress;
 import java.util.Random;
 
 import org.apache.commons.cli.BasicParser;
@@ -32,7 +31,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import at.jku.semwiq.mediator.Constants;
-import at.jku.semwiq.mediator.conf.MediatorConfig;
 
 /**
  * @author dorgon
@@ -44,20 +42,11 @@ public class webapp {
 	public static final int DEFAULT_PORT = 8080;
 	public static final String CONTEXT_DIR = "webapps" + File.separator + "semwiq";
 
-	private static int port;
-	private static String hostname;
 	private static Server server;
 	private static WebAppContext context;
 
-	private webapp(int p, String contextDir) {
-		this.port = p;
-		try {
-			hostname = InetAddress.getLocalHost().getHostAddress();
-		} catch (Exception ignore) {
-			hostname = "localhost";
-		}
-
-		log.info("Launching SemWIQ Mediator web application at <" + hostname + ":" + port + "> ...");
+	private webapp(int port, String contextDir) {
+		log.info("Launching SemWIQ Mediator web application at <" + Constants.HOSTNAME + ":" + port + "> ...");
 
 		try {
 			server = new Server(port);
@@ -67,9 +56,9 @@ public class webapp {
 			server.setSessionIdManager(new HashSessionIdManager(new Random()));
 			
 			context = new WebAppContext(server, contextDir, "");
-			server.addHandler(context);
+			server.addHandler(context);			
 			server.start();
-
+			
 			// wait until Joseki is ready
 			while (server != null && server.isStarting())
 				try { Thread.sleep(100); } catch (InterruptedException ignore) {}
@@ -86,16 +75,20 @@ public class webapp {
 		Option port = new Option("p", "port", true, "port");
 		port.setArgName("port");
 		port.setOptionalArg(true);
+		Option host = new Option("h", "hostname", true, "hostname");
+		host.setArgName("hostname");
+		host.setOptionalArg(true);
 		Option cfgFile = new Option("c", "config", true, "SemWIQ Mediator configuration file");
 		cfgFile.setArgName("filename");
 		cfgFile.setOptionalArg(true);
-		Option help = new Option("h", "help", false, "help");
+		Option help = new Option("?", "help", false, "help");
 		help.setOptionalArg(true);
 		Option newWebApp = new Option("n", "new", false, "run the newer IceFaces-based web application");
 		newWebApp.setOptionalArg(true);
 		
 		opts = new Options();
 		opts.addOption(port);
+		opts.addOption(host);
 		opts.addOption(cfgFile);
 		opts.addOption(help);
 		opts.addOption(newWebApp);
@@ -106,13 +99,16 @@ public class webapp {
 	        CommandLine cmd = parser.parse(opts, args);
 	        
 	        // requires input file or config file
-	        if (cmd.hasOption("h")) { 
+	        if (cmd.hasOption("?")) { 
 	        	printUsage(null);
 	        } else {
 	        	if (cmd.hasOption("c")) System.setProperty(Constants.SYSTEMPROPERTY_CONFIGFILE, cmd.getOptionValue("c"));
 //	        	if (cmd.hasOption("l")) System.setProperty(MediatorConfiguration.SYSTEMPROPERTY_LOGCONFIGFILE, cmd.getOptionValue("l"));
 	        	
 	        	int p = cmd.hasOption("p") ? Integer.parseInt((String) cmd.getOptionValue("p")) : DEFAULT_PORT;
+	        	if (cmd.hasOption("h"))
+	        		Constants.HOSTNAME = cmd.getOptionValue("h");
+	        	
 				String contextDir = !cmd.hasOption("n") ? CONTEXT_DIR + "-old" : CONTEXT_DIR;
 	        	new webapp(p, contextDir);
 	        }

@@ -24,6 +24,9 @@ import javax.servlet.http.HttpServletResponse;
 
 import at.jku.semwiq.mediator.Mediator;
 import at.jku.semwiq.mediator.MediatorImpl;
+import at.jku.semwiq.mediator.federator.Federator;
+import at.jku.semwiq.mediator.federator.inst.InstanceBasedFederator;
+import at.jku.semwiq.webapp.Webapp;
 
 import com.hp.hpl.jena.ontology.OntModel;
 import com.hp.hpl.jena.shared.Lock;
@@ -38,20 +41,23 @@ public class VocabularyServlet extends javax.servlet.http.HttpServlet implements
 
 	protected void service(HttpServletRequest req, HttpServletResponse res)
 			throws ServletException, IOException {
-//    	Mediator mediator = MediatorImpl.fromServletContext(getServletContext());
-//    	if (!(mediator != null && mediator.isReady())) {
-//			getServletContext().getRequestDispatcher("/not-available.jsp").forward(req, res);
-//			return;
-//		}
-//
-// 		res.setContentType("application/rdf+xml");
-// 		OntModel vocModel = MediatorImpl.fromServletContext(getServletContext()).getRegistry().getVocabularyManager().getVocabularyModel();
-// 		vocModel.enterCriticalSection(Lock.READ);
-// 		try {
-// 			vocModel.write(res.getOutputStream(), "RDF/XML");
-// 		} finally {
-// 			vocModel.leaveCriticalSection();
-// 		}
-		throw new ServletException("Not implemented");
+    	Mediator mediator = Webapp.fromServletContext(getServletContext());
+    	if (!(mediator != null && mediator.isReady())) {
+			getServletContext().getRequestDispatcher("/not-available.jsp").forward(req, res);
+			return;
+		}
+
+ 		res.setContentType("application/rdf+xml");
+ 		Federator f = Webapp.fromServletContext(getServletContext()).getFederator();
+ 		if (f instanceof InstanceBasedFederator) {
+ 			OntModel vocModel = ((InstanceBasedFederator) f).getVocabularyManager().getVocabularyModel();
+	 		vocModel.enterCriticalSection(Lock.READ);
+	 		try {
+	 			vocModel.write(res.getOutputStream(), "RDF/XML");
+	 		} finally {
+	 			vocModel.leaveCriticalSection();
+	 		}
+ 		} else
+ 			throw new ServletException("Not using instance based federator, no VocabularyManager used.");
 	}
 }

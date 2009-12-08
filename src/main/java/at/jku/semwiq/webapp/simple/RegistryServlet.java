@@ -18,13 +18,19 @@ package at.jku.semwiq.webapp.simple;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.URLEncoder;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import sun.reflect.ReflectionFactory.GetReflectionFactoryAction;
 
 import at.jku.semwiq.mediator.Mediator;
 import at.jku.semwiq.mediator.MediatorImpl;
@@ -63,63 +69,76 @@ public class RegistryServlet extends javax.servlet.http.HttpServlet implements
 			return;
 		}
 
-		PrintWriter out = resp.getWriter();
+		if (req.getParameter("cmd") != null && req.getParameter("endpointUri") != null && req.getParameter("endpointUri").length() > 0) {
+			String cmd = req.getParameter("cmd");
+			if (cmd.equals("register")) {
+				String ct = req.getContentType();
 
-		if (req.getParameter("cmd") != null) {
-			try {
-				String cmd = req.getParameter("cmd");
-				if (cmd.equals("register")) {
-					String ct = req.getContentType();
-
-					if (ct == null || ct.startsWith("text/plain")) {
-						Webapp.fromServletContext(getServletContext()).getDataSourceRegistry().getManager().register(req.getParameter("endpoint").trim(), MonitoringProfile.getDefaultCentralizedProfile());
-						out
-							.println("Endpoint registered, monitor has been triggered to update the statistics. Successful registration does not mean that the endpoint will be compatible and become available. Please check the statistics page.");
+				if (ct == null || ct.startsWith("text/plain")) {
+					try {
+						Webapp.fromServletContext(getServletContext()).getDataSourceRegistry().getManager().register(req.getParameter("endpointUri").trim(), MonitoringProfile.getDefaultVoidProfile());
+						System.out.println(req.getHeader("Referer"));
+						forward("Endpoint registered, monitor has been triggered to update the statistics. Successful registration does not mean that the endpoint will be compatible and become available. Please check the statistics page.", req, resp);
+					} catch (Exception e) {
+						log.error("Error registereing data source(s).", e);
+						forward("Error registereing data source(s): " + e.getMessage(), req, resp);
 					}
+				}
 
-				} else if (cmd.equals("updateStats")) {
-					if (req.getParameter("endpointUri") != null) {
+			} else if (cmd.equals("updateStats")) {
+				if (req.getParameter("endpointUri") != null) {
+					try {
 						DataSourceRegistry reg = mediator.getDataSourceRegistry();
-						reg.getMonitor().triggerUpdate(reg.getDataSourceByEndpointUri(req.getParameter("endpointUri")));
-						out
-							.println("Monitor has been triggered to update the statistics.");
-					} else {
-						throw new RegistryException("Cannot schedule update. No endpointUri specified.");
+						reg.getMonitor().triggerUpdate(reg.getDataSourceByEndpointUri(req.getParameter("endpointUri")));						
+						forward("Monitor has been triggered to update the statistics.", req, resp);
+					} catch (Exception e) {
+						log.error("Error registereing data source(s).", e);
+						forward("Error registereing data source(s): " + e.getMessage(), req, resp);
 					}
+				} else {
+					log.error("Cannot schedule update. No endpointUri specified.");
+					forward("Cannot schedule update. No endpointUri specified.", req, resp);
+				}
 
-				} else if (cmd.equals("unregister")) {
-					if (req.getParameter("endpointUri") != null) {
+			} else if (cmd.equals("unregister")) {
+				if (req.getParameter("endpointUri") != null) {
+					try {
 						DataSourceRegistry reg = mediator.getDataSourceRegistry();
 						String uri = req.getParameter("endpointUri");
 						reg.getManager().unregister(uri);
-						out.println("Data source with endpoint URI <" + uri + "> has been unregistered.");
-					} else {
-						throw new RegistryException("No endpointUri specified.");
+						forward("Data source with endpoint URI <" + uri + "> has been unregistered.", req, resp);
+					} catch (Exception e) {
+						log.error("Error registereing data source(s).", e);
+						forward("Error registereing data source(s): " + e.getMessage(), req, resp);
 					}
-				} else if (cmd.equals("update")) {
-					resp
-							.sendError(
-									501,
-									"Not implemented. Please restart the server to flush all registered data sources");
+				} else {
+					log.error("No endpointUri specified.");
+					forward("No endpointUri specified.", req, resp);
 				}
-
-			} catch (RegistryException e) {
-				resp.sendError(500, "Error registering data source(s): "
-						+ e.getMessage());
-				// e.printStackTrace(out);
-			} catch (IOException e) {
-				resp.sendError(500,
-						"I/O Error while reading data from HTTP request."
-								+ e.getMessage());
-				// e.printStackTrace(out);
 			}
-
 		} else {
-			resp
-					.sendError(
-							500,
-							"Invalid request.");
+			log.error("Invalid registry service request from " + req.getRemoteAddr());
+			forward("Invalid registry service request.", req, resp);
 		}
+	}
+
+	private void forward(String msg, HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+		try {
+			msg = URLEncoder.encode(msg, "utf-8");
+		} catch (Exception ignore) {
+			msg = URLEncoder.encode(msg);
+		}
+		
+		String target = "/"; // may result in endless loop if coming from servlet itself...
+//		String referer = req.getHeader("Referer");
+//		if (referer != null) {
+//			Matcher m = Pattern.compile("http:\\/\\/[^\\/]*\\/(.*)").matcher(referer);
+//			if (m.find())
+//				target = "/" + m.group(1);
+//		}
+		
+		RequestDispatcher d = getServletContext().getRequestDispatcher(target + "?msg=" + msg);
+		d.forward(req, resp);
 	}
 
 }

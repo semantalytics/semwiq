@@ -21,8 +21,8 @@ body {
 	margin-top: 10px; margin-bottom: 20px;
 }
 
-p,li,td,th {
-	font-family: Verdana, Helvetica, Sans, Arial;
+body,p,li,td,th {
+	font-family: Arial, Sans-serif;
 	font-size: 10pt;
 	color: black
 }
@@ -41,9 +41,9 @@ img {
 }
 
 h1 {
-	font-family: Verdana, Arial, Sans-serif;
+	font-family: Arial, Sans-serif;
 	font-size: 16pt;
-	font-weight: normal;
+	font-weight: bold;
 	color: green
 }
 
@@ -54,10 +54,10 @@ h1 {
 }
 
 h2 {
-	font-family: Verdana, Arial, Sans-serif;
+	font-family: Arial, Sans-serif;
 	font-size: 12pt;
 	font-weight: bold;
-	color: #1d6e00;
+	color: black;
 	padding-top: 2px;
 	margin-top: 30px;
 	border-top: dashed green 1px;
@@ -65,35 +65,30 @@ h2 {
 }
 
 h3 {
-	font-family: Verdana, Arial, Sans-serif;
+	font-family: Arial, Sans-serif;
 	font-size: 10pt;
 	font-weight: bold;
 	color: black;
 	margin-top: 20px
 }
 
-table.results {
-	border: 1px solid black; padding: 6px; border-spacing: 0; background-color: #c0c0f0
-}
-	
-td.results, th.results {
-	background-color: white; 
-	border: 1px solid #c0c0f0; 
-	padding: 2px;
-	width: 100px;
-}
-
 pre.source {
-	border: 1px solid #c0c0f0;
+	border: 1px solid green;
 	padding: 10px;
 	margin-top: 15px;
 	margin-bottom: 15px;
 }
 
+table { border-collapse:collapse; margin: 0px; }
+table, td, th { border: 1px solid gray }
+
+th, td { padding: 2px 10px }
+th { background-color: #f0f0c0 }
+
 table.chart { width: 100%; }
 table.chart td {
     font-size: 8pt;
-    font-family: Arial,serif; 
+    font-family: Arial, sans-serif; 
 }
 table.chart tr.barvrow td 
 { 
@@ -110,3 +105,52 @@ table.chart tr.bartrow td
     width: 100px;
     background-color: lightblue;
 }
+
+
+.log_table {
+	border: 0px; border-top: 1px solid lightblue; width: 100%
+}
+
+.log_level .log_level_error .log_timestamp .log_msg {
+	font-size: 10pt; font-family: Arial, Verdana, sans-serif; vertical-align: top;
+}
+
+.log_level {
+	color: green; font-weight: bold; width: 50px; vertical-align: top;
+}
+
+.log_level_error {
+	color: red; font-weight: bold; width: 50px; vertical-align: top;
+}
+
+.log_timestamp {
+	color: blue; white-space: nowrap; width: 100px; vertical-align: top;
+}
+
+.log_msg {
+	color: black; vertical-align: top;
+}
+
+.log_details {
+	color: gray; font-size: 8pt; vertical-align: top;
+}
+
+
+/* snorql */
+
+textarea { background-color: #f0f0c0 }
+#header { margin: 0; padding: 0.8em; }
+#footer { font-size: 80%; margin: 20px 1.8em 1em 20px; text-align: center; }
+pre { font-size: 80% }
+#querytext { white-space: pre }
+.link { background: url(snorql/link.png) center right no-repeat; padding-right: 13px; }
+.uri { white-space: nowrap; }
+.uri a, a.uri { text-decoration: none; }
+.queryresults .property { white-space: nowrap; }
+#rdficon { float: right; margin: 0.6em 1em; }
+
+.snorql .queryresults .odd td { background: #ffffdd }
+.snorql .queryresults .even td { background: #ffffff; }
+
+.browser .queryresults .odd td { background: #ffffdd }
+.browser .queryresults .even td { background: #ffffff; }

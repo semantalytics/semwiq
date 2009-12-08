@@ -33,7 +33,7 @@ public class NamespaceServlet extends HttpServlet {
 		response.setContentType("text/javascript");
 		ServletOutputStream out = response.getOutputStream();
 		Map<String, String> map = mediator.getConfig().getGuiConfig().getPrefixMapping().getNsPrefixMap();
-		out.println("// Generated dynamically from the mapping file");
+		out.println("// Generated from SemWIQ GUI config prefix mapping entries");
 		out.println("var D2R_namespacePrefixes = {");
 		Iterator<String> it = map.keySet().iterator();
 		while (it.hasNext()) {

@@ -16,15 +16,24 @@
 
 package at.jku.semwiq.webapp;
 
+import java.io.File;
+
 import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
+import org.joseki.RDFServer;
+import org.joseki.Registry;
+import org.joseki.Service;
+import org.joseki.ServiceRegistry;
+import org.joseki.processors.SPARQL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import at.jku.semwiq.mediator.Constants;
 import at.jku.semwiq.mediator.Mediator;
 import at.jku.semwiq.mediator.MediatorImpl;
+import at.jku.semwiq.mediator.dataset.SemWIQDataset;
 import at.jku.semwiq.mediator.util.LogBufferDispatcher;
 
 /**
@@ -42,15 +51,22 @@ public class StartupListener implements ServletContextListener {
 		try {
 			LogBufferDispatcher.init(200);
 
-			//TODO
 			// if the webapp has been deployed as a WAR, etc is present in the WEB-INF directory. Thus, we reconfigure automatically...
-//			String deployedConfigFile = event.getServletContext().getRealPath("/WEB-INF/etc/semwiq-config.ttl");
-//			if (System.getProperty(MediatorConfiguration.SYSTEMPROPERTY_CONFIGFILE) == null && new File(deployedConfigFile).exists())
-//				System.setProperty(MediatorConfiguration.SYSTEMPROPERTY_CONFIGFILE, deployedConfigFile);
+			String deployedConfigFile = event.getServletContext().getRealPath("/WEB-INF/etc/semwiq-config.ttl");
+			if (System.getProperty(Constants.SYSTEMPROPERTY_CONFIGFILE) == null && new File(deployedConfigFile).exists())
+				System.setProperty(Constants.SYSTEMPROPERTY_CONFIGFILE, deployedConfigFile);
 			
 			mediator = new MediatorImpl();
 			Webapp.putIntoServletContext(mediator, event.getServletContext());
+
+			// register SPARQL Service endpoint at Joseki
+			ServiceRegistry registry = (ServiceRegistry) Registry.find(RDFServer.ServiceRegistryName) ;
+			if (registry == null) // first time, create new
+				registry = new ServiceRegistry();
 			
+			Service service = new Service(new SPARQL(), Webapp.SPARQL_SERVICE_NAME, new SemWIQDatasetDesc(new SemWIQDataset(mediator)));
+			registry.add(Webapp.SPARQL_SERVICE_NAME, service);
+			Registry.add(RDFServer.ServiceRegistryName, registry);
 		} catch (Exception e) {
 			log.error("Error initializing SemWIQ Web Application.", e);
 		}

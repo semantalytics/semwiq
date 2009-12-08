@@ -98,87 +98,90 @@ public class QueryServlet extends javax.servlet.http.HttpServlet implements
 		try {
 			int qType = query.getQueryType();
 
-			switch (qType) {
-				case Query.QueryTypeSelect :
-					
-					// which output format?
-					ResultFormat fmt;
-					if (req.getParameter("fmt") != null)
-						fmt = ResultFormat.valueOf(req.getParameter("fmt"));
-					else
-						fmt = ResultFormat.getDefault();
-
-					r = qe.execSelect();
-					
-					switch (fmt) {
-						case XHTML:
-							req.setAttribute("query", query);
-							req.setAttribute("resultSet", r);
+			if (query.isExplainQuery()) {
+				
+			} else {
+				switch (qType) {
+					case Query.QueryTypeSelect :
+						
+						// which output format?
+						ResultFormat fmt;
+						if (req.getParameter("fmt") != null)
+							fmt = ResultFormat.valueOf(req.getParameter("fmt"));
+						else
+							fmt = ResultFormat.getDefault();
 	
-							RequestDispatcher d = getServletContext().getRequestDispatcher("/results.jsp");
-							d.forward(req, res);
-							break;
-						case JSON:
-							// res.setContentType("application/json");
-							out = res.getOutputStream();
-							ResultSetFormatter.output(out, r, ResultSetFormat.syntaxJSON);
-							break;
-						case RDF_XML_ABBREV:
-							// res.setContentType("application/rdf+xml");
-							res.setContentType("text/xml");
-							out = res.getOutputStream();
-							ResultSetFormatter
-									.output(out, r, ResultSetFormat.syntaxRDF_XML);
-							break;
-						case SPARQL_XML:
-							res.setContentType("text/xml");
-							out = res.getOutputStream();
-							ResultSetFormatter.output(out, r, ResultSetFormat.syntaxXML);
-							break;
-						case CSV:
-							res.setContentType("text/plain");
-							List<String> resultVars = r.getResultVars();
-
-							out = res.getOutputStream();
-							for (String var : resultVars)
-								out.print(var + ";");
-							out.println();
-							
-							QuerySolution s;
-							while (r.hasNext()) {
-								s = r.nextSolution();
-								for (String var : resultVars) {
-									out.print("\"");
-									out.print(s.get(var).toString());
-									out.print("\";");
-								}
+						r = qe.execSelect();
+						
+						switch (fmt) {
+							case XHTML:
+								req.setAttribute("query", query);
+								req.setAttribute("resultSet", r);
+		
+								RequestDispatcher d = getServletContext().getRequestDispatcher("/results.jsp");
+								d.forward(req, res);
+								break;
+							case JSON:
+								// res.setContentType("application/json");
+								out = res.getOutputStream();
+								ResultSetFormatter.output(out, r, ResultSetFormat.syntaxJSON);
+								break;
+							case RDF_XML_ABBREV:
+								// res.setContentType("application/rdf+xml");
+								res.setContentType("text/xml");
+								out = res.getOutputStream();
+								ResultSetFormatter
+										.output(out, r, ResultSetFormat.syntaxRDF_XML);
+								break;
+							case SPARQL_XML:
+								res.setContentType("text/xml");
+								out = res.getOutputStream();
+								ResultSetFormatter.output(out, r, ResultSetFormat.syntaxXML);
+								break;
+							case CSV:
+								res.setContentType("text/plain");
+								List<String> resultVars = r.getResultVars();
+	
+								out = res.getOutputStream();
+								for (String var : resultVars)
+									out.print(var + ";");
 								out.println();
+								
+								QuerySolution s;
+								while (r.hasNext()) {
+									s = r.nextSolution();
+									for (String var : resultVars) {
+										out.print("\"");
+										out.print(s.get(var).toString());
+										out.print("\";");
+									}
+									out.println();
+								}
+								out.flush();
+								break;
 							}
-							out.flush();
-							break;
-						}
-
-					break;
-				case Query.QueryTypeAsk :
-					out = res.getOutputStream();
-					out.println(qe.execAsk());
-					break;
-				case Query.QueryTypeConstruct :
-					out = res.getOutputStream();
-					res.setContentType("text/xml");
-					Model constructResult = qe.execConstruct();
-					constructResult.write(out);
-					constructResult.close();
-					break;
-				case Query.QueryTypeDescribe :
-					out = res.getOutputStream();
-					res.setContentType("text/xml");
-					Model describeResult = qe.execDescribe();
-					describeResult.write(out);
-					describeResult.close();
-					break;
+	
+						break;
+					case Query.QueryTypeAsk :
+						out = res.getOutputStream();
+						out.println(qe.execAsk());
+						break;
+					case Query.QueryTypeConstruct :
+						out = res.getOutputStream();
+						res.setContentType("text/xml");
+						Model constructResult = qe.execConstruct();
+						constructResult.write(out);
+						constructResult.close();
+						break;
+					case Query.QueryTypeDescribe :
+						out = res.getOutputStream();
+						res.setContentType("text/xml");
+						Model describeResult = qe.execDescribe();
+						describeResult.write(out);
+						describeResult.close();
+						break;
+				}
 			}
-
 		} catch (Throwable e) {
 			// exception stack is different for various servlet implementations, so we need to trace the whole cause stack...
 			Set<Class<? extends Throwable>> trace = Misc.getExceptionChain(e);
