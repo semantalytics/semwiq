@@ -13,7 +13,7 @@ function Snorql() {
 	this._endpoint = m[1] + "sparql"; // /endpoint" + m[2];
 //    alert(this._endpoint);
 	this._poweredByLink = 'http://www4.wiwiss.fu-berlin.de/bizer/d2r-server/';
-    this._poweredByLabel = 'D2R Server';
+    this._poweredByLabel = 'Snorql from D2R Server';
     this._enableNamedGraphs = false;
 
     this._browserBase = null;
@@ -145,7 +145,7 @@ function Snorql() {
     }
 
     this._displayEndpointURL = function() {
-        var newTitle = 'Snorql: Exploring ' + this._endpoint;
+        var newTitle = 'Querying SemWIQ Mediator at ' + this._endpoint;
         this._display(document.createTextNode(newTitle), 'title');
         document.title = newTitle;
     }
@@ -170,9 +170,9 @@ function Snorql() {
 
     this._updateGraph = function(uri, effect) {
         if (!this._enableNamedGraphs) {
-            $('default-graph-section').hide();
-            $('named-graph-section').hide();
-            $('browse-named-graphs-link').hide();
+//            $('default-graph-section').hide();
+//            $('named-graph-section').hide();
+//            $('browse-named-graphs-link').hide();
             return;
         }
         var changed = (uri != this._graph);
@@ -401,11 +401,23 @@ function SPARQLResultFormatter(json, namespaces) {
         var namedGraph = null;
         for (var i = 0; i < this._variables.length; i++) {
             var varName = this._variables[i];
+            var node = binding[varName];
             td = document.createElement('td');
-            td.appendChild(this._formatNode(binding[varName], varName));
+            td.appendChild(this._formatNode(node, varName));
+
+            // source: provenance tracking
+            if (node && node.source) {
+	            td.appendChild(document.createTextNode(' '));
+	            var img = document.createElement('img');
+	            img.src = 'source.png';
+	            img.alt = '[Source: ' + node.source + ']';
+	            img.title = 'Source: ' + node.source;
+	            td.appendChild(img);
+            }
+            
             tr.appendChild(td);
             if (this._variables[i] == 'namedgraph') {
-                namedGraph = binding[varName];
+                namedGraph = node;
             }
         }
         if (namedGraph) {
@@ -418,7 +430,7 @@ function SPARQLResultFormatter(json, namespaces) {
         }
         return tr;
     }
-
+    
     this._formatNode = function(node, varName) {
         if (!node) {
             return this._formatUnbound(node, varName);
