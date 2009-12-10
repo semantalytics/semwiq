@@ -211,10 +211,8 @@ public class InstanceBasedFederatorTransform extends TransformCopy {
 								// if it will produce any results at all, include into global plan
 								if (prevUnionOp == null)
 									prevUnionOp = newDS;
-								else {
-									OpUnion union = new OpUnion(prevUnionOp, newDS);
-									prevUnionOp = union; //TODO improve code
-								}
+								else
+									prevUnionOp = new OpUnion(prevUnionOp, newDS);
 //							}
 						}
 					}
@@ -381,8 +379,9 @@ public class InstanceBasedFederatorTransform extends TransformCopy {
 		Triple t;
 		while (it.hasNext()) {
 			t = it.next();
-			if (!(t.getPredicate().isURI() && t.getPredicate().getURI() == RDF.type.getURI() && !t.getObject().isVariable()))
-				withoutTypes.add(t);
+			if (t.getPredicate().isURI() && t.getPredicate().getURI().equals(RDF.type.getURI()) && t.getObject().isURI())
+				continue;
+			withoutTypes.add(t);
 		}
 
 		List<Set<OntClass>> combinations = OntTools.generateTypeCombinations(subTypes);
@@ -424,7 +423,8 @@ public class InstanceBasedFederatorTransform extends TransformCopy {
 	 */
 	private void collectInterestingSubTypes(DataSource ds, OntClass cl, Set<OntClass> accu) throws RDFStatsModelException {
 		RDFStatsDataset statsDs = stats.getDataset(ds.getSPARQLEndpointURL());
-		if (statsDs != null && statsDs.triplesForPattern(null, RDF.type.asNode(), cl.asNode()) > 0) {
+		Integer n = statsDs.triplesForPattern(null, RDF.type.asNode(), cl.asNode());
+		if (statsDs != null && n != null && n > 0) {
 			accu.add(cl);
 			
 		} else { // decend further

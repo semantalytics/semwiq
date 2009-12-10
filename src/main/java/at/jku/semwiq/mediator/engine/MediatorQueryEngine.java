@@ -158,8 +158,8 @@ public class MediatorQueryEngine extends QueryEngineMain {
 				GraphVizWriter.write(postOpt, q, Constants.RENDER_POSTOPT_FILENAME);
 		
 			Long[] estimates = new PlanCalculator(getMediator().getDataSourceRegistry().getRDFStatsModel()).calculate(postOpt);			 
-			if (estimates[PlanCalculator.MAX] == 0)
-				postOpt = OpNull.create();
+//			if (estimates[PlanCalculator.MAX] == 0)
+//				postOpt = OpNull.create();
 			log.debug("Estimated results: " + estimates[PlanCalculator.MIN] + " (min), " + estimates[PlanCalculator.AVG] + " (avg), " + estimates[PlanCalculator.MAX] + " (max)");
 
 			context.set(Constants.ESTIMATED_MIN_RESULTS, estimates[PlanCalculator.MIN]);

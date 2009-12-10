@@ -76,7 +76,7 @@ public class TypeDetector {
 			if (log.isInfoEnabled())
 				log.info("Initializing inference model for automatic type detection (this may take some time depending of the size of the global vocabularies)...");
 			
-			infModel = ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM); //PelletReasonerFactory.THE_SPEC);
+			infModel = ModelFactory.createOntologyModel(OntModelSpec.RDFS_MEM_TRANS_INF); //PelletReasonerFactory.THE_SPEC);
 			infModel.addSubModel(vocModel);
 		} else
 			infModel = null;
