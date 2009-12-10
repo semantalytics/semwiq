@@ -170,9 +170,9 @@ function Snorql() {
 
     this._updateGraph = function(uri, effect) {
         if (!this._enableNamedGraphs) {
-//            $('default-graph-section').hide();
-//            $('named-graph-section').hide();
-//            $('browse-named-graphs-link').hide();
+            $('default-graph-section').hide();
+            $('named-graph-section').hide();
+            $('browse-named-graphs-link').hide();
             return;
         }
         var changed = (uri != this._graph);
