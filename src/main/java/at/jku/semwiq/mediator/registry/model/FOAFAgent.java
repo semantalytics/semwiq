@@ -111,13 +111,13 @@ public class FOAFAgent extends WrappedResource {
 	@Override
 	public String toString() {
 		if (isPerson())
-			return "foaf:Person '" + getLabel() + "'";
+			return "foaf:Person '" + getName() + "'";
 		else if (isGroup())
-			return "foaf:Group '" + getLabel() + "'";
+			return "foaf:Group '" + getName() + "'";
 		else if (isOrganization())
-			return "foaf:Organization '" + getLabel() + "'";
+			return "foaf:Organization '" + getName() + "'";
 		else
-			return "foaf:Agent '" + getLabel() + "'";
+			return "foaf:Agent '" + getName() + "'";
 	}
 
 }

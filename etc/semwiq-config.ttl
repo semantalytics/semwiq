@@ -93,6 +93,12 @@
 	sq:prefixMapping [
 		sq:prefix "sobs" ;
 		sq:namespace <http://semwiq.faw.uni-linz.ac.at/global/science/astronomy/solar-observation.owl#> ] ;
+	sq:prefixMapping [
+		sq:prefix "swrc" ;
+		sq:namespace <http://swrc.ontoware.org/ontology#> ] ;
+	sq:prefixMapping [
+		sq:prefix "swc" ;
+		sq:namespace <http://data.semanticweb.org/ns/swc/ontology#> ] ;
 
 # sample queries
 

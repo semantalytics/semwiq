@@ -106,7 +106,7 @@ public class MediatorQueryEngine extends QueryEngineMain {
     		@Override
     		protected boolean hasNextBinding() {
     			boolean has = super.hasNextBinding();
-    			if (!has) // no more results, at the end
+    			if (!has || ((Query) ctx.get(Constants.QUERY)).isAskType()) // no more results, at the end
     				ctx.set(Constants.EXEC_TIME_ALLRESULTS, System.currentTimeMillis() - (Long) ctx.get(Constants.EXEC_TIME_START));
     			return has;
     		}

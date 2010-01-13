@@ -122,9 +122,13 @@ public class DataSourceRegistryImpl implements DataSourceRegistry {
 			if (ds.getSPARQLEndpointURL() == null)
 				log.error("Invalid data source: " + ds.getUri() + " - Missing " + voiD.sparqlEndpoint.getURI() + "!");
 			try {
-				if (statsModel.getDataset(ds.getSPARQLEndpointURL()) == null) {
+				RDFStatsDataset st = statsModel.getDataset(ds.getSPARQLEndpointURL());
+				if (st == null) {
 					log.error("Missing statistics for " + ds + " - will trigger update.");
 					monitor.triggerUpdate(ds);
+				} else {
+					if (log.isInfoEnabled())
+						log.info(st.getTriplesTotal() + " triples contributed by " + ds);
 				}
 			} catch (Exception e) {
 				log.error("Failed to get statistics for " + ds + " - will trigger update.");

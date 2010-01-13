@@ -113,6 +113,8 @@ public class CostBasedJoinReorder extends TransformCopy {
 		long maxTotal = 0;
 		for (Op sub : elts) {
 			Long[] cost = new PlanCalculator(stats, currentDataset).calculate(sub);
+			if (cost == null)
+				cost = new Long[] { Long.MAX_VALUE, Long.MAX_VALUE, Long.MAX_VALUE }; // assume maximum for unknown
 			maxTotal += cost[PlanCalculator.MAX];
 			List<Op> entry = cSub.get(cost[PlanCalculator.AVG]);
 			if (entry == null) {

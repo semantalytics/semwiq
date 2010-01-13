@@ -54,7 +54,7 @@ public class UserRegistryImpl implements UserRegistry {
 	 */
 	public User getUser(String username, String password) {
 		// handle special users first
-		if (username.equals(SUPERUSER) && password.equals(SUPERUSER))
+		if (username.equals(SUPERUSER.getName()) && password.equals(SUPERUSER.getPassword()))
 			return SUPERUSER;
 		else
 			return GUEST;
