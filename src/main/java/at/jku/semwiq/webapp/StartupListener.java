@@ -16,6 +16,7 @@
 
 package at.jku.semwiq.webapp;
 
+
 import java.io.File;
 
 import javax.servlet.ServletContext;
@@ -30,11 +31,11 @@ import org.joseki.processors.SPARQL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import at.jku.semwiq.log.LogBufferDispatcher;
 import at.jku.semwiq.mediator.Constants;
 import at.jku.semwiq.mediator.Mediator;
 import at.jku.semwiq.mediator.MediatorImpl;
 import at.jku.semwiq.mediator.dataset.SemWIQDataset;
-import at.jku.semwiq.mediator.util.LogBufferDispatcher;
 
 /**
  * @author dorgon
@@ -49,7 +50,7 @@ public class StartupListener implements ServletContextListener {
 	public void contextInitialized(ServletContextEvent event) {
 
 		try {
-			LogBufferDispatcher.init(200);
+			LogBufferDispatcher.init(-1);
 
 			// if the webapp has been deployed as a WAR, etc is present in the WEB-INF directory. Thus, we reconfigure automatically...
 			String deployedConfigFile = event.getServletContext().getRealPath("/WEB-INF/etc/semwiq-config.ttl");
