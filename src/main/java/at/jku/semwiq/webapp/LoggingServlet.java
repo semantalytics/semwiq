@@ -54,7 +54,7 @@ public class LoggingServlet extends HttpServlet {
 		
 		o.println("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\">");
 		o.println("<html><head>");
-		o.println("<link href=\"/styles.css\" rel=\"stylesheet\" type=\"text/css\" />");
+		o.println("<link href=\"/pages/css/logStyles.css\" rel=\"stylesheet\" type=\"text/css\" />");
 		
 		// JS doesn't execute before body is completely loaded.... not possible like this:
 //		o.println("<script language=\"JavaScript\">\n" +

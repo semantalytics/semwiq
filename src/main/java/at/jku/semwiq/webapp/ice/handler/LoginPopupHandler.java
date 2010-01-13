@@ -29,8 +29,8 @@ public class LoginPopupHandler {
 	private boolean visible;
 	private User currentUser;
 	
-	private String popUpUsername;
-	private String popUpPassword;
+	private String userName;
+	private String userPassword;
 
 	//methods for other Server Faces handlers that are used in this one
 	private SemWIQHandler semwiqHandler;
@@ -54,20 +54,20 @@ public class LoginPopupHandler {
 	}
 
 	// popup data
-	public String getPopUpUserName() {
-		return popUpUsername;
+	public String getUserName() {
+		return userName;
 	}
 
-	public void setPopUpUserName(String username) {
-		popUpUsername = username;
+	public void setUserName(String userName) {
+		this.userName = userName;
 	}
 
-	public String getPopUpPassword() {
-		return popUpPassword;
+	public String getUserPassword() {
+		return userPassword;
 	}
 
-	public void setPopUpPassword(String pwd) {
-		popUpPassword = pwd;
+	public void setUserPassword(String pwd) {
+		userPassword = pwd;
 	}
 	
 	// current user data
@@ -75,12 +75,8 @@ public class LoginPopupHandler {
 		return currentUser;
 	}
 	
-	public String getUserName() {
+	public String getAccountName() {
 		return currentUser.getName();
-	}
-	
-	public String getUserPassword() {
-		return currentUser.getPassword();
 	}
 	
 	// program logic
@@ -104,7 +100,7 @@ public class LoginPopupHandler {
     
     public String verifyUser() {
     	UserRegistry userReg = semwiqHandler.getMediator().getUserRegistry();
-    	User user = userReg.getUser(popUpUsername, popUpPassword);
+    	User user = userReg.getUser(userName, userPassword);
     	if (user != null && userReg.isSuperUser(user)) {
     		this.setAdminRender(true);
     		visible = false;

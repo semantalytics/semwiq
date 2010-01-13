@@ -48,7 +48,7 @@ public class DatasourceConverter implements Converter {
 	 		ArrayList temp = (ArrayList) ih.getDatasourceList();
 	 		for (Iterator iter=temp.iterator(); iter.hasNext();) {
 	 			Datasource ds = (Datasource) iter.next();
-	 			if(ds.getSemwiq_informationURI().equalsIgnoreCase(uri)) {
+	 			if(ds.getSemwiq_informationEndpoint().equalsIgnoreCase(uri)) {
 	 				System.out.println(ds.getSemwiq_informationEndpoint());
 	 				return ds;
 	 			}
@@ -63,7 +63,7 @@ public class DatasourceConverter implements Converter {
 			return null;
 		}
 		else if(datasource instanceof Datasource) {
-			return ((Datasource) datasource).getSemwiq_informationURI();
+			return ((Datasource) datasource).getSemwiq_informationEndpoint();
 		}
 		else if(datasource instanceof String) {
 			return (String) datasource;
@@ -74,7 +74,7 @@ public class DatasourceConverter implements Converter {
 	}
 	
 	public static String getAsString(Datasource ds) {
-		return ds.getSemwiq_informationURI();
+		return ds.getSemwiq_informationEndpoint();
 	}
 
 }

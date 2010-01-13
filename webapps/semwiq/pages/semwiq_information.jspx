@@ -97,105 +97,98 @@
 							<ice:panelGrid columns="2" style="height: 100%; width: 700px" columnClasses="informationCol1, informationCol2" frame="border" effect="#{informationHandler.valueChangeEffect}">
 								<ice:outputText value="Status: " />
 								<ice:outputText id="semwiq_informationState" value="#{informationHandler.semwiq_informationState}" />
-								<ice:outputText value="URI: " />
-								<ice:outputLink id="semwiq_informationURI" value="#{informationHandler.semwiq_informationURI}">
-									<ice:outputText id="semwiq_informationURILabel" value="#{informationHandler.semwiq_informationURILabel}" />
-								</ice:outputLink>
 								<ice:outputText value="Endpoint: " />
 								<ice:outputLink id="semwiq_informationEndpoint" value="#{informationHandler.semwiq_informationEndpoint}">
 									<ice:outputText id="semwiq_informationEndpointLabel" value="#{informationHandler.semwiq_informationEndpointLabel}" />
 								</ice:outputLink>
-								<ice:outputText value="Provider Name: " />
-								<ice:outputText id="semwiq_informationProviderName" value="#{informationHandler.semwiq_informationProviderName}" />
-								<ice:outputText value="Provider Type: " />
-								<ice:outputText id="semwiq_informationProviderType" value="#{informationHandler.semwiq_informationProviderType}" />
-								<ice:outputText value="Maintained By: " />
-								<ice:outputText id="semwiq_informationMaintainer" value="#{informationHandler.semwiq_informationMaintainer}" />
-								<ice:outputText value="Maintainer same as (URI): " />
-								<ice:outputText id="semwiq_informationSameAs" value="#{informationHandler.semwiq_informationMaintainerSameAs}" />
+<!--								<ice:outputText value="Provider Name: " />-->
+<!--								<ice:outputText id="semwiq_informationProviderName" value="#{informationHandler.semwiq_informationProviderName}" />-->
+<!--								<ice:outputText value="Provider Type: " />-->
+<!--								<ice:outputText id="semwiq_informationProviderType" value="#{informationHandler.semwiq_informationProviderType}" />-->
+<!--								<ice:outputText value="Maintained By: " />-->
+<!--								<ice:outputText id="semwiq_informationMaintainer" value="#{informationHandler.semwiq_informationMaintainer}" />-->
+<!--								<ice:outputText value="Maintainer same as (URI): " />-->
+<!--								<ice:outputText id="semwiq_informationSameAs" value="#{informationHandler.semwiq_informationMaintainerSameAs}" />-->
 								<ice:outputText value="Statistics from: " />
 								<ice:outputText id="semwiq_informationStatDate" value="#{informationHandler.semwiq_informationStatDate}" />
-								<!-- 
-								<ice:outputText value="Statistics from: " />
-								<ice:outputText id="semwiq_informationStatDate" value="#{informationHandler.semwiq_informationLastDownload}" /> 
-								-->
 								<f:facet name="footer">
 									<ice:commandButton value="update datasource" action="#{informationHandler.updateDatasource}" style="text-align: center"/>
   								</f:facet>
 							</ice:panelGrid>
-							<ice:panelGroup style="height: 100%">
-								<ice:dataTable frame="box"
-			                       	var="webAppRessourceItem"
-			                       	value="#{informationHandler.datasourceWebappList}" 
-									style="width: 700px"
-									columnClasses="informationTableCol1, informationTableCol2, informationTableCol3" >
-						            <ice:column>
-						                <f:facet name="header">
-						                    <ice:outputText value="Class"/>
-						                </f:facet>
-						                <ice:outputLink value="#{webAppRessourceItem.classLink}">
-											<ice:outputText value="#{webAppRessourceItem.className}" />
-										</ice:outputLink>
-						            </ice:column>
-						            <ice:column>
-						                <f:facet name="header">
-						                    <ice:outputText value="Instances"/>
-						                </f:facet>
-						                <ice:outputText value="#{webAppRessourceItem.instances}"/>
-						            </ice:column>
-						            <ice:column>
-						                <f:facet name="header">
-						                    <ice:outputText value="Histogram"/>
-						                </f:facet>
-						                <ice:commandLink action="#{informationHandler.renderHist}">
-											<ice:outputText value="Histogram" />
-											<f:param name="classuri" value="#{webAppRessourceItem.classLink}" />
-										</ice:commandLink>
-						            </ice:column>
-						        </ice:dataTable>
-							</ice:panelGroup>
+<!--							<ice:panelGroup style="height: 100%">-->
+<!--								<ice:dataTable frame="box"-->
+<!--			                       	var="webAppRessourceItem"-->
+<!--			                       	value="#{informationHandler.datasourceWebappList}" -->
+<!--									style="width: 700px"-->
+<!--									columnClasses="informationTableCol1, informationTableCol2, informationTableCol3" >-->
+<!--						            <ice:column>-->
+<!--						                <f:facet name="header">-->
+<!--						                    <ice:outputText value="Class"/>-->
+<!--						                </f:facet>-->
+<!--						                <ice:outputLink value="#{webAppRessourceItem.classLink}">-->
+<!--											<ice:outputText value="#{webAppRessourceItem.className}" />-->
+<!--										</ice:outputLink>-->
+<!--						            </ice:column>-->
+<!--						            <ice:column>-->
+<!--						                <f:facet name="header">-->
+<!--						                    <ice:outputText value="Instances"/>-->
+<!--						                </f:facet>-->
+<!--						                <ice:outputText value="#{webAppRessourceItem.instances}"/>-->
+<!--						            </ice:column>-->
+<!--						            <ice:column>-->
+<!--						                <f:facet name="header">-->
+<!--						                    <ice:outputText value="Histogram"/>-->
+<!--						                </f:facet>-->
+<!--						                <ice:commandLink action="#{informationHandler.renderHist}">-->
+<!--											<ice:outputText value="Histogram" />-->
+<!--											<f:param name="classuri" value="#{webAppRessourceItem.classLink}" />-->
+<!--										</ice:commandLink>-->
+<!--						            </ice:column>-->
+<!--						        </ice:dataTable>-->
+<!--							</ice:panelGroup>-->
+
 							<!-- histograms of a data source -->
-							<ice:panelGroup style="height: 100%"
-											rendered="#{informationHandler.renderHistograms}" >
-								<ice:dataTable frame="box"
-			                       	var="histogramItem"
-			                       	value="#{informationHandler.histograms}" 
-									style="width: 700px">
-						            <ice:column>
-						                <f:facet name="header">
-						                    <ice:outputText value="Property"/>
-						                </f:facet>
-						                <ice:outputLink value="#{histogramItem.propertyLink}">
-											<ice:outputText value="#{histogramItem.propertyName}" />
-										</ice:outputLink>
-						            </ice:column>
-						            <ice:column>
-						                <f:facet name="header">
-						                    <ice:outputText value="Histogram"/>
-						                </f:facet>
-											<ice:outputChart id="axisOutputChart"
-												type="bar"
-												chartTitle="#{histogramItem.propertyName}"
-												xaxisTitle="Bins"
-												xaxisLabels="#{histogramItem.graphLabels}"
-												yaxisTitle=" "
-												colors="blue"
-												labels=" "
-												data="#{histogramItem.graphData}"
-												horizontal="false"
-												renderOnSubmit="true"
-												legendPlacement="right"
-												width="600"
-												height="200" />
-											<ice:panelGrid columns="4">
-												<ice:outputText value="min:" rendered="#{histogramItem.render}" />
-												<ice:outputText value="#{histogramItem.compareMin}" rendered="#{histogramItem.render}" />
-												<ice:outputText value="max:" rendered="#{histogramItem.render}" />
-												<ice:outputText value="#{histogramItem.compareMax}" rendered="#{histogramItem.render}" />
-											</ice:panelGrid>
-						            </ice:column>
-						        </ice:dataTable>
-							</ice:panelGroup>
+<!--							<ice:panelGroup style="height: 100%"-->
+<!--											rendered="#{informationHandler.renderHistograms}" >-->
+<!--								<ice:dataTable frame="box"-->
+<!--			                       	var="histogramItem"-->
+<!--			                       	value="#{informationHandler.histograms}" -->
+<!--									style="width: 700px">-->
+<!--						            <ice:column>-->
+<!--						                <f:facet name="header">-->
+<!--						                    <ice:outputText value="Property"/>-->
+<!--						                </f:facet>-->
+<!--						                <ice:outputLink value="#{histogramItem.propertyLink}">-->
+<!--											<ice:outputText value="#{histogramItem.propertyName}" />-->
+<!--										</ice:outputLink>-->
+<!--						            </ice:column>-->
+<!--						            <ice:column>-->
+<!--						                <f:facet name="header">-->
+<!--						                    <ice:outputText value="Histogram"/>-->
+<!--						                </f:facet>-->
+<!--											<ice:outputChart id="axisOutputChart"-->
+<!--												type="bar"-->
+<!--												chartTitle="#{histogramItem.propertyName}"-->
+<!--												xaxisTitle="Bins"-->
+<!--												xaxisLabels="#{histogramItem.graphLabels}"-->
+<!--												yaxisTitle=" "-->
+<!--												colors="blue"-->
+<!--												labels=" "-->
+<!--												data="#{histogramItem.graphData}"-->
+<!--												horizontal="false"-->
+<!--												renderOnSubmit="true"-->
+<!--												legendPlacement="right"-->
+<!--												width="600"-->
+<!--												height="200" />-->
+<!--											<ice:panelGrid columns="4">-->
+<!--												<ice:outputText value="min:" rendered="#{histogramItem.render}" />-->
+<!--												<ice:outputText value="#{histogramItem.compareMin}" rendered="#{histogramItem.render}" />-->
+<!--												<ice:outputText value="max:" rendered="#{histogramItem.render}" />-->
+<!--												<ice:outputText value="#{histogramItem.compareMax}" rendered="#{histogramItem.render}" />-->
+<!--											</ice:panelGrid>-->
+<!--						            </ice:column>-->
+<!--						        </ice:dataTable>-->
+<!--							</ice:panelGroup>-->
 						</ice:panelGrid>
 					</ice:panelGrid>
 			    </ice:form>

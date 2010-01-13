@@ -96,8 +96,6 @@
 							<ice:outputText id="semwiq_sourceVersion" value="#{sourceHandler.semwiq_sourceVersion}" />
 							<!-- <ice:outputText value="Data Source Monitor: " />
 							<ice:outputText id="semwiq_sourceMonitor" value="#{sourceHandler.semwiq_sourceMonitor}" /> -->
-							<ice:outputText value="Query optimizer: " />
-							<ice:outputText id="semwiq_sourceOptimizer" value="#{sourceHandler.semwiq_sourceOptimizer}" />
 						</ice:panelGrid>
 		
 				        <ice:panelGrid columns="2">

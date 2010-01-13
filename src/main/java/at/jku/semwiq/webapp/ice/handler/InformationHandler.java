@@ -242,10 +242,10 @@ public class InformationHandler {
 			Datasource ds = (Datasource) iter.next();
 			DataSourceRegistry reg = semwiqHandler.getMediator().getDataSourceRegistry();
 			try {
-				DataSource semwiqDs = reg.getDataSourceByEndpointUri(ds.getSemwiq_informationURI());				
-				datasourceListItems.add(new SelectItem(ds, semwiqDs.getLocalName()));
+				DataSource semwiqDs = reg.getDataSourceByEndpointUri(ds.getSemwiq_informationEndpoint());				
+				datasourceListItems.add(new SelectItem(ds, semwiqDs.getSPARQLEndpointURL()));
 			} catch (Exception e) {
-				log.error("Failed to get data source for endpoint <" + ds.getSemwiq_informationURI());
+				log.error("Failed to get data source for endpoint <" + ds.getSemwiq_informationEndpoint());
 			}
 		}
 		return datasourceListItems;

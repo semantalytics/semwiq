@@ -50,6 +50,6 @@
 	<classpathentry kind="lib" path="lib/logback"/>
 	<classpathentry kind="lib" path="lib/arq.jar" sourcepath="/ARQ-2.7.0"/>
 	<classpathentry kind="lib" path="lib/logback-dispatcher.jar"/>
-	<classpathentry kind="lib" path="lib/semwiq-mediator.jar" sourcepath="/semwiq-mediator"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/semwiq-mediator"/>
 	<classpathentry kind="output" path="build"/>
 </classpath>
