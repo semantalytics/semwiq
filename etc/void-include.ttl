@@ -11,4 +11,5 @@
 	dcterms:title "__TITLE__" ;
 	dcterms:description "__DESCRIPTION__" ;
 	foaf:homepage <__HOMEPAGE__> ;
+	void:sparqlEndpoint <__SPARQLENDPOINT__> ;	
 .
