@@ -90,7 +90,7 @@ public class RemovePopupHandler {
  		else {
  			try {
 	 			DataSourceRegistryManager reg = mediator.getDataSourceRegistry().getManager();
-	 			DataSource delDs = reg.getDataSourceByEndpointUri((informationHandler.getCurrentDatasource().getSemwiq_informationURI()));
+	 			DataSource delDs = reg.getDataSourceByEndpointUri((informationHandler.getCurrentDatasource().getSemwiq_informationEndpoint()));
 				reg.unregister(delDs);
 				informationHandler.loadDatasourceList();
 			} catch (RegistryException e) {

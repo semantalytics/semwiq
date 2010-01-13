@@ -103,6 +103,7 @@ public class LoginPopupHandler {
     	User user = userReg.getUser(userName, userPassword);
     	if (user != null && userReg.isSuperUser(user)) {
     		this.setAdminRender(true);
+    		currentUser = user;
     		visible = false;
     		return "adminLogin";
     	} else {
