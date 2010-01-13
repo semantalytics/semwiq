@@ -40,7 +40,10 @@
 		</ice:form>
 
 		<ice:form>
-			<ice:panelPopup modal="true" visible="#{loginPopupHandler.visible}" styleClass="icePanelPopup">
+			<ice:panelPopup modal="true" 
+							visible="#{loginPopupHandler.visible}" 
+							styleClass="icePanelPopup"
+							autoCentre="true" >
                 <f:facet name="header">
 	                    <ice:panelGrid width="100%" cellpadding="0" cellspacing="0" columns="2" styleClass="icePanelPopupHeader">
 	                        <ice:outputText value="user authentication"/>
@@ -51,8 +54,8 @@
                 <f:facet name="body">
 						<ice:panelGroup>
 		                    <ice:panelGrid width="100%" cellpadding="0" cellspacing="0" columns="2" styleClass="icePanelPopupBody">
-		                        <!-- <ice:outputText value="username: "/>
-								<ice:inputText value="#{loginPopupHandler.userName}"/> -->
+		                    	<ice:outputText value="username: "/>
+								<ice:inputText value="#{loginPopupHandler.userName}"/>
 		                        <ice:outputText value="password: "/>
 								<ice:inputSecret value="#{loginPopupHandler.userPassword}"/>
 		                    </ice:panelGrid>

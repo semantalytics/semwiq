@@ -52,6 +52,9 @@ public class AdministrationHandler {
 		StringBuffer buffer = new StringBuffer();
         try {
         	String configFilePath = semwiqHandler.getMediatorConfiguration().getConfigFile();
+        	if (configFilePath==null || configFilePath.equalsIgnoreCase("null")){
+        		return "currently no configuration file in use";
+        	}
     		BufferedReader reader = new BufferedReader(new FileReader(configFilePath));
             
             String line = null;

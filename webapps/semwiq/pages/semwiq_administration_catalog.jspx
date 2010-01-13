@@ -39,7 +39,7 @@
 			</ice:panelGrid>
 		</ice:form>
 
-	<ice:form>
+		<ice:form>
 			<ice:panelPopup modal="true" 
 							visible="#{loginPopupHandler.visible}" 
 							styleClass="icePanelPopup"

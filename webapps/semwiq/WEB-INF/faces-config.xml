@@ -249,7 +249,7 @@
         </navigation-case>
         <navigation-case>
             <from-outcome>navigation_admin_logout</from-outcome>
-            <to-view-id>/pages/semwiq_information.jspx</to-view-id>
+            <to-view-id>/pages/semwiq_administration_catalog.jspx</to-view-id>
         </navigation-case>
         <navigation-case>
             <from-outcome>failure</from-outcome>
