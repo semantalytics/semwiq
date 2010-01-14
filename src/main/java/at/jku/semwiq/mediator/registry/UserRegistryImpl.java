@@ -35,7 +35,7 @@ public class UserRegistryImpl implements UserRegistry {
 	
 	public UserRegistryImpl(UserRegistryConfig config, Model store) {
 		Resource guest = ModelFactory.createDefaultModel().createResource(FOAF.Person);
-		guest.addLiteral(FOAF.name, "guest");		
+		guest.addLiteral(FOAF.name, "guest");
 		GUEST = new User(guest);
 
 		Resource su = ModelFactory.createDefaultModel().createResource(FOAF.Person);
