@@ -31,6 +31,7 @@ import at.jku.rdfstats.RDFStatsDataset;
 import at.jku.rdfstats.RDFStatsModel;
 import at.jku.rdfstats.RDFStatsModelException;
 import at.jku.rdfstats.hist.ComparableDomainHistogram;
+import at.jku.rdfstats.html.GenerateHTML;
 import at.jku.semwiq.mediator.Mediator;
 import at.jku.semwiq.mediator.registry.DataSourceRegistry;
 import at.jku.semwiq.mediator.registry.model.DataSource;
@@ -488,4 +489,24 @@ public class InformationHandler {
 		return "success";
 	}
 
+//	private String histogram = "";
+	
+	public String getHistogram() {
+		if (currentDatasource == null)
+			return "";
+		
+		RDFStatsModel model = semwiqHandler.getMediator().getDataSourceRegistry().getRDFStatsModel();
+		try {
+			if (model.getDataset(currentDatasource.getSemwiq_informationEndpoint()) == null)
+				return ""; // not yet existing
+			return GenerateHTML.generateHTML(model, currentDatasource.getSemwiq_informationEndpoint(), true);
+		} catch (RDFStatsModelException e) {
+			log.error("Failed to generate histogram for view.", e);
+			return e.getMessage();
+		}
+	}
+	
+//	public void setHistogram(String foo) {
+//		// TODO?
+//	}
 }

@@ -138,7 +138,7 @@ while (it.hasNext()) {
 			<% } %></td>
 		
 		<td>
-			<a href="<%=root %>/histograms?endpointUri=<%=ds.getSPARQLEndpointURL() %>">View statistics</a><br />
+			<a href="<%=root %>/stats?endpointUri=<%=ds.getSPARQLEndpointURL() %>">View statistics</a><br />
 		 	<a href="<%=root %>/registry?cmd=updateStats&amp;endpointUri=<%=ds.getSPARQLEndpointURL() %>">Update statistics</a><br />
 			<a href="<%=root %>/registry?cmd=unregister&amp;endpointUri=<%=ds.getSPARQLEndpointURL() %>">Unregister</a></td>
 	</tr>

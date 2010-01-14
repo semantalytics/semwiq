@@ -75,6 +75,13 @@
     <servlet-class>at.jku.semwiq.webapp.NamespaceServlet</servlet-class>
   </servlet>
   
+    <!-- histograms -->
+  	<servlet>
+		<servlet-name>HistogramServlet</servlet-name>
+		<servlet-class>at.jku.semwiq.webapp.simple.HistogramServlet</servlet-class>
+	</servlet>
+
+   
 <!-- Servlet mappings -->
 
 <!--	<servlet-mapping>-->
@@ -104,6 +111,13 @@
     <servlet-name>NamespaceServlet</servlet-name>
     <url-pattern>/snorql/namespaces.js</url-pattern>
   </servlet-mapping>
+  
+      <!-- histograms -->
+    <servlet-mapping>
+    	<servlet-name>HistogramServlet</servlet-name>
+    	<url-pattern>/stats</url-pattern>
+    </servlet-mapping>
+    
   
 <!-- Security -->
 

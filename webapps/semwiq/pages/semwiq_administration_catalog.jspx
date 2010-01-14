@@ -118,6 +118,11 @@
 										<ice:commandButton value="update datasource" action="#{informationHandler.updateDatasource}" style="text-align: center"/>
 	  								</f:facet>
 								</ice:panelGrid>
+
+								<div style="width=100%">
+									<ice:outputText escape="false" id="histogram" value="#{informationHandler.histogram}" />
+								</div>
+								
 <!--								<ice:panelGroup style="height: 100%">-->
 <!--									<ice:dataTable frame="box"-->
 <!--				                       	var="webAppRessourceItem"-->
