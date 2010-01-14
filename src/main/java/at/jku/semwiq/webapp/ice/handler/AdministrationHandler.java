@@ -76,19 +76,26 @@ public class AdministrationHandler {
 	
 	public String saveChanges() {
 		String configFilePath = semwiqHandler.getMediatorConfiguration().getConfigFile();
-		try {
-    		BufferedWriter writer = new BufferedWriter(new FileWriter(configFilePath));
-            writer.write(configurationOutput);
-            writer.close();
-//          semwiqHandler.setRestartMessage(true);
-            String extendInfo="In order to use the new configuration for SemWIQ you have to restart it in the maintenance section.";
-            informationPopupHandler.addInformationDetails("SemWIQ Information", "SemWIQ Restart necessary", extendInfo);
-            informationPopupHandler.openPopup();
-            return "success";
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			return "failure";
+		if (configFilePath==null || configFilePath.equalsIgnoreCase("null")){
+			semwiqHandler.setErrorMessage("No configuration file in use. Therefore, no changes were saved!");
+    		return "failure";
+    	}
+		else {
+			try {
+	    		BufferedWriter writer = new BufferedWriter(new FileWriter(configFilePath));
+	            writer.write(configurationOutput);
+	            writer.close();
+//	          semwiqHandler.setRestartMessage(true);
+	            String extendInfo="In order to use the new configuration for SemWIQ you have to restart it in the maintenance section.";
+	            informationPopupHandler.addInformationDetails("SemWIQ Information", "SemWIQ Restart necessary", extendInfo);
+	            informationPopupHandler.openPopup();
+	            return "success";
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				semwiqHandler.setErrorMessage("IOException occuered while saving changes.");
+				return "failure";
+			}
 		}
 	}
 	

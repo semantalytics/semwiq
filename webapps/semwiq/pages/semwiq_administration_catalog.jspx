@@ -24,13 +24,13 @@
 		
 		<ice:form id="semwiq_navigationForm" styleClass="pageNavigation">
 			<ice:panelGrid columns="7" width="100%" columnClasses="#{loginPopupHandler.columnClasses}">
-				<ice:commandButton id="semwiq_navigation_querybrowser" image="images/button_querybuilder.gif" action="navigation_querybrowser"></ice:commandButton>
-				<ice:commandButton id="semwiq_navigation_source" image="images/button_query.gif" action="navigation_source"></ice:commandButton>
-				<!-- <ice:commandButton id="semwiq_navigation_information" image="images/button_information.gif" action="#{informationHandler.navigationInformation}"></ice:commandButton> -->
-				<ice:commandButton id="semwiq_navigation_administration_datasource" image="images/button_datasources_active.gif" action="#{informationHandler.navigationInformation}"></ice:commandButton>
+				<ice:commandButton id="semwiq_navigation_querybrowser" image="images/button_querybuilder.gif" action="#{navigationHandler.navigationQueryBrowser}"></ice:commandButton>
+				<ice:commandButton id="semwiq_navigation_source" image="images/button_query.gif" action="#{navigationHandler.navigationQuery}"></ice:commandButton>
+				<ice:commandButton id="semwiq_navigation_administration_datasource" image="images/button_datasources_active.gif" action="#{navigationHandler.navigationDatasources}"></ice:commandButton>
 				<ice:commandButton id="semwiq_navigation_administration" image="images/button_administration.gif" action="#{loginPopupHandler.openPopup}" rendered="#{loginPopupHandler.normalNavRender}"></ice:commandButton>
-				<ice:commandButton id="semwiq_navigation_admin_maintainance" image="images/button_administration_maintenance.gif" action="navigation_admin_maintainance" rendered="#{loginPopupHandler.adminNavRender}"></ice:commandButton>
-				<ice:commandButton id="semwiq_navigation_admin_configuration" image="images/button_administration_configuration.gif" action="navigation_admin_configuration" rendered="#{loginPopupHandler.adminNavRender}"></ice:commandButton>
+				<!-- <ice:commandButton id="semwiq_navigation_administration" image="images/button_administration_catalog.gif" action="#{loginPopupHandler.openPopup}" rendered="#{loginPopupHandler.adminNavRender}"></ice:commandButton> -->
+				<ice:commandButton id="semwiq_navigation_admin_maintainance" image="images/button_administration_maintenance.gif" action="#{navigationHandler.navigationMaintenance}" rendered="#{loginPopupHandler.adminNavRender}"></ice:commandButton>
+				<ice:commandButton id="semwiq_navigation_admin_configuration" image="images/button_administration_configuration.gif" action="#{navigationHandler.navigationConfiguration}" rendered="#{loginPopupHandler.adminNavRender}"></ice:commandButton>
 				<ice:commandButton id="semwiq_navigation_admin_logout" image="images/button_administration_logout.gif" action="#{loginPopupHandler.logout}" rendered="#{loginPopupHandler.adminNavRender}"></ice:commandButton>
 				<ice:panelGroup style="text-align: right;">
 					<ice:outputText value="logged in as: " />
@@ -99,7 +99,7 @@
 								<ice:panelGrid columns="3" rendered="#{loginPopupHandler.adminRender}">
 									<ice:commandButton value="+" action="#{datasourcePopupHandler.openPopup}" />
 									<ice:commandButton value="-" action="#{removePopupHandler.openPopup}" />
-									<ice:commandButton value="modify" action="#{modifyPopupHandler.openPopup}" />
+<!--									<ice:commandButton value="modify" action="#{modifyPopupHandler.openPopup}" />-->
 								</ice:panelGrid>
 							</ice:panelGrid>
 							<!-- layout of the information part of the data sources: general info (top) and histograms (bottom) -->
@@ -218,37 +218,10 @@
 		                <f:facet name="body">
 							<ice:panelGroup styleClass="icePanelPopupBody">
 			                    <ice:panelGrid width="100%" cellpadding="0" cellspacing="0" columns="2">
-			         				<!--
-			                        <ice:outputText value="datasource state: "/>
-									<ice:inputText styleClass="popupInput" value="#{modifyPopupHandler.semwiq_informationState}"/>
-									<ice:outputText value="datasource URI: "/>
-									<ice:inputText styleClass="popupInput" value="#{datasourcePopupHandler.semwiq_informationURI}"/>
-									<ice:outputText value="datasource URI label: "/>
-									<ice:inputText styleClass="popupInput" value="#{datasourcePopupHandler.semwiq_informationURILabel}"/>
-									-->
-									<ice:outputText value="datasource endpoint URL: "/>
+									<ice:outputText value="datasource endpoint URI: "/>
 									<ice:inputText styleClass="popupInput" value="#{datasourcePopupHandler.semwiq_informationEndpoint}"/>
-									<!-- 
-									<ice:outputText value="datasource endpoint label: "/>
-									<ice:inputText styleClass="popupInput" value="#{datasourcePopupHandler.semwiq_informationEndpointLabel}"/>
-									-->
-									<ice:outputText value="datasource provider type: "/>
-									<h:selectOneMenu value="#{datasourcePopupHandler.semwiq_informationProviderType}">
-											<f:selectItem itemLabel="foaf:Person" itemValue="1" />
-				  							<f:selectItem itemLabel="foaf:Organization" itemValue="2" />
-				  							<f:selectItem itemLabel="foaf:Group" itemValue="3" />
-									</h:selectOneMenu>
-									<ice:outputText value="datasource provider name: "/>
-									<ice:inputText styleClass="popupInput" value="#{datasourcePopupHandler.semwiq_informationProviderName}"/>
-									<ice:outputText value="datasource maintainer: "/>
-									<ice:inputText styleClass="popupInput" value="#{datasourcePopupHandler.semwiq_informationMaintainer}"/>
-									<ice:outputText value="same as: "/>
-									<ice:panelGrid columns="2">
-										<ice:inputText styleClass="popupInput" value="#{datasourcePopupHandler.semwiq_informationMaintainerSameAs}"/>
-										<ice:outputText value="(optional)"/>
-									</ice:panelGrid>
 									<ice:outputText value="monitoring profile: "/>
-									<h:selectOneMenu value="#{datasourcePopupHandler.currentProfile}">
+									<h:selectOneMenu  value="#{datasourcePopupHandler.currentProfile}">
 											<f:selectItems value="#{datasourcePopupHandler.semwiq_informationMonitoringProfiles}"/>
 									</h:selectOneMenu>
 									<!-- 

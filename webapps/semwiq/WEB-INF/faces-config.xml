@@ -179,6 +179,26 @@
      	</managed-property>
  	</managed-bean>
  	
+ 	<!-- Handler for navigation purposes -->
+ 	<managed-bean>
+  		<managed-bean-name>navigationHandler</managed-bean-name>
+  		<managed-bean-class>
+			at.jku.semwiq.webapp.ice.handler.NavigationHandler
+		</managed-bean-class>
+  		<managed-bean-scope>request</managed-bean-scope>
+  		
+  		<managed-property>  
+            <description>SemWIQHandler for control purpose</description>  
+            <property-name>semwiqHandler</property-name>  
+        	<value>#{semwiqHandler}</value>  
+     	</managed-property> 
+     	
+     	<managed-property>  
+            <property-name>informationHandler</property-name>  
+        	<value>#{informationHandler}</value>  
+     	</managed-property>
+ 	</managed-bean>
+ 	
  	<!-- Handler for the Login Popup -->
  	<managed-bean>
         <managed-bean-name>loginPopupHandler</managed-bean-name>
@@ -192,6 +212,7 @@
             <property-name>semwiqHandler</property-name>  
         	<value>#{semwiqHandler}</value>  
      	</managed-property> 
+     	
     </managed-bean> 
     
     <!-- Handler for the Popup displaying extended Information for actions -->

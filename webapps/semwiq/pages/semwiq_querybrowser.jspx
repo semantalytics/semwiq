@@ -24,13 +24,13 @@
 
 		<ice:form id="semwiq_navigationForm" styleClass="pageNavigation">
 			<ice:panelGrid columns="7" width="100%" columnClasses="#{loginPopupHandler.columnClasses}">
-				<ice:commandButton id="semwiq_navigation_querybrowser" image="images/button_querybuilder_active.gif" action="navigation_querybrowser"></ice:commandButton>
-				<ice:commandButton id="semwiq_navigation_source" image="images/button_query.gif" action="navigation_source"></ice:commandButton>
-				<ice:commandButton id="semwiq_navigation_administration_datasource" image="images/button_datasources.gif" action="#{informationHandler.navigationInformation}"></ice:commandButton>
+				<ice:commandButton id="semwiq_navigation_querybrowser" image="images/button_querybuilder_active.gif" action="#{navigationHandler.navigationQueryBrowser}"></ice:commandButton>
+				<ice:commandButton id="semwiq_navigation_source" image="images/button_query.gif" action="#{navigationHandler.navigationQuery}"></ice:commandButton>
+				<ice:commandButton id="semwiq_navigation_administration_datasource" image="images/button_datasources.gif" action="#{navigationHandler.navigationDatasources}"></ice:commandButton>
 				<ice:commandButton id="semwiq_navigation_administration" image="images/button_administration.gif" action="#{loginPopupHandler.openPopup}" rendered="#{loginPopupHandler.normalNavRender}"></ice:commandButton>
 				<!-- <ice:commandButton id="semwiq_navigation_administration" image="images/button_administration_catalog.gif" action="#{loginPopupHandler.openPopup}" rendered="#{loginPopupHandler.adminNavRender}"></ice:commandButton> -->
-				<ice:commandButton id="semwiq_navigation_admin_maintainance" image="images/button_administration_maintenance.gif" action="navigation_admin_maintainance" rendered="#{loginPopupHandler.adminNavRender}"></ice:commandButton>
-				<ice:commandButton id="semwiq_navigation_admin_configuration" image="images/button_administration_configuration.gif" action="navigation_admin_configuration" rendered="#{loginPopupHandler.adminNavRender}"></ice:commandButton>
+				<ice:commandButton id="semwiq_navigation_admin_maintainance" image="images/button_administration_maintenance.gif" action="#{navigationHandler.navigationMaintenance}" rendered="#{loginPopupHandler.adminNavRender}"></ice:commandButton>
+				<ice:commandButton id="semwiq_navigation_admin_configuration" image="images/button_administration_configuration.gif" action="#{navigationHandler.navigationConfiguration}" rendered="#{loginPopupHandler.adminNavRender}"></ice:commandButton>
 				<ice:commandButton id="semwiq_navigation_admin_logout" image="images/button_administration_logout.gif" action="#{loginPopupHandler.logout}" rendered="#{loginPopupHandler.adminNavRender}"></ice:commandButton>
 				<ice:panelGroup style="text-align: right;">
 					<ice:outputText value="logged in as: " />

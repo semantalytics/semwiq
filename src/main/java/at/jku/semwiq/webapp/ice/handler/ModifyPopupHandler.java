@@ -292,9 +292,11 @@ public class ModifyPopupHandler {
 		List<SelectItem> monitoringProfiles = new ArrayList<SelectItem>();
 		try {
 			tmp = semwiqHandler.getMediator().getDataSourceRegistry().getAvailableMonitoringProfiles();
-			for (Iterator iter = tmp.iterator(); iter.hasNext();) {
-				MonitoringProfile temp = (MonitoringProfile) iter.next();
-				monitoringProfiles.add(new SelectItem(temp.getUri(), (String) temp.getLocalName()));
+			if(tmp!=null) {
+				for (Iterator iter = tmp.iterator(); iter.hasNext();) {
+					MonitoringProfile temp = (MonitoringProfile) iter.next();
+					monitoringProfiles.add(new SelectItem(temp.getUri(), (String) temp.getLocalName()));
+				}
 			}
 		} catch (RegistryException e) {
 			// TODO Auto-generated catch block

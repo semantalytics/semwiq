@@ -260,6 +260,7 @@ public class InformationHandler {
 	}
 	
 	public void loadDatasourceList() {
+//		System.out.println("loading datasource list ...");
 		datasourceList = new ArrayList();
 		Mediator mediator = semwiqHandler.getMediator();
 		if (mediator==null || !mediator.isReady()) {

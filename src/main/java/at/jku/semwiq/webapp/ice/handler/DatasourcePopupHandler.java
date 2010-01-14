@@ -40,6 +40,7 @@ import com.hp.hpl.jena.sparql.vocabulary.FOAF;
 public class DatasourcePopupHandler {
 	
 	private static final Logger log = LoggerFactory.getLogger(ModifyPopupHandler.class);
+	
 	private boolean visible;
 	private String datasourceURI;
 	private String currentProfile;
@@ -70,6 +71,7 @@ public class DatasourcePopupHandler {
 
 	// constructer
 	public DatasourcePopupHandler() {
+		this.currentProfile = MonitoringProfile.getDefaultVoidProfile().getUri();
 		visible = false;
 	}
 	
