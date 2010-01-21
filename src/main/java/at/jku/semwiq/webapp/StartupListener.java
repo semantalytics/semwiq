@@ -23,6 +23,7 @@ import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
+import org.joseki.Joseki;
 import org.joseki.RDFServer;
 import org.joseki.Registry;
 import org.joseki.Service;
@@ -68,6 +69,10 @@ public class StartupListener implements ServletContextListener {
 			Service service = new Service(new SPARQL(), Webapp.SPARQL_SERVICE_NAME, new SemWIQDatasetDesc(new SemWIQDataset(mediator)));
 			registry.add(Webapp.SPARQL_SERVICE_NAME, service);
 			Registry.add(RDFServer.ServiceRegistryName, registry);
+			
+			// init joseki HTTP User/Password for application-level Auth
+			Joseki.httpUser = System.getProperty("httpUser");
+			Joseki.httpPassword = System.getProperty("httpPassword");
 		} catch (Exception e) {
 			log.error("Error initializing SemWIQ Web Application.", e);
 		}
