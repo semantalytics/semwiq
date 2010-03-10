@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="SemWIQ" default="jar" basedir=".">
+    <description>
+    	SemWIQ Webapp build file
+    </description>
+
+<!-- properties for source and target directories -->
+	
+	<property name="java.sourcedir" value="src/main/java" />
+	<property name="java.sourcedir.test" value="src/test/java" />
+	<property name="rules.sourcedir" value="src/main/rules" />
+	<property name="java.builddir" value="build" />
+	<property name="lib.dir" value="lib" />
+	<property name="target.dir" value="." />
+	
+<!-- properties for the vocabulary generation (with Jena schemagen) -->
+	
+	<property name="semwiq.vendor" value="Institute of Applied Knowledge Processing, Johannes Kepler University Linz" />
+	<loadfile property="semwiq.version" srcFile="${java.sourcedir}/VERSION"/>
+
+<!-- ############### build targets ############### -->
+
+	<target name="compose-classpath">
+	    <path id="cp">
+	    	<fileset dir="${lib.dir}">
+	    	    <include name="**/*.jar"/>
+	    	</fileset>
+	    	<pathelement path="${java.builddir}"/>	<!-- add build target to classpath (required to build optimizer rules) -->
+		</path>
+		<pathconvert property="classpath" refid="cp" pathsep=" " dirsep="/" /> <!-- required for manifest Class-Path -->
+
+		<!--	<echo message="Using classpath: ${classpath}" />-->
+	</target>
+	
+<!-- Section: building -->
+
+	<target name="build" depends="compose-classpath">
+		<mkdir dir="${java.builddir}"/>
+		<javac srcdir="${java.sourcedir}"
+			destdir="${java.builddir}"
+			classpathref="cp"
+			verbose="on"
+			deprecation="on"
+			debug="on" />
+		<copy todir="${java.builddir}">
+			<fileset dir="${java.sourcedir}"
+				excludes="**/*.java" /><!-- other files: logback.xml, VERSION, etc. -->
+		</copy>
+
+		<!-- tests -->
+		<!--<javac srcdir="${java.sourcedir.test}"
+			destdir="${java.builddir}"
+			classpathref="cp"
+			verbose="on"
+			deprecation="on"
+			debug="on" />-->
+	</target>
+	
+	<target name="jar" depends="build">
+		<jar destfile="${target.dir}/semwiq-webapp.jar" index="true">
+			<fileset dir="${java.builddir}" />
+
+			<manifest>
+				<attribute name="Built-By" value="${user.name}"/>
+			    <attribute name="Specification-Title" value="${ant.project.name}"/>
+			    <attribute name="Specification-Version" value="${semwiq.version}"/>
+			    <attribute name="Specification-Vendor" value="${semwiq.vendor}"/>
+			    <attribute name="Implementation-Title" value="${ant.project.name}"/>
+			    <attribute name="Implementation-Version" value="${semwiq.version}"/> 
+			    <attribute name="Implementation-Vendor" value="${semwiq.vendor}"/>
+		    	<attribute name="Class-Path" value="${classpath}"/>
+				<attribute name="Main-Class" value="semwiq.webapp"/>
+			</manifest>
+		</jar>
+		<echo>SemWIQ Webapp Version ${semwiq.version}</echo>
+	</target>
+	
+	<target name="clean">
+		<delete dir="${java.builddir}" />
+		<mkdir dir="${java.builddir}" />
+	</target>
+</project>
