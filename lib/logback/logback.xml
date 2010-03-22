@@ -39,8 +39,9 @@
   </logger>
   
   <logger name="at.jku.semwiq">
-    <level value="INFO"/>
+    <level value="DEBUG"/>
   </logger>
+  
 <!--
   <logger name="at.jku.semwiq.mediator">
     <level value="INFO"/>
