@@ -14,7 +14,6 @@
 	<classpathentry kind="lib" path="lib/jena.jar"/>
 	<classpathentry kind="lib" path="lib/jetty-6.1.14.jar"/>
 	<classpathentry kind="lib" path="lib/jetty-util-6.1.14.jar"/>
-	<classpathentry kind="lib" path="lib/joseki.jar" sourcepath="/Joseki3"/>
 	<classpathentry kind="lib" path="lib/json.jar"/>
 	<classpathentry kind="lib" path="lib/jsp-2.1.jar"/>
 	<classpathentry kind="lib" path="lib/jsp-api-2.1.jar"/>
@@ -48,8 +47,9 @@
 	<classpathentry kind="lib" path="lib/icefaces/jstl-1.2.jar"/>
 	<classpathentry kind="lib" path="lib/icefaces/krysalis-jCharts-1.0.0-alpha-1.jar"/>
 	<classpathentry kind="lib" path="lib/logback"/>
-	<classpathentry kind="lib" path="lib/arq.jar" sourcepath="/ARQ-2.7.0"/>
 	<classpathentry kind="lib" path="lib/logback-dispatcher.jar"/>
 	<classpathentry kind="lib" path="lib/semwiq-mediator.jar" sourcepath="/semwiq-mediator"/>
+	<classpathentry kind="lib" path="lib/arq.jar"/>
+	<classpathentry kind="lib" path="lib/joseki.jar" sourcepath="/Joseki3"/>
 	<classpathentry kind="output" path="build"/>
 </classpath>

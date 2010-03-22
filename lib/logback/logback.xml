@@ -41,8 +41,14 @@
   <logger name="at.jku.semwiq">
     <level value="INFO"/>
   </logger>
+  <logger name="com.hp.hpl.jena.tdb">
+    <level value="WARN"/>
+  </logger>
 
 <!--
+  <logger name="com.hp.hpl.jena">
+    <level value="DEBUG"/>
+  </logger>
   <logger name="at.jku.semwiq.mediator">
     <level value="DEBUG"/>
   </logger>
