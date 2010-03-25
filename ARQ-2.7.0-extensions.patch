@@ -177,6 +177,18 @@ Index: Grammar/arq.jj
  
  }
  
+Index: src/com/hp/hpl/jena/sparql/resultset/JSONOutputResultSet.java
+===================================================================
+--- src/com/hp/hpl/jena/sparql/resultset/JSONOutputResultSet.java	(revision 6629)
++++ src/com/hp/hpl/jena/sparql/resultset/JSONOutputResultSet.java	(working copy)
+@@ -150,6 +150,7 @@
+ //        if ( value == null )
+ //            printUnbound() ;
+ //        else
++        out.print(quote(dfSource) + ": " + quote(value.asNode().getSource()) + ", ");
+       	if ( value.isLiteral() )
+             printLiteral((Literal)value) ;
+         else if ( value.isResource() )
 Index: src/com/hp/hpl/jena/sparql/algebra/op/OpLeftJoin.java
 ===================================================================
 --- src/com/hp/hpl/jena/sparql/algebra/op/OpLeftJoin.java	(revision 6629)
@@ -208,6 +220,18 @@ Index: src/com/hp/hpl/jena/sparql/algebra/op/OpLeftJoin.java
  }
  
  /*
+Index: .project
+===================================================================
+--- .project	(revision 6629)
++++ .project	(working copy)
+@@ -1,6 +1,6 @@
+ <?xml version="1.0" encoding="UTF-8"?>
+ <projectDescription>
+-	<name>ARQ2</name>
++	<name>ARQ-2.7.0</name>
+ 	<comment></comment>
+ 	<projects>
+ 	</projects>
 Index: src/com/hp/hpl/jena/sparql/algebra/op/Op1.java
 ===================================================================
 --- src/com/hp/hpl/jena/sparql/algebra/op/Op1.java	(revision 6629)
@@ -235,6 +259,748 @@ Index: src/com/hp/hpl/jena/sparql/expr/ExprWalker.java
      
      static class Walker implements ExprVisitor
      {
+Index: Grammar/arq.html
+===================================================================
+--- Grammar/arq.html	(revision 0)
++++ Grammar/arq.html	(revision 0)
+@@ -0,0 +1,737 @@
++<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
++<HTML>
++<HEAD>
++<TITLE>BNF for arq.jj</TITLE>
++</HEAD>
++<BODY>
++<H1 ALIGN=CENTER>BNF for arq.jj</H1>
++<H2 ALIGN=CENTER>NON-TERMINALS</H2>
++<TABLE>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod1">QueryUnit</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod2">Query</A> &lt;EOF&gt;</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod2">Query</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod3">Prologue</A> ( &lt;EXPLAIN&gt; )? ( <A HREF="#prod4">SelectQuery</A> | <A HREF="#prod5">ConstructQuery</A> | <A HREF="#prod6">DescribeQuery</A> | <A HREF="#prod7">AskQuery</A> )</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod3">Prologue</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>( <A HREF="#prod8">BaseDecl</A> )? ( <A HREF="#prod9">PrefixDecl</A> )*</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod8">BaseDecl</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>&lt;BASE&gt; <A HREF="#prod10">IRI_REF</A></TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod9">PrefixDecl</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>&lt;PREFIX&gt; &lt;PNAME_NS&gt; <A HREF="#prod10">IRI_REF</A></TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod4">SelectQuery</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>&lt;SELECT&gt; ( &lt;DISTINCT&gt; | &lt;REDUCED&gt; )? ( ( ( <A HREF="#prod11">Var</A> ) | <A HREF="#prod12">AggExpression</A> | <A HREF="#prod13">BuiltInCall</A> | <A HREF="#prod14">FunctionCall</A> | ( &lt;LPAREN&gt; <A HREF="#prod15">Expression</A> ( &lt;AS&gt; <A HREF="#prod11">Var</A> )? &lt;RPAREN&gt; ) )+ | &lt;STAR&gt; ) ( <A HREF="#prod16">DatasetClause</A> )* <A HREF="#prod17">WhereClause</A> ( &lt;BINDINGS&gt; <A HREF="#prod18">Bindings</A> )? <A HREF="#prod19">SolutionModifier</A></TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod18">Bindings</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>( <A HREF="#prod11">Var</A> )* &lt;LBRACE&gt; ( ( <A HREF="#prod20">NullVarOrNode</A> )* &lt;DOT&gt; )* &lt;RBRACE&gt;</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod20">NullVarOrNode</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>( &lt;NULL&gt; | <A HREF="#prod21">VarOrTerm</A> )</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod5">ConstructQuery</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>&lt;CONSTRUCT&gt; <A HREF="#prod22">ConstructTemplate</A> ( <A HREF="#prod16">DatasetClause</A> )* <A HREF="#prod17">WhereClause</A> <A HREF="#prod19">SolutionModifier</A></TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod6">DescribeQuery</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>&lt;DESCRIBE&gt; ( ( &lt;SERVICE&gt; | &lt;SELF&gt; ) | &lt;DATASET&gt; | ( ( <A HREF="#prod23">VarOrIRIref</A> )+ | &lt;STAR&gt; ) ( <A HREF="#prod16">DatasetClause</A> )* ( <A HREF="#prod17">WhereClause</A> )? <A HREF="#prod19">SolutionModifier</A> )</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod7">AskQuery</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>&lt;ASK&gt; ( <A HREF="#prod16">DatasetClause</A> )* <A HREF="#prod17">WhereClause</A></TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod16">DatasetClause</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>&lt;FROM&gt; ( <A HREF="#prod24">DefaultGraphClause</A> | <A HREF="#prod25">NamedGraphClause</A> )</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod24">DefaultGraphClause</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod26">SourceSelector</A></TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod25">NamedGraphClause</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>&lt;NAMED&gt; <A HREF="#prod26">SourceSelector</A></TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod26">SourceSelector</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod27">IRIref</A></TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod17">WhereClause</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>( &lt;WHERE&gt; )? <A HREF="#prod28">GroupGraphPattern</A></TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod19">SolutionModifier</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>( <A HREF="#prod29">GroupClause</A> )? ( <A HREF="#prod30">HavingClause</A> )? ( <A HREF="#prod31">OrderClause</A> )? ( <A HREF="#prod32">LimitOffsetClauses</A> )?</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod29">GroupClause</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>&lt;GROUP&gt; &lt;BY&gt; ( <A HREF="#prod33">GroupCondition</A> )+</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod33">GroupCondition</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>( <A HREF="#prod13">BuiltInCall</A> | <A HREF="#prod14">FunctionCall</A> | &lt;LPAREN&gt; <A HREF="#prod15">Expression</A> ( &lt;AS&gt; <A HREF="#prod11">Var</A> )? &lt;RPAREN&gt; | <A HREF="#prod11">Var</A> )</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod30">HavingClause</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>&lt;HAVING&gt; ( <A HREF="#prod34">HavingCondition</A> )+</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod34">HavingCondition</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod35">Constraint</A></TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod31">OrderClause</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>&lt;ORDER&gt; &lt;BY&gt; ( <A HREF="#prod36">OrderCondition</A> )+</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod36">OrderCondition</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>( ( ( &lt;ASC&gt; | &lt;DESC&gt; ) <A HREF="#prod37">BrackettedExpression</A> ) | ( <A HREF="#prod35">Constraint</A> | <A HREF="#prod11">Var</A> ) )</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod32">LimitOffsetClauses</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>( <A HREF="#prod38">LimitClause</A> ( <A HREF="#prod39">OffsetClause</A> )? | <A HREF="#prod39">OffsetClause</A> ( <A HREF="#prod38">LimitClause</A> )? )</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod38">LimitClause</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>&lt;LIMIT&gt; &lt;INTEGER&gt;</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod39">OffsetClause</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>&lt;OFFSET&gt; &lt;INTEGER&gt;</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod40">UpdateUnit</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod3">Prologue</A> ( ( <A HREF="#prod41">Update</A> | <A HREF="#prod42">Manage</A> ) )* &lt;EOF&gt;</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod41">Update</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>( <A HREF="#prod43">Modify</A> | <A HREF="#prod44">Insert</A> | <A HREF="#prod45">Delete</A> | <A HREF="#prod46">Load</A> | <A HREF="#prod47">Clear</A> )</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod43">Modify</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>&lt;MODIFY&gt; ( <A HREF="#prod48">GraphIRI</A> )* &lt;DELETE&gt; <A HREF="#prod22">ConstructTemplate</A> &lt;INSERT&gt; <A HREF="#prod22">ConstructTemplate</A> ( <A HREF="#prod49">UpdatePattern</A> )?</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod45">Delete</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>&lt;DELETE&gt; ( <A HREF="#prod50">DeleteData</A> | <A HREF="#prod51">DeleteTemplate</A> )</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod50">DeleteData</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>&lt;DATA&gt; ( ( &lt;FROM&gt; )? <A HREF="#prod27">IRIref</A> )* <A HREF="#prod22">ConstructTemplate</A></TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod51">DeleteTemplate</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>( ( &lt;FROM&gt; )? <A HREF="#prod27">IRIref</A> )* <A HREF="#prod22">ConstructTemplate</A> ( <A HREF="#prod49">UpdatePattern</A> )?</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod44">Insert</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>&lt;INSERT&gt; ( <A HREF="#prod52">InsertData</A> | <A HREF="#prod53">InsertTemplate</A> )</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod52">InsertData</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>&lt;DATA&gt; ( ( &lt;INTO&gt; )? <A HREF="#prod27">IRIref</A> )* <A HREF="#prod22">ConstructTemplate</A></TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod53">InsertTemplate</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>( ( &lt;INTO&gt; )? <A HREF="#prod27">IRIref</A> )* <A HREF="#prod22">ConstructTemplate</A> ( <A HREF="#prod49">UpdatePattern</A> )?</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod48">GraphIRI</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>&lt;GRAPH&gt; <A HREF="#prod27">IRIref</A></TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod46">Load</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>&lt;LOAD&gt; ( <A HREF="#prod27">IRIref</A> )+ ( &lt;INTO&gt; <A HREF="#prod27">IRIref</A> )?</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod47">Clear</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>&lt;CLEAR&gt; ( <A HREF="#prod48">GraphIRI</A> )?</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod42">Manage</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>( <A HREF="#prod54">Create</A> | <A HREF="#prod55">Drop</A> )</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod54">Create</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>&lt;CREATE&gt; ( &lt;SILENT&gt; )? <A HREF="#prod48">GraphIRI</A></TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod55">Drop</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>&lt;DROP&gt; ( &lt;SILENT&gt; )? <A HREF="#prod48">GraphIRI</A></TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod49">UpdatePattern</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>( &lt;WHERE&gt; )? <A HREF="#prod28">GroupGraphPattern</A></TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod28">GroupGraphPattern</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>&lt;LBRACE&gt; ( <A HREF="#prod3">Prologue</A> <A HREF="#prod4">SelectQuery</A> | <A HREF="#prod56">GroupGraphPatternSub</A> ) &lt;RBRACE&gt;</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod56">GroupGraphPatternSub</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>( <A HREF="#prod57">TriplesBlock</A> )? ( ( <A HREF="#prod58">GraphPatternNotTriples</A> | <A HREF="#prod59">Filter</A> ) ( &lt;DOT&gt; )? ( <A HREF="#prod57">TriplesBlock</A> )? )*</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod57">TriplesBlock</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod60">TriplesSameSubjectPath</A> ( &lt;DOT&gt; ( <A HREF="#prod57">TriplesBlock</A> )? )?</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod58">GraphPatternNotTriples</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>( <A HREF="#prod61">OptionalGraphPattern</A> | <A HREF="#prod62">GroupOrUnionGraphPattern</A> | <A HREF="#prod63">GraphGraphPattern</A> | <A HREF="#prod64">ServiceGraphPattern</A> | <A HREF="#prod65">Assignment</A> | <A HREF="#prod66">FetchGraph</A> )</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod61">OptionalGraphPattern</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>&lt;OPTIONAL&gt; <A HREF="#prod28">GroupGraphPattern</A></TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod63">GraphGraphPattern</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>&lt;GRAPH&gt; <A HREF="#prod23">VarOrIRIref</A> <A HREF="#prod28">GroupGraphPattern</A></TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod64">ServiceGraphPattern</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>&lt;SERVICE&gt; <A HREF="#prod23">VarOrIRIref</A> <A HREF="#prod28">GroupGraphPattern</A></TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod65">Assignment</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>&lt;LET&gt; &lt;LPAREN&gt; <A HREF="#prod11">Var</A> &lt;ASSIGN&gt; <A HREF="#prod15">Expression</A> &lt;RPAREN&gt;</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod66">FetchGraph</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>&lt;FETCH&gt; <A HREF="#prod23">VarOrIRIref</A></TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod62">GroupOrUnionGraphPattern</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod28">GroupGraphPattern</A> ( &lt;UNION&gt; <A HREF="#prod28">GroupGraphPattern</A> )*</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod59">Filter</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>&lt;FILTER&gt; <A HREF="#prod35">Constraint</A></TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod35">Constraint</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>( <A HREF="#prod37">BrackettedExpression</A> | <A HREF="#prod13">BuiltInCall</A> | <A HREF="#prod14">FunctionCall</A> )</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod14">FunctionCall</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod27">IRIref</A> <A HREF="#prod67">ArgList</A></TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod67">ArgList</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>( &lt;NIL&gt; | &lt;LPAREN&gt; <A HREF="#prod15">Expression</A> ( &lt;COMMA&gt; <A HREF="#prod15">Expression</A> )* &lt;RPAREN&gt; )</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod22">ConstructTemplate</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>&lt;LBRACE&gt; ( <A HREF="#prod68">ConstructTriples</A> )? &lt;RBRACE&gt;</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod68">ConstructTriples</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod69">TriplesSameSubject</A> ( ( &lt;DOT&gt; ) <A HREF="#prod69">TriplesSameSubject</A> )* ( &lt;DOT&gt; )?</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod69">TriplesSameSubject</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod21">VarOrTerm</A> <A HREF="#prod70">PropertyListNotEmpty</A></TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>|</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod71">TriplesNode</A> <A HREF="#prod72">PropertyList</A></TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod70">PropertyListNotEmpty</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod73">Verb</A> <A HREF="#prod74">ObjectList</A> ( &lt;SEMICOLON&gt; ( <A HREF="#prod73">Verb</A> <A HREF="#prod74">ObjectList</A> )? )*</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod72">PropertyList</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>( <A HREF="#prod70">PropertyListNotEmpty</A> )?</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod74">ObjectList</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod75">Object</A> ( &lt;COMMA&gt; <A HREF="#prod75">Object</A> )*</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod75">Object</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod76">GraphNode</A></TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod73">Verb</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>( <A HREF="#prod23">VarOrIRIref</A> | &lt;KW_A&gt; )</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod60">TriplesSameSubjectPath</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod21">VarOrTerm</A> <A HREF="#prod77">PropertyListNotEmptyPath</A></TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>|</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod71">TriplesNode</A> <A HREF="#prod78">PropertyListPath</A></TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod77">PropertyListNotEmptyPath</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>( <A HREF="#prod79">VerbPath</A> | <A HREF="#prod80">VerbSimple</A> ) <A HREF="#prod74">ObjectList</A> ( &lt;SEMICOLON&gt; ( ( <A HREF="#prod79">VerbPath</A> | <A HREF="#prod80">VerbSimple</A> ) <A HREF="#prod74">ObjectList</A> )? )*</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod78">PropertyListPath</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>( <A HREF="#prod70">PropertyListNotEmpty</A> )?</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod79">VerbPath</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod81">Path</A></TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod80">VerbSimple</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod11">Var</A></TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod82">PathUnit</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod81">Path</A> &lt;EOF&gt;</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod81">Path</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod83">PathAlternative</A></TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod83">PathAlternative</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod84">PathSequence</A> ( &lt;VBAR&gt; <A HREF="#prod83">PathAlternative</A> )?</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod84">PathSequence</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod85">PathElt</A> ( &lt;SLASH&gt; <A HREF="#prod84">PathSequence</A> | &lt;CARROT&gt; <A HREF="#prod84">PathSequence</A> )?</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod85">PathElt</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>( <A HREF="#prod86">PathPrimary</A> | &lt;CARROT&gt; <A HREF="#prod86">PathPrimary</A> ) ( <A HREF="#prod87">PathMod</A> )?</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod87">PathMod</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>( &lt;STAR&gt; | &lt;QMARK&gt; | &lt;PLUS&gt; | &lt;LBRACE&gt; ( <A HREF="#prod88">Integer</A> ( &lt;COMMA&gt; ( &lt;RBRACE&gt; | <A HREF="#prod88">Integer</A> &lt;RBRACE&gt; ) | &lt;RBRACE&gt; ) ) )</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod86">PathPrimary</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>( <A HREF="#prod27">IRIref</A> | &lt;KW_A&gt; | &lt;LPAREN&gt; <A HREF="#prod81">Path</A> &lt;RPAREN&gt; )</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod88">Integer</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>&lt;INTEGER&gt;</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod71">TriplesNode</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod89">Collection</A></TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>|</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod90">BlankNodePropertyList</A></TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod90">BlankNodePropertyList</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>&lt;LBRACKET&gt; <A HREF="#prod70">PropertyListNotEmpty</A> &lt;RBRACKET&gt;</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod89">Collection</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>&lt;LPAREN&gt; ( <A HREF="#prod76">GraphNode</A> )+ &lt;RPAREN&gt;</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod76">GraphNode</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod21">VarOrTerm</A></TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>|</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod71">TriplesNode</A></TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod21">VarOrTerm</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>( <A HREF="#prod11">Var</A> | <A HREF="#prod91">GraphTerm</A> )</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod23">VarOrIRIref</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>( <A HREF="#prod11">Var</A> | <A HREF="#prod27">IRIref</A> )</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod11">Var</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>( &lt;VAR1&gt; | &lt;VAR2&gt; )</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod91">GraphTerm</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod27">IRIref</A></TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>|</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod92">RDFLiteral</A></TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>|</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod93">NumericLiteral</A></TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>|</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod94">BooleanLiteral</A></TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>|</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod95">BlankNode</A></TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>|</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>&lt;NIL&gt;</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod15">Expression</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod96">ConditionalOrExpression</A></TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod96">ConditionalOrExpression</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod97">ConditionalAndExpression</A> ( &lt;SC_OR&gt; <A HREF="#prod97">ConditionalAndExpression</A> )*</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod97">ConditionalAndExpression</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod98">ValueLogical</A> ( &lt;SC_AND&gt; <A HREF="#prod98">ValueLogical</A> )*</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod98">ValueLogical</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod99">RelationalExpression</A></TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod99">RelationalExpression</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod100">NumericExpression</A> ( &lt;EQ&gt; <A HREF="#prod100">NumericExpression</A> | &lt;NE&gt; <A HREF="#prod100">NumericExpression</A> | &lt;LT&gt; <A HREF="#prod100">NumericExpression</A> | &lt;GT&gt; <A HREF="#prod100">NumericExpression</A> | &lt;LE&gt; <A HREF="#prod100">NumericExpression</A> | &lt;GE&gt; <A HREF="#prod100">NumericExpression</A> )?</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod100">NumericExpression</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod101">AdditiveExpression</A></TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod101">AdditiveExpression</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod102">MultiplicativeExpression</A> ( &lt;PLUS&gt; <A HREF="#prod102">MultiplicativeExpression</A> | &lt;MINUS&gt; <A HREF="#prod102">MultiplicativeExpression</A> | ( <A HREF="#prod103">NumericLiteralPositive</A> | <A HREF="#prod104">NumericLiteralNegative</A> ) ( ( &lt;STAR&gt; <A HREF="#prod105">UnaryExpression</A> ) | ( &lt;SLASH&gt; <A HREF="#prod105">UnaryExpression</A> ) )? )*</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod102">MultiplicativeExpression</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod105">UnaryExpression</A> ( &lt;STAR&gt; <A HREF="#prod105">UnaryExpression</A> | &lt;SLASH&gt; <A HREF="#prod105">UnaryExpression</A> )*</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod105">UnaryExpression</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>&lt;BANG&gt; <A HREF="#prod106">PrimaryExpression</A></TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>|</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>&lt;PLUS&gt; <A HREF="#prod106">PrimaryExpression</A></TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>|</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>&lt;MINUS&gt; <A HREF="#prod106">PrimaryExpression</A></TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>|</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod106">PrimaryExpression</A></TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod106">PrimaryExpression</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>( <A HREF="#prod37">BrackettedExpression</A> | <A HREF="#prod13">BuiltInCall</A> | <A HREF="#prod107">IRIrefOrFunction</A> | <A HREF="#prod92">RDFLiteral</A> | <A HREF="#prod93">NumericLiteral</A> | <A HREF="#prod94">BooleanLiteral</A> | <A HREF="#prod11">Var</A> | <A HREF="#prod12">AggExpression</A> )</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod37">BrackettedExpression</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>&lt;LPAREN&gt; <A HREF="#prod15">Expression</A> &lt;RPAREN&gt;</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod13">BuiltInCall</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>&lt;STR&gt; &lt;LPAREN&gt; <A HREF="#prod15">Expression</A> &lt;RPAREN&gt;</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>|</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>&lt;LANG&gt; &lt;LPAREN&gt; <A HREF="#prod15">Expression</A> &lt;RPAREN&gt;</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>|</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>&lt;LANGMATCHES&gt; &lt;LPAREN&gt; <A HREF="#prod15">Expression</A> &lt;COMMA&gt; <A HREF="#prod15">Expression</A> &lt;RPAREN&gt;</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>|</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>&lt;DTYPE&gt; &lt;LPAREN&gt; <A HREF="#prod15">Expression</A> &lt;RPAREN&gt;</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>|</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>&lt;BOUND&gt; &lt;LPAREN&gt; <A HREF="#prod11">Var</A> &lt;RPAREN&gt;</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>|</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>&lt;SAME_TERM&gt; &lt;LPAREN&gt; <A HREF="#prod15">Expression</A> &lt;COMMA&gt; <A HREF="#prod15">Expression</A> &lt;RPAREN&gt;</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>|</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>&lt;IS_IRI&gt; &lt;LPAREN&gt; <A HREF="#prod15">Expression</A> &lt;RPAREN&gt;</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>|</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>&lt;IS_URI&gt; &lt;LPAREN&gt; <A HREF="#prod15">Expression</A> &lt;RPAREN&gt;</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>|</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>&lt;IS_BLANK&gt; &lt;LPAREN&gt; <A HREF="#prod15">Expression</A> &lt;RPAREN&gt;</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>|</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>&lt;IS_LITERAL&gt; &lt;LPAREN&gt; <A HREF="#prod15">Expression</A> &lt;RPAREN&gt;</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>|</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod108">RegexExpression</A></TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod108">RegexExpression</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>&lt;REGEX&gt; &lt;LPAREN&gt; <A HREF="#prod15">Expression</A> &lt;COMMA&gt; <A HREF="#prod15">Expression</A> ( &lt;COMMA&gt; <A HREF="#prod15">Expression</A> )? &lt;RPAREN&gt;</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod12">AggExpression</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod109">Aggregate</A></TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod109">Aggregate</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>( <A HREF="#prod110">AggregateCount</A> | <A HREF="#prod111">AggregateSum</A> )</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod110">AggregateCount</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>&lt;COUNT&gt; &lt;LPAREN&gt; ( &lt;STAR&gt; | <A HREF="#prod11">Var</A> | &lt;DISTINCT&gt; ( &lt;STAR&gt; | <A HREF="#prod11">Var</A> ) ) &lt;RPAREN&gt;</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod111">AggregateSum</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>&lt;SUM&gt; &lt;LPAREN&gt; <A HREF="#prod15">Expression</A> &lt;RPAREN&gt;</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod107">IRIrefOrFunction</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod27">IRIref</A> ( <A HREF="#prod67">ArgList</A> )?</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod92">RDFLiteral</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod112">String</A> ( ( &lt;LANGTAG&gt; ) | ( &lt;DATATYPE&gt; <A HREF="#prod27">IRIref</A> ) )?</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod93">NumericLiteral</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>( <A HREF="#prod113">NumericLiteralUnsigned</A> | <A HREF="#prod103">NumericLiteralPositive</A> | <A HREF="#prod104">NumericLiteralNegative</A> )</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod113">NumericLiteralUnsigned</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>&lt;INTEGER&gt;</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>|</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>&lt;DECIMAL&gt;</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>|</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>&lt;DOUBLE&gt;</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod103">NumericLiteralPositive</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>&lt;INTEGER_POSITIVE&gt;</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>|</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>&lt;DECIMAL_POSITIVE&gt;</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>|</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>&lt;DOUBLE_POSITIVE&gt;</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod104">NumericLiteralNegative</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>&lt;INTEGER_NEGATIVE&gt;</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>|</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>&lt;DECIMAL_NEGATIVE&gt;</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>|</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>&lt;DOUBLE_NEGATIVE&gt;</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod94">BooleanLiteral</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>&lt;TRUE&gt;</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>|</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>&lt;FALSE&gt;</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod112">String</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>( &lt;STRING_LITERAL1&gt; | &lt;STRING_LITERAL2&gt; | &lt;STRING_LITERAL_LONG1&gt; | &lt;STRING_LITERAL_LONG2&gt; )</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod27">IRIref</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod10">IRI_REF</A></TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>|</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE><A HREF="#prod114">PrefixedName</A></TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod114">PrefixedName</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>( &lt;PNAME_LN&gt; | &lt;PNAME_NS&gt; )</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod95">BlankNode</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>&lt;BLANK_NODE_LABEL&gt;</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>|</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>&lt;ANON&gt;</TD>
++</TR>
++<TR>
++<TD ALIGN=RIGHT VALIGN=BASELINE><A NAME="prod10">IRI_REF</A></TD>
++<TD ALIGN=CENTER VALIGN=BASELINE>::=</TD>
++<TD ALIGN=LEFT VALIGN=BASELINE>&lt;IRIref&gt;</TD>
++</TR>
++</TABLE>
++</BODY>
++</HTML>
 Index: src/com/hp/hpl/jena/sparql/algebra/op/OpN.java
 ===================================================================
 --- src/com/hp/hpl/jena/sparql/algebra/op/OpN.java	(revision 6629)
@@ -710,6 +1476,21 @@ Index: src/com/hp/hpl/jena/sparql/algebra/opt/Optimize.java
          op = apply("Path flattening", new TransformPathFlattern(), op) ;
          // Mark
          if ( false )
+Index: src/com/hp/hpl/jena/sparql/engine/http/HttpParams.java
+===================================================================
+--- src/com/hp/hpl/jena/sparql/engine/http/HttpParams.java	(revision 6629)
++++ src/com/hp/hpl/jena/sparql/engine/http/HttpParams.java	(working copy)
+@@ -47,6 +47,10 @@
+     
+     public static final String charsetUTF8             = "utf-8" ;
+ 
++	public static final String pGridUser = "gridUser";
++	public static final String pGridVOList = "gridVOList";
++	
++
+     
+ }
+ 
 Index: build-vocab.xml
 ===================================================================
 --- build-vocab.xml	(revision 0)
@@ -770,7 +1551,14 @@ Index: src/com/hp/hpl/jena/sparql/engine/main/iterator/QueryIterService.java
  import com.hp.hpl.jena.sparql.algebra.Op;
  import com.hp.hpl.jena.sparql.algebra.op.OpService;
  import com.hp.hpl.jena.sparql.engine.ExecutionContext;
-@@ -19,6 +22,7 @@
+@@ -13,12 +16,14 @@
+ import com.hp.hpl.jena.sparql.engine.binding.Binding;
+ import com.hp.hpl.jena.sparql.engine.http.Service;
+ import com.hp.hpl.jena.sparql.engine.iterator.QueryIterCommonParent;
++import com.hp.hpl.jena.sparql.engine.iterator.QueryIterNullIterator;
+ import com.hp.hpl.jena.sparql.engine.iterator.QueryIterRepeatApply;
+ import com.hp.hpl.jena.sparql.engine.main.QC;
+ 
  
  public class QueryIterService extends QueryIterRepeatApply
  {
@@ -778,7 +1566,7 @@ Index: src/com/hp/hpl/jena/sparql/engine/main/iterator/QueryIterService.java
      OpService opService ;
      
      public QueryIterService(QueryIterator input, OpService opService, ExecutionContext context)
-@@ -30,12 +34,17 @@
+@@ -30,12 +35,17 @@
      @Override
      protected QueryIterator nextStage(Binding outerBinding)
      {
@@ -797,7 +1585,7 @@ Index: src/com/hp/hpl/jena/sparql/engine/main/iterator/QueryIterService.java
 +	        return qIter2 ;
 +    	} catch (Exception e) {
 +    		log.error("Error during query processing. Ignoring any data from endpoint <" + opService.getService().getURI() + ">.", e);
-+    		return null;
++    		return new QueryIterNullIterator(getExecContext());
 +    	}
      }
  }
@@ -3297,23 +4085,15 @@ Index: src/com/hp/hpl/jena/sparql/resultset/TextOutput.java
 ===================================================================
 --- src/com/hp/hpl/jena/sparql/resultset/TextOutput.java	(revision 6629)
 +++ src/com/hp/hpl/jena/sparql/resultset/TextOutput.java	(working copy)
-@@ -9,6 +9,7 @@
- import java.io.* ;
- 
- import com.hp.hpl.jena.util.* ;
-+import com.hp.hpl.jena.graph.TrackedNode;
- import com.hp.hpl.jena.query.QuerySolution;
- import com.hp.hpl.jena.query.ResultSet;
- import com.hp.hpl.jena.rdf.model.* ;
-@@ -206,7 +207,10 @@
+@@ -206,7 +206,10 @@
          if ( obj == null )
              return notThere ;
  
 -        return FmtUtils.stringForRDFNode(obj, context) ;
 +        String s = FmtUtils.stringForRDFNode(obj, context);
-+        if (obj.asNode() instanceof TrackedNode)
-+        	return s + " (source: " + FmtUtils.stringForNode(TrackedNode.getProvenanceUri(obj.asNode()), context) + ")";
-+        return s;
++//        if (obj.asNode() instanceof TrackedNode)
++        	return s + " (source: " + obj.asNode().getSource() + ")";
++//        return s;
      }
  
      public void format(OutputStream out, boolean answer)
@@ -3321,7 +4101,7 @@ Index: src/com/hp/hpl/jena/sparql/algebra/opt/FilterPushdown.java
 ===================================================================
 --- src/com/hp/hpl/jena/sparql/algebra/opt/FilterPushdown.java	(revision 0)
 +++ src/com/hp/hpl/jena/sparql/algebra/opt/FilterPushdown.java	(revision 0)
-@@ -0,0 +1,437 @@
+@@ -0,0 +1,385 @@
 +package com.hp.hpl.jena.sparql.algebra.opt;
 +
 +import java.util.ArrayList;
@@ -3343,6 +4123,7 @@ Index: src/com/hp/hpl/jena/sparql/algebra/opt/FilterPushdown.java
 +import com.hp.hpl.jena.sparql.algebra.op.OpLabel;
 +import com.hp.hpl.jena.sparql.algebra.op.OpLeftJoin;
 +import com.hp.hpl.jena.sparql.algebra.op.OpN;
++import com.hp.hpl.jena.sparql.algebra.op.OpService;
 +import com.hp.hpl.jena.sparql.algebra.op.OpUnion;
 +import com.hp.hpl.jena.sparql.core.Var;
 +import com.hp.hpl.jena.sparql.expr.E_Exists;
@@ -3409,85 +4190,17 @@ Index: src/com/hp/hpl/jena/sparql/algebra/opt/FilterPushdown.java
 +	}
 +	
 +	/**
-+	 * using join behavior now
-+	 * 
-+	 * TODO check with AndyS:
-+	 * But normally, can't we copy down expressions both sides?
-+	 * 
-+	 * select * where {
-+	 *   { ?s a foaf:Person ; foaf:name ?name }
-+	 *   UNION
-+	 *   { ?s a bsbm:Product ; rdfs:label ?name2 }
-+	 *   FILTER (?name = ?name2)
-+	 * }
-+	 * => no results, but
-+	 * select * where {
-+	 *   { ?s a foaf:Person ; foaf:name ?name . FILTER (?name = ?name2) }
-+	 *   UNION
-+	 *   { ?s a bsbm:Product ; rdfs:label ?name2 . FILTER (?name = ?name2) }
-+	 * }
-+	 * => gives results and ignores unsatisfiable expression (?name = ?name2)
-+	 * 
-+	 * 
-+	 * given expressions:
-+	 *   e_1, e_2, ... where E = e_1 && e_2 && ... e_i && ... e_n
-+	 * given variable sets:
-+	 *   V_l (left scope)
-+	 *   V_r (right scope)
-+	 *   V_e (variables in e_i)
-+	 * 
-+	 * push down e_i left/right if:
-+	 *   V_e subsetOf V_l / V_r
-+	 * keep e_i in place if:
-+	 *   V_e !subsetOf V_l && V_e !subsetOf V_r
++	 * push down both sides as-is
 +	 */
 +	@Override
 +	public Op transform(OpUnion opUnion, Op ignore1, Op ignore2) {
 +		OpFilter filter = getFilterParent(opUnion);
 +		if (filter != null) {
-+			ExprList leftExprs = new ExprList();
-+			ExprList rightExprs = new ExprList();
-+			ExprList keptExprs = new ExprList();
-+			
-+			Set<Var> V_e, V_l, V_r;
-+			boolean leftSubset;
-+			boolean rightSubset;
-+			
-+			// for each filter expression
-+			for (Expr e : filter.getExprs()) {
-+
-+				// check if all vars exclusively in left scope
-+				V_e = e.getVarsMentioned();
-+				V_l = OpVars.allVars(opUnion.getLeft());
-+				V_e.removeAll(V_l);
-+				leftSubset = V_e.size() == 0;
-+
-+				V_e = e.getVarsMentioned();
-+				V_r = OpVars.allVars(opUnion.getRight());
-+				V_e.removeAll(V_r);
-+				rightSubset = V_e.size() == 0;
-+				
-+				if (leftSubset && canPushDown(e))
-+					leftExprs.add(e);
-+				if (rightSubset && canPushDown(e))
-+					rightExprs.add(e);
-+				if (!leftSubset && !rightSubset)
-+					keptExprs.add(e);
-+			}
-+			
 +			// insert filters below union
-+			if (leftExprs.size() > 0)
-+				opUnion.setLeft(OpFilter.filter(leftExprs, opUnion.getLeft()));
-+			if (rightExprs.size() > 0)
-+				opUnion.setRight(OpFilter.filter(rightExprs, opUnion.getRight()));
-+			
-+			// if keep is empty remove previous filter
-+			if (keptExprs.size() == 0) {
-+				switchChild(filter, opUnion);
-+			} else {
-+				Op newFilter = OpFilter.filter(keptExprs, opUnion);
-+				switchChild(filter, newFilter);
-+			}
++			opUnion.setLeft(OpFilter.filter(filter.getExprs(), opUnion.getLeft()));
++			opUnion.setRight(OpFilter.filter(filter.getExprs(), opUnion.getRight()));			
++			// remove previous filter
++			switchChild(filter, opUnion);
 +		}
 +		return opUnion;
 +	}
@@ -3610,7 +4323,21 @@ Index: src/com/hp/hpl/jena/sparql/algebra/opt/FilterPushdown.java
 +		}
 +		return opLeftJoin;
 +	}
-+		
++	
++	/**
++	 * prev => opFilter => opService => subOp ===>
++	 * prev => opService => opFilter => subOp
++	 */
++	@Override
++	public Op transform(OpService opService, Op subOp) {
++		OpFilter opFilter = getFilterParent(opService);
++		if (opFilter != null) {
++			switchChild(opFilter, opService);
++			opService.setSubOp(opFilter);
++			opFilter.setSubOp(subOp);
++		}
++		return opService;
++	}
 +
 +// helpers
 +	
@@ -3715,8 +4442,9 @@ Index: src/com/hp/hpl/jena/sparql/algebra/opt/FilterPushdown.java
 +					@Override
 +					protected void visit2(Op2 op) {
 +						child2parent.put(op.getLeft(), op);
-+						child2parent.put(op.getRight(), op);
 +						op.getLeft().visit(walker);
++						child2parent.put(op.getRight(), op);
++						op.getRight().visit(walker);
 +					}
 +
 +					@Override
@@ -6630,6 +7358,27 @@ Index: src-test/com/hp/hpl/jena/sparql/junit/TestFilterPushDown.java
 +		assertEquals(expected, actual);
 +	}
 +}
+Index: .classpath
+===================================================================
+--- .classpath	(revision 6629)
++++ .classpath	(working copy)
+@@ -7,8 +7,6 @@
+ 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+ 	<classpathentry kind="lib" path="lib/icu4j_3_4.jar"/>
+ 	<classpathentry kind="lib" path="lib/iri.jar"/>
+-	<classpathentry kind="lib" path="lib/jena.jar" sourcepath="jena-src.zip"/>
+-	<classpathentry kind="lib" path="lib/jenatest.jar"/>
+ 	<classpathentry kind="lib" path="lib/json.jar"/>
+ 	<classpathentry kind="lib" path="lib/log4j-1.2.12.jar"/>
+ 	<classpathentry kind="lib" path="lib/stax-api-1.0.jar"/>
+@@ -18,5 +16,7 @@
+ 	<classpathentry kind="lib" path="lib/slf4j-api-1.5.6.jar"/>
+ 	<classpathentry kind="lib" path="lib/slf4j-log4j12-1.5.6.jar"/>
+ 	<classpathentry kind="lib" path="lib/junit-4.5.jar"/>
++	<classpathentry kind="lib" path="lib/jena.jar" sourcepath="/Jena-2.6"/>
++	<classpathentry kind="lib" path="lib/jenatest.jar"/>
+ 	<classpathentry kind="output" path="classes"/>
+ </classpath>
 Index: src/com/hp/hpl/jena/sparql/lang/arq/TokenMgrError.java
 ===================================================================
 --- src/com/hp/hpl/jena/sparql/lang/arq/TokenMgrError.java	(revision 6629)
@@ -7082,6 +7831,19 @@ Index: src/com/hp/hpl/jena/sparql/engine/QueryExecutionBase.java
      }
  
      public boolean execAsk()
+Index: src/com/hp/hpl/jena/sparql/resultset/JSONResults.java
+===================================================================
+--- src/com/hp/hpl/jena/sparql/resultset/JSONResults.java	(revision 6629)
++++ src/com/hp/hpl/jena/sparql/resultset/JSONResults.java	(working copy)
+@@ -28,7 +28,7 @@
+     public static final String dfValue      = "value" ;
+     public static final String dfDatatype   = "datatype" ;
+     public static final String dfLang       = "xml:lang" ;
+-    
++    public static final String dfSource		= "source" ;
+     public static final String dfBNode          = "bnode" ;
+     public static final String dfURI            = "uri" ;
+     public static final String dfLiteral        = "literal" ;
 Index: src/com/hp/hpl/jena/sparql/engine/main/iterator/QueryIterJoin.java
 ===================================================================
 --- src/com/hp/hpl/jena/sparql/engine/main/iterator/QueryIterJoin.java	(revision 6629)
@@ -7148,9 +7910,9 @@ Index: src/com/hp/hpl/jena/sparql/engine/http/HttpQuery.java
              httpConnection = (HttpURLConnection) target.openConnection();
              httpConnection.setRequestProperty("Accept", contentTypeResult) ;
 +            httpConnection.setConnectTimeout(5000); // 5 seconds
-+            log.debug("Connection timeout: " + httpConnection.getConnectTimeout());
++            //log.debug("Connection timeout: " + httpConnection.getConnectTimeout());
 +            httpConnection.setReadTimeout(600000); // 10 minutes
-+            log.debug("Read timeout: " + httpConnection.getReadTimeout());
++            //log.debug("Read timeout: " + httpConnection.getReadTimeout());
 +            
              // By default, following 3xx redirects is true
              //conn.setFollowRedirects(true) ;
@@ -7302,7 +8064,7 @@ Index: src/com/hp/hpl/jena/sparql/algebra/AlgebraGenerator.java
          Op pattern = compile(query.getQueryPattern()) ;     // Not compileElement - may need to apply simplification.
 +        TableN initBindings = query.getInitialBindingTable();
 +        if (initBindings != null)
-+        	pattern = OpSequence.create(pattern, OpTable.create(initBindings));
++        	pattern = OpJoin.create(pattern, OpTable.create(initBindings));
          Op op = compileModifiers(query, pattern) ;
          return op ;
      }
@@ -7310,7 +8072,16 @@ Index: src/com/hp/hpl/jena/sparql/engine/http/QueryEngineHTTP.java
 ===================================================================
 --- src/com/hp/hpl/jena/sparql/engine/http/QueryEngineHTTP.java	(revision 6629)
 +++ src/com/hp/hpl/jena/sparql/engine/http/QueryEngineHTTP.java	(working copy)
-@@ -119,6 +119,12 @@
+@@ -11,6 +11,8 @@
+ import java.util.Iterator;
+ import java.util.List;
+ 
++import javax.security.cert.Certificate;
++
+ import com.hp.hpl.jena.query.*;
+ 
+ import com.hp.hpl.jena.rdf.model.Model;
+@@ -119,6 +121,12 @@
          return rs ;
      }
  
@@ -7323,305 +8094,6 @@ Index: src/com/hp/hpl/jena/sparql/engine/http/QueryEngineHTTP.java
      public Model execConstruct()             { return execConstruct(GraphUtils.makeJenaDefaultModel()) ; }
      
      public Model execConstruct(Model model)  { return execModel(model) ; }
-Index: src/com/hp/hpl/jena/graph/TrackedNode.java
-===================================================================
---- src/com/hp/hpl/jena/graph/TrackedNode.java	(revision 0)
-+++ src/com/hp/hpl/jena/graph/TrackedNode.java	(revision 0)
-@@ -0,0 +1,294 @@
-+/**
-+ * Copyright 2007-2008 Institute for Applied Knowledge Processing, Johannes Kepler University Linz
-+ *  
-+ * Licensed under the Apache License, Version 2.0 (the "License"); 
-+ * you may not use this file except in compliance with the License.
-+ * You may obtain a copy of the License at
-+ * 
-+ *     http://www.apache.org/licenses/LICENSE-2.0
-+ *
-+ * Unless required by applicable law or agreed to in writing, software
-+ * distributed under the License is distributed on an "AS IS" BASIS,
-+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-+ * See the License for the specific language governing permissions and
-+ * limitations under the License.
-+ */
-+package com.hp.hpl.jena.graph;
-+
-+import com.hp.hpl.jena.datatypes.RDFDatatype;
-+import com.hp.hpl.jena.graph.Node;
-+import com.hp.hpl.jena.graph.NodeVisitor;
-+import com.hp.hpl.jena.graph.impl.LiteralLabel;
-+import com.hp.hpl.jena.rdf.model.AnonId;
-+import com.hp.hpl.jena.rdf.model.Resource;
-+import com.hp.hpl.jena.shared.PrefixMapping;
-+
-+/**
-+ * @author dorgon, Andreas Langegger, al@jku.at
-+ *
-+ */
-+public class TrackedNode extends Node {
-+	private final Node wrapped;
-+	private final Node source;
-+	
-+	/**
-+	 * provenance tracking of nodes
-+	 */
-+	public TrackedNode(Node n, Node source) {
-+		super(n.label);
-+		this.wrapped = n;
-+		this.source = source;
-+	}
-+
-+	public Node getProvenanceUri() {
-+		return source;
-+	}
-+	
-+	public static Node getProvenanceUri(Node n) {
-+		if (n instanceof TrackedNode)
-+			return ((TrackedNode) n).getProvenanceUri();
-+		else return null;
-+	}
-+	
-+	/**
-+	 * @param o
-+	 * @return
-+	 * @see com.hp.hpl.jena.graph.Node#equals(java.lang.Object)
-+	 */
-+	public boolean equals(Object o) {
-+		return wrapped.equals(o);
-+	}
-+
-+	/**
-+	 * @return
-+	 * @see com.hp.hpl.jena.graph.Node#getBlankNodeId()
-+	 */
-+	public AnonId getBlankNodeId() {
-+		return wrapped.getBlankNodeId();
-+	}
-+
-+	/**
-+	 * @return
-+	 * @see com.hp.hpl.jena.graph.Node#getBlankNodeLabel()
-+	 */
-+	public String getBlankNodeLabel() {
-+		return wrapped.getBlankNodeLabel();
-+	}
-+
-+	/**
-+	 * @return
-+	 * @see com.hp.hpl.jena.graph.Node#getIndexingValue()
-+	 */
-+	public Object getIndexingValue() {
-+		return wrapped.getIndexingValue();
-+	}
-+
-+	/**
-+	 * @return
-+	 * @see com.hp.hpl.jena.graph.Node#getLiteral()
-+	 */
-+	public LiteralLabel getLiteral() {
-+		return wrapped.getLiteral();
-+	}
-+
-+	/**
-+	 * @return
-+	 * @see com.hp.hpl.jena.graph.Node#getLiteralDatatype()
-+	 */
-+	public RDFDatatype getLiteralDatatype() {
-+		return wrapped.getLiteralDatatype();
-+	}
-+
-+	/**
-+	 * @return
-+	 * @see com.hp.hpl.jena.graph.Node#getLiteralDatatypeURI()
-+	 */
-+	public String getLiteralDatatypeURI() {
-+		return wrapped.getLiteralDatatypeURI();
-+	}
-+
-+	/**
-+	 * @return
-+	 * @see com.hp.hpl.jena.graph.Node#getLiteralIsXML()
-+	 */
-+	public boolean getLiteralIsXML() {
-+		return wrapped.getLiteralIsXML();
-+	}
-+
-+	/**
-+	 * @return
-+	 * @see com.hp.hpl.jena.graph.Node#getLiteralLanguage()
-+	 */
-+	public String getLiteralLanguage() {
-+		return wrapped.getLiteralLanguage();
-+	}
-+
-+	/**
-+	 * @return
-+	 * @see com.hp.hpl.jena.graph.Node#getLiteralLexicalForm()
-+	 */
-+	public String getLiteralLexicalForm() {
-+		return wrapped.getLiteralLexicalForm();
-+	}
-+
-+	/**
-+	 * @return
-+	 * @see com.hp.hpl.jena.graph.Node#getLiteralValue()
-+	 */
-+	public Object getLiteralValue() {
-+		return wrapped.getLiteralValue();
-+	}
-+
-+	/**
-+	 * @return
-+	 * @see com.hp.hpl.jena.graph.Node#getLocalName()
-+	 */
-+	public String getLocalName() {
-+		return wrapped.getLocalName();
-+	}
-+
-+	/**
-+	 * @return
-+	 * @see com.hp.hpl.jena.graph.Node#getName()
-+	 */
-+	public String getName() {
-+		return wrapped.getName();
-+	}
-+
-+	/**
-+	 * @return
-+	 * @see com.hp.hpl.jena.graph.Node#getNameSpace()
-+	 */
-+	public String getNameSpace() {
-+		return wrapped.getNameSpace();
-+	}
-+
-+	/**
-+	 * @return
-+	 * @see com.hp.hpl.jena.graph.Node#getURI()
-+	 */
-+	public String getURI() {
-+		return wrapped.getURI();
-+	}
-+
-+	/**
-+	 * @return
-+	 * @see com.hp.hpl.jena.graph.Node#hashCode()
-+	 */
-+	public int hashCode() {
-+		return wrapped.hashCode();
-+	}
-+
-+	/**
-+	 * @param uri
-+	 * @return
-+	 * @see com.hp.hpl.jena.graph.Node#hasURI(java.lang.String)
-+	 */
-+	public boolean hasURI(String uri) {
-+		return wrapped.hasURI(uri);
-+	}
-+
-+	/**
-+	 * @return
-+	 * @see com.hp.hpl.jena.graph.Node#isBlank()
-+	 */
-+	public boolean isBlank() {
-+		return wrapped.isBlank();
-+	}
-+
-+	/**
-+	 * @return
-+	 * @see com.hp.hpl.jena.graph.Node#isConcrete()
-+	 */
-+	public boolean isConcrete() {
-+		return wrapped.isConcrete();
-+	}
-+
-+	/**
-+	 * @return
-+	 * @see com.hp.hpl.jena.graph.Node#isLiteral()
-+	 */
-+	public boolean isLiteral() {
-+		return wrapped.isLiteral();
-+	}
-+
-+	/**
-+	 * @return
-+	 * @see com.hp.hpl.jena.graph.Node#isURI()
-+	 */
-+	public boolean isURI() {
-+		return wrapped.isURI();
-+	}
-+
-+	/**
-+	 * @return
-+	 * @see com.hp.hpl.jena.graph.Node#isVariable()
-+	 */
-+	public boolean isVariable() {
-+		return wrapped.isVariable();
-+	}
-+
-+	/**
-+	 * @param other
-+	 * @return
-+	 * @see com.hp.hpl.jena.graph.Node#matches(com.hp.hpl.jena.graph.Node)
-+	 */
-+	public boolean matches(Node other) {
-+		return wrapped.matches(other);
-+	}
-+
-+	/**
-+	 * @param o
-+	 * @return
-+	 * @see com.hp.hpl.jena.graph.Node#sameValueAs(java.lang.Object)
-+	 */
-+	public boolean sameValueAs(Object o) {
-+		return wrapped.sameValueAs(o);
-+	}
-+
-+	/**
-+	 * @return
-+	 * @see com.hp.hpl.jena.graph.Node#toString()
-+	 */
-+	public String toString() {
-+		return wrapped.toString();
-+	}
-+
-+	/**
-+	 * @param quoting
-+	 * @return
-+	 * @see com.hp.hpl.jena.graph.Node#toString(boolean)
-+	 */
-+	public String toString(boolean quoting) {
-+		return wrapped.toString(quoting);
-+	}
-+
-+	/**
-+	 * @param pm
-+	 * @param quoting
-+	 * @return
-+	 * @see com.hp.hpl.jena.graph.Node#toString(com.hp.hpl.jena.shared.PrefixMapping, boolean)
-+	 */
-+	public String toString(PrefixMapping pm, boolean quoting) {
-+		return wrapped.toString(pm, quoting);
-+	}
-+
-+	/**
-+	 * @param pm
-+	 * @return
-+	 * @see com.hp.hpl.jena.graph.Node#toString(com.hp.hpl.jena.shared.PrefixMapping)
-+	 */
-+	public String toString(PrefixMapping pm) {
-+		return wrapped.toString(pm);
-+	}
-+
-+	/**
-+	 * @param v
-+	 * @return
-+	 * @see com.hp.hpl.jena.graph.Node#visitWith(com.hp.hpl.jena.graph.NodeVisitor)
-+	 */
-+	public Object visitWith(NodeVisitor v) {
-+		return wrapped.visitWith(v);
-+	}
-+	
-+}
 Index: src/com/hp/hpl/jena/sparql/core/DatasetImpl.java
 ===================================================================
 --- src/com/hp/hpl/jena/sparql/core/DatasetImpl.java	(revision 6629)
@@ -7651,14 +8123,67 @@ Index: src/com/hp/hpl/jena/sparql/core/DatasetImpl.java
      public void close()
      {
          cache = null ;
-Index: lib/jenatest.jar
+Index: src/com/hp/hpl/jena/query/QueryExecutionFactory.java
 ===================================================================
-Cannot display: file marked as a binary type.
-svn:mime-type = application/octet-stream
-Index: lib/jena.jar
-===================================================================
-Cannot display: file marked as a binary type.
-svn:mime-type = application/octet-stream
+--- src/com/hp/hpl/jena/query/QueryExecutionFactory.java	(revision 6629)
++++ src/com/hp/hpl/jena/query/QueryExecutionFactory.java	(working copy)
+@@ -20,6 +20,9 @@
+ import com.hp.hpl.jena.sparql.engine.QueryExecutionBase;
+ import com.hp.hpl.jena.sparql.engine.binding.Binding;
+ import com.hp.hpl.jena.sparql.engine.binding.BindingRoot;
++import com.hp.hpl.jena.sparql.engine.http.HttpParams;
++import com.hp.hpl.jena.sparql.engine.http.HttpQuery;
++import com.hp.hpl.jena.sparql.engine.http.Params;
+ import com.hp.hpl.jena.sparql.engine.http.QueryEngineHTTP;
+ import com.hp.hpl.jena.sparql.syntax.Element;
+ import com.hp.hpl.jena.sparql.util.ALog;
+@@ -342,6 +345,23 @@
+         return sparqlService(service, QueryFactory.create(query)) ;
+     }
+ 
++    
++    /** Create a QueryExecution that will access a SPARQL service over HTTP
++     * @param service   URL of the remote service 
++     * @param query     Query to execute
++     * @param user		HTTP Basic Auth
++     * @param password  HTTP Basic Auth
++     * @return QueryExecution
++     */ 
++     
++    static public QueryExecution sparqlService(String service, Query query, String user, String passwd)
++    {
++        checkNotNull(service, "URL for service is null") ;
++        checkArg(query) ;
++		return createServiceRequest(service, query, user, passwd) ;
++    }
++
++    
+     /** Create a QueryExecution that will access a SPARQL service over HTTP
+      * @param service       URL of the remote service 
+      * @param query         Query string to execute
+@@ -385,7 +405,7 @@
+         checkArg(query) ;
+         return createServiceRequest(service, query) ;
+     }
+-
++	
+     /** Create a QueryExecution that will access a SPARQL service over HTTP
+      * @param service           URL of the remote service 
+      * @param query             Query to execute
+@@ -434,6 +454,13 @@
+         return qe ;
+     }
+ 
++    static public QueryEngineHTTP createServiceRequest(String service, Query query, String user, String pwd)
++    {
++        QueryEngineHTTP qe = new QueryEngineHTTP(service, query) ;
++        qe.setBasicAuthentication(user, pwd.toCharArray());
++        return qe ;
++    }
++    
+     // -----------------
+     
+     static public Plan createPlan(Query query, DatasetGraph dataset, Binding input, Context context)
 Index: src/com/hp/hpl/jena/sparql/lang/arq/ARQParserConstants.java
 ===================================================================
 --- src/com/hp/hpl/jena/sparql/lang/arq/ARQParserConstants.java	(revision 6629)
@@ -8075,15 +8600,7 @@ Index: src/com/hp/hpl/jena/sparql/resultset/XMLOutputResultSet.java
 ===================================================================
 --- src/com/hp/hpl/jena/sparql/resultset/XMLOutputResultSet.java	(revision 6629)
 +++ src/com/hp/hpl/jena/sparql/resultset/XMLOutputResultSet.java	(working copy)
-@@ -10,6 +10,7 @@
- import java.util.HashMap;
- import java.util.Map;
- 
-+import com.hp.hpl.jena.graph.TrackedNode;
- import com.hp.hpl.jena.query.ARQ;
- import com.hp.hpl.jena.query.QuerySolution;
- import com.hp.hpl.jena.query.ResultSet;
-@@ -17,6 +18,7 @@
+@@ -17,6 +17,7 @@
  import com.hp.hpl.jena.rdf.model.RDFNode;
  import com.hp.hpl.jena.rdf.model.Resource;
  import com.hp.hpl.jena.sparql.util.ALog;
@@ -8091,14 +8608,14 @@ Index: src/com/hp/hpl/jena/sparql/resultset/XMLOutputResultSet.java
  import com.hp.hpl.jena.sparql.util.IndentedWriter;
  
  /** XML Output (ResultSet format)
-@@ -129,7 +131,10 @@
+@@ -129,7 +130,10 @@
          
          out.print("<") ; 
          out.print(dfBinding) ;
 -        out.println(" name=\""+varName+"\">") ;
 +        out.print(" name=\""+varName+"\"");
-+        if (node.asNode() instanceof TrackedNode)
-+        	out.print(" source=\"" + TrackedNode.getProvenanceUri(node.asNode()).getURI() + "\"");
++//        if (node.asNode() instanceof TrackedNode)
++        	out.print(" source=\"" + node.asNode().getSource() + "\"");
 +        out.println(">") ;
          out.incIndent(INDENT) ;
          printBindingValue(node) ;

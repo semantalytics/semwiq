@@ -1,91 +1,29 @@
-Index: src/org/joseki/Service.java
-===================================================================
-RCS file: /cvsroot/joseki/Joseki3/src/org/joseki/Service.java,v
-retrieving revision 1.11
-diff -u -r1.11 Service.java
---- src/org/joseki/Service.java	30 Dec 2008 19:48:35 -0000	1.11
-+++ src/org/joseki/Service.java	9 Oct 2009 07:32:20 -0000
-@@ -6,6 +6,8 @@
- 
- package org.joseki;
- 
-+import com.hp.hpl.jena.rdf.model.Resource;
-+
- public class Service
- {
-     String serviceRef ;
-@@ -13,12 +15,22 @@
-     boolean available ;
-     DatasetDesc datasetDesc ;
-     
--    public Service(Processor proc, String ref, DatasetDesc datasetDesc)
-+    // AndyL:
-+    Resource voidInclude;
-+    boolean generateStats;
-+    String sparqlEndpointUri;
-+    
-+    public Service(Processor proc, String ref, String sparqlEndpointUri, DatasetDesc datasetDesc, Resource voidInclude, boolean generateStats)
-     {
-         this.serviceRef = canonical(ref) ; 
-         this.processor = proc ;
-         this.datasetDesc = datasetDesc ;
-         this.available = true ;
-+    
-+        // AndyL:
-+        this.voidInclude = voidInclude;
-+        this.generateStats = generateStats;
-+        this.sparqlEndpointUri = sparqlEndpointUri;
-     }
-     
- 
-@@ -32,6 +44,8 @@
-     
-     public ServiceRequest instance(Request request, Response response) throws ExecutionException
-     {
-+    	String dn = request.getParam("dn");
-+    	String grps = request.getParam("groups");
-         if ( ! isAvailable() )
-             throw new ExecutionException(ReturnCodes.rcServiceUnavailable, "Service is not currently available") ;
-         return new ServiceRequest(request, response, processor, datasetDesc) ;
-@@ -66,6 +80,21 @@
-     {
-         return serviceRef ;
-     }
-+    
-+    /** AndyL */
-+    public Resource getVoidIncludeResource() {
-+		return voidInclude;
-+	}
-+    
-+    /** AndyL */
-+    public boolean generateStats() {
-+		return generateStats;
-+	}
-+    
-+    /** AndyL */
-+    public String getSparqlEndpointUri() {
-+		return sparqlEndpointUri;
-+	}
- }
- 
- /*
 Index: src/org/joseki/RDFServer.java
 ===================================================================
 RCS file: /cvsroot/joseki/Joseki3/src/org/joseki/RDFServer.java,v
 retrieving revision 1.21
 diff -u -r1.21 RDFServer.java
 --- src/org/joseki/RDFServer.java	18 Jan 2009 19:02:19 -0000	1.21
-+++ src/org/joseki/RDFServer.java	9 Oct 2009 07:32:20 -0000
-@@ -5,6 +5,8 @@
++++ src/org/joseki/RDFServer.java	25 Mar 2010 15:32:41 -0000
+@@ -5,13 +5,17 @@
  
  package org.joseki;
  
 +import java.net.InetAddress;
 +import java.net.UnknownHostException;
  import java.util.List;
++import java.util.Random;
  
  import org.apache.commons.logging.Log;
-@@ -33,11 +35,14 @@
+ import org.apache.commons.logging.LogFactory;
+ import org.mortbay.jetty.Connector;
+ import org.mortbay.jetty.Server;
+ import org.mortbay.jetty.nio.SelectChannelConnector;
++import org.mortbay.jetty.servlet.HashSessionIdManager;
+ import org.mortbay.jetty.webapp.WebAppContext;
+ import org.mortbay.util.MultiException;
+ 
+@@ -33,11 +37,14 @@
      WebAppContext webAppContextJoseki = null ;
      boolean earlyInitialize = true ;
      
@@ -101,7 +39,7 @@ diff -u -r1.21 RDFServer.java
      /** Default location for the Joseki server */
      public static final String defaultServerBaseURI = "/" ;
      
-@@ -54,29 +59,39 @@
+@@ -54,29 +61,39 @@
      {
          String tmp = System.getProperty(propertyPort, Joseki.defaultPort+"") ;
          int p = Integer.parseInt(tmp) ;
@@ -147,7 +85,18 @@ diff -u -r1.21 RDFServer.java
          else
              // Set system property so the dispatcher finds it later,
              // probably during servlet creation on first request,
-@@ -149,7 +164,7 @@
+@@ -94,6 +111,10 @@
+             connector.setHeaderBufferSize(16*1024) ;
+             server.addConnector(connector) ;
+ 
++            // use Random (/dev/urandom) instead of SecureRandom to generate session keys - otherwise Jetty may hang during startup waiting for enough entropy
++			// see http://jira.codehaus.org/browse/JETTY-331 and http://docs.codehaus.org/display/JETTY/Connectors+slow+to+startup
++			server.setSessionIdManager(new HashSessionIdManager(new Random()));
++			
+             // Add the webapp.
+             webAppContextJoseki = new WebAppContext(server, "webapps/joseki", "/") ;
+             server.addHandler(webAppContextJoseki) ;
+@@ -149,7 +170,7 @@
                  log.info("No initial configuration");
                  return null ;
              }
@@ -156,7 +105,7 @@ diff -u -r1.21 RDFServer.java
              return conf ;
          }
          catch (Exception ex)
-@@ -251,9 +266,11 @@
+@@ -251,9 +272,11 @@
          
      }
  
@@ -170,13 +119,255 @@ diff -u -r1.21 RDFServer.java
  }
  
  /*
+Index: src/org/joseki/DatasetDesc.java
+===================================================================
+RCS file: /cvsroot/joseki/Joseki3/src/org/joseki/DatasetDesc.java,v
+retrieving revision 1.30
+diff -u -r1.30 DatasetDesc.java
+--- src/org/joseki/DatasetDesc.java	30 Dec 2008 19:48:35 -0000	1.30
++++ src/org/joseki/DatasetDesc.java	25 Mar 2010 15:32:41 -0000
+@@ -8,19 +8,32 @@
+ 
+ import static org.joseki.vocabulary.JosekiSchemaBase.poolSize;
+ 
++import java.io.File;
++import java.io.FileOutputStream;
++import java.util.Date;
+ import java.util.concurrent.BlockingDeque;
+ import java.util.concurrent.LinkedBlockingDeque;
+ 
+ import org.apache.commons.logging.Log;
+ import org.apache.commons.logging.LogFactory;
++import org.joseki.vocabulary.JosekiSchemaBase;
++import org.joseki.vocabulary.voiD;
+ 
+-import com.hp.hpl.jena.rdf.model.Resource;
++import at.jku.rdfstats.GeneratorException;
++import at.jku.rdfstats.generator.RDFStatsGeneratorFactory;
++import at.jku.rdfstats.generator.RDFStatsGeneratorModel;
++import at.jku.rdfstats.vocabulary.Stats;
+ 
+ import com.hp.hpl.jena.assembler.Assembler;
+-
+-import com.hp.hpl.jena.sparql.util.graph.GraphUtils;
+-
+ import com.hp.hpl.jena.query.Dataset;
++import com.hp.hpl.jena.rdf.model.Model;
++import com.hp.hpl.jena.rdf.model.ModelFactory;
++import com.hp.hpl.jena.rdf.model.Resource;
++import com.hp.hpl.jena.rdf.model.Statement;
++import com.hp.hpl.jena.rdf.model.StmtIterator;
++import com.hp.hpl.jena.shared.DoesNotExistException;
++import com.hp.hpl.jena.sparql.util.graph.GraphUtils;
++import com.hp.hpl.jena.util.FileUtils;
+ 
+ public class DatasetDesc
+ {
+@@ -30,44 +43,140 @@
+     int sizeOfPool = -1 ;       // No pool.
+     BlockingDeque<Dataset> pool = null ;
+     
++    boolean initialized = false;
++    Model voiDmodel;
++    long voiDlastModified;
++    
+     public DatasetDesc(Resource datasetRoot)
+     { 
+         this.datasetRoot = datasetRoot ;
+     }
+ 
+     /** Called to create early (e.g. for checking) */
+-    public void initialize()
++    public void initialize(Service s, String baseUrl)
+     {
+-        if ( datasetRoot.hasProperty(poolSize) )
+-        {
+-            if ( ! GraphUtils.exactlyOneProperty(datasetRoot, poolSize) )
+-                log.fatal("Multiple pool size property ("+Utils.nodeLabel(datasetRoot)+")") ;
+-            
+-            String x = GraphUtils.getStringValue(datasetRoot, poolSize) ;
+-            try {
+-                sizeOfPool = Integer.parseInt(x) ;
+-            } catch (NumberFormatException ex)
+-            {
+-                log.fatal("Not a number: "+x) ;
+-                throw ex ; 
+-            }
+-            pool = new LinkedBlockingDeque<Dataset>(sizeOfPool) ;
+-            for ( int i = 0 ; i < sizeOfPool ; i++ )
+-                pool.addLast(newDataset()) ;
+-            log.info(String.format("Pool size %d for dataset %s", sizeOfPool, Utils.nodeLabel(datasetRoot))) ;
+-        }
+-        else
+-            dataset = newDataset() ;
++    	// provide voiD via void servlet at fixed URI based on service reference: baseUrl + "void/" + serviceRef
++    	String voidURI = baseUrl + "void/" + s.getServiceRef();
++
++    	// only if not already initialized
++    	if (!initialized) {
++    		Statement sVoidInc = datasetRoot.getProperty(JosekiSchemaBase.voidInclude);
++    		Resource voidInc = (sVoidInc != null && sVoidInc.getObject().isResource()) ? sVoidInc.getResource() : null;
++    		Statement sStatsFile = datasetRoot.getProperty(JosekiSchemaBase.statsFile);
++    		Resource statsFile = (sStatsFile != null && sStatsFile.getObject().isResource()) ? sStatsFile.getResource() : null;
++    		Statement sGenStats = datasetRoot.getProperty(JosekiSchemaBase.generateStats);
++    		boolean genStats = (sGenStats != null && sGenStats.getObject().isLiteral()) ? sGenStats.getBoolean() : false;
++    		
++	    	// load RDFStats from file URI
++    		voiDmodel = ModelFactory.createDefaultModel();
++	    	boolean statsLoaded = false;
++	    	if (statsFile != null) {
++	    		try {
++	    			voiDmodel.read(statsFile.getURI());
++					if (FileUtils.isFile(statsFile.getURI()))
++						voiDlastModified = new File(statsFile.getURI()).lastModified();
++					statsLoaded = true;
++					log.info("Using statistics from " + statsFile);
++	    		} catch (DoesNotExistException ne) {
++	    			if (genStats)
++	    				log.info("Statistics file does not exist: " + statsFile + " - will generate statistics and save.");
++	    			else
++	    				log.error("Statistics file does not exist: " + statsFile + " - will be unable to serve statistics (you should specify joseki:generateStats to generate statistics on startup).");
++	    		} catch (Exception e) {
++	    			log.error("Failed to load statistics from " + statsFile + ".", e);
++	    		}
++	    	}
++
++	    	// generate stats now (if enabled and not already loaded from statsFile)
++	    	if (genStats && !statsLoaded) {	    		
++		    	Resource voidDataset = voiDmodel.createResource(voidURI, voiD.Dataset);
++		    	
++		    	// add includes from joseki config (jseoki:voidInclude)
++		    	if (voidInc != null) {
++			    	StmtIterator it = voidInc.listProperties();
++			    	while (it.hasNext()) {
++			    		Statement st = it.next();
++			    		voidDataset.addProperty(st.getPredicate(), st.getObject());
++			    	}
++		    	}
++	    		
++		    	// for voiD/statistics generation, create newDataset once in order to generate statistics
++		    	// even when using pool, dataset is always assembled from the same assembler resource
++	    		// generate statistics only for default model
++		    	Dataset ds = newDataset(null);
++		    	Model defModel = ds.getDefaultModel();
++			    try {
++			    	RDFStatsGeneratorModel gen = RDFStatsGeneratorFactory.generatorModel(defModel, Stats.SPARQLEndpoint.getURI(), baseUrl + s.getServiceRef());
++					gen.generate();
++					voiDmodel.add(gen.getRDFStatsModel().getWrappedModel()); // add generated stats to m
++			    	voiDlastModified = new Date().getTime();
++
++					// write into file if specified and local URI
++			    	try {
++			    		if (statsFile != null && FileUtils.isFile(statsFile.getURI())) {
++			    			File f = new File(FileUtils.toFilename(statsFile.getURI()));
++			    			if (!f.exists()) {
++			    				FileOutputStream out = new FileOutputStream(f);
++			    				voiDmodel.write(out);
++			    				out.close();
++			    			}
++			    		}			    		
++			    	} catch (Exception e) {
++			    		log.error("Failed to write statistics into " + statsFile + ".", e);
++			    	}
++				} catch (GeneratorException e) {
++					log.error("Failed to generate RDFStats statistics.", e);
++				} finally {
++			    	ds.close(); // close temporarily used dataset
++				}
++	    	}
++    	
++	    	// initialize pool
++	        if ( datasetRoot.hasProperty(poolSize) )
++	        {
++	            if ( ! GraphUtils.exactlyOneProperty(datasetRoot, poolSize) )
++	                log.fatal("Multiple pool size property ("+Utils.nodeLabel(datasetRoot)+")") ;
++	            
++	            String x = GraphUtils.getStringValue(datasetRoot, poolSize) ;
++	            try {
++	                sizeOfPool = Integer.parseInt(x) ;
++	            } catch (NumberFormatException ex)
++	            {
++	                log.fatal("Not a number: "+x) ;
++	                throw ex ; 
++	            }
++	            pool = new LinkedBlockingDeque<Dataset>(sizeOfPool) ;
++	            for ( int i = 0 ; i < sizeOfPool ; i++ )
++	                pool.addLast(newDataset(voidURI)) ;
++	            log.info(String.format("Pool size %d for dataset %s", sizeOfPool, Utils.nodeLabel(datasetRoot))) ;
++	        }
++	        else
++	            dataset = newDataset(voidURI) ;
++	        
++	        initialized = true;
++    	}
+     }
+     
+-    private Dataset newDataset()
++     /** called once or multiple times when pooling */
++    private Dataset newDataset(String voidURI)
+     {
+-        return (Dataset)Assembler.general.open(getResource())  ;
++        Dataset ds = (Dataset)Assembler.general.open(getResource())  ;
++        if (voidURI != null)
++        	ds.setVoidDescURL(voidURI);
++        return ds;
+     }
+ 
++    public Model getVoiDmodel() {
++		return voiDmodel;
++	}
++    
++    public long getVoiDLastModified() {
++		return voiDlastModified;
++	}
++    
+     public Resource getResource() { return datasetRoot ; }
+     
+-    public Dataset acquireDataset(Request request, Response response)
++    public Dataset acquireDataset()
+     {
+         if ( dataset != null )
+             return dataset ;
+Index: src/org/joseki/Service.java
+===================================================================
+RCS file: /cvsroot/joseki/Joseki3/src/org/joseki/Service.java,v
+retrieving revision 1.11
+diff -u -r1.11 Service.java
+--- src/org/joseki/Service.java	30 Dec 2008 19:48:35 -0000	1.11
++++ src/org/joseki/Service.java	25 Mar 2010 15:32:41 -0000
+@@ -6,6 +6,8 @@
+ 
+ package org.joseki;
+ 
++import com.hp.hpl.jena.rdf.model.Resource;
++
+ public class Service
+ {
+     String serviceRef ;
+@@ -30,7 +32,7 @@
+ //        processor.exec(request, response, dataset) ;
+ //    }
+     
+-    public ServiceRequest instance(Request request, Response response) throws ExecutionException
++     public ServiceRequest instance(Request request, Response response) throws ExecutionException
+     {
+         if ( ! isAvailable() )
+             throw new ExecutionException(ReturnCodes.rcServiceUnavailable, "Service is not currently available") ;
+@@ -66,6 +68,7 @@
+     {
+         return serviceRef ;
+     }
++    
+ }
+ 
+ /*
 Index: src/org/joseki/Dispatcher.java
 ===================================================================
 RCS file: /cvsroot/joseki/Joseki3/src/org/joseki/Dispatcher.java,v
 retrieving revision 1.16
 diff -u -r1.16 Dispatcher.java
 --- src/org/joseki/Dispatcher.java	30 Dec 2008 19:48:34 -0000	1.16
-+++ src/org/joseki/Dispatcher.java	9 Oct 2009 07:32:20 -0000
++++ src/org/joseki/Dispatcher.java	25 Mar 2010 15:32:41 -0000
 @@ -6,6 +6,7 @@
  
  package org.joseki;
@@ -282,164 +473,13 @@ diff -u -r1.16 Dispatcher.java
  }
  
  /*
-Index: src/org/joseki/DatasetDesc.java
-===================================================================
-RCS file: /cvsroot/joseki/Joseki3/src/org/joseki/DatasetDesc.java,v
-retrieving revision 1.30
-diff -u -r1.30 DatasetDesc.java
---- src/org/joseki/DatasetDesc.java	30 Dec 2008 19:48:35 -0000	1.30
-+++ src/org/joseki/DatasetDesc.java	9 Oct 2009 07:32:20 -0000
-@@ -8,13 +8,24 @@
- 
- import static org.joseki.vocabulary.JosekiSchemaBase.poolSize;
- 
-+import java.util.Date;
- import java.util.concurrent.BlockingDeque;
- import java.util.concurrent.LinkedBlockingDeque;
- 
- import org.apache.commons.logging.Log;
- import org.apache.commons.logging.LogFactory;
-+import org.joseki.vocabulary.voiD;
- 
-+import at.jku.rdfstats.GeneratorException;
-+import at.jku.rdfstats.generator.RDFStatsGeneratorFactory;
-+import at.jku.rdfstats.generator.RDFStatsGeneratorModel;
-+import at.jku.rdfstats.vocabulary.Stats;
-+
-+import com.hp.hpl.jena.rdf.model.Model;
-+import com.hp.hpl.jena.rdf.model.ModelFactory;
- import com.hp.hpl.jena.rdf.model.Resource;
-+import com.hp.hpl.jena.rdf.model.Statement;
-+import com.hp.hpl.jena.rdf.model.StmtIterator;
- 
- import com.hp.hpl.jena.assembler.Assembler;
- 
-@@ -30,41 +41,95 @@
-     int sizeOfPool = -1 ;       // No pool.
-     BlockingDeque<Dataset> pool = null ;
-     
-+    boolean initialized = false;
-+    Model voiDmodel;
-+    long voiDlastModified;
-+    
-     public DatasetDesc(Resource datasetRoot)
-     { 
-         this.datasetRoot = datasetRoot ;
-     }
- 
-     /** Called to create early (e.g. for checking) */
--    public void initialize()
-+    public void initialize(Service s, String baseUrl)
-     {
--        if ( datasetRoot.hasProperty(poolSize) )
--        {
--            if ( ! GraphUtils.exactlyOneProperty(datasetRoot, poolSize) )
--                log.fatal("Multiple pool size property ("+Utils.nodeLabel(datasetRoot)+")") ;
--            
--            String x = GraphUtils.getStringValue(datasetRoot, poolSize) ;
--            try {
--                sizeOfPool = Integer.parseInt(x) ;
--            } catch (NumberFormatException ex)
--            {
--                log.fatal("Not a number: "+x) ;
--                throw ex ; 
--            }
--            pool = new LinkedBlockingDeque<Dataset>(sizeOfPool) ;
--            for ( int i = 0 ; i < sizeOfPool ; i++ )
--                pool.addLast(newDataset()) ;
--            log.info(String.format("Pool size %d for dataset %s", sizeOfPool, Utils.nodeLabel(datasetRoot))) ;
--        }
--        else
--            dataset = newDataset() ;
-+    	// only if not already initalized
-+    	if (!initialized) {
-+	    	// for voiD/statistics generation, create temporary dataset
-+	    	// even when using pool, dataset is always assembled from the same assembler resource
-+	    	Dataset ds = newDataset(null);
-+	    	String voidURI = baseUrl + "void/" + s.getServiceRef();
-+	    	Model m = ModelFactory.createDefaultModel();
-+	    	Resource voidDataset = m.createResource(voidURI, voiD.Dataset);
-+	    	
-+	    	// add includes from joseki config (jseoki:voidInclude)
-+	    	Resource includes = s.getVoidIncludeResource();
-+	    	if (includes != null) {
-+		    	StmtIterator it = includes.listProperties();
-+		    	while (it.hasNext()) {
-+		    		Statement st = it.next();
-+		    		voidDataset.addProperty(st.getPredicate(), st.getObject());
-+		    	}
-+	    	}
-+	    	
-+	    	// generate statistics only for default model
-+	    	Model defModel = ds.getDefaultModel();
-+	    	if (s.generateStats()) {
-+			    try {
-+			    	RDFStatsGeneratorModel gen = RDFStatsGeneratorFactory.generatorModel(defModel, Stats.SPARQLEndpoint.getURI(), baseUrl + s.getServiceRef());
-+					gen.generate();
-+					m.add(gen.getRDFStatsModel().getWrappedModel()); // add generated stats to m
-+				} catch (GeneratorException e) {
-+					log.error("Failed to generate RDFStats statistics.", e);
-+				}
-+	    	}
-+	    	
-+	    	// set voidModel
-+	    	this.voiDmodel = m;
-+	    	this.voiDlastModified = new Date().getTime();
-+	    	ds.close(); // close temporarily used dataset
-+    	
-+	        if ( datasetRoot.hasProperty(poolSize) )
-+	        {
-+	            if ( ! GraphUtils.exactlyOneProperty(datasetRoot, poolSize) )
-+	                log.fatal("Multiple pool size property ("+Utils.nodeLabel(datasetRoot)+")") ;
-+	            
-+	            String x = GraphUtils.getStringValue(datasetRoot, poolSize) ;
-+	            try {
-+	                sizeOfPool = Integer.parseInt(x) ;
-+	            } catch (NumberFormatException ex)
-+	            {
-+	                log.fatal("Not a number: "+x) ;
-+	                throw ex ; 
-+	            }
-+	            pool = new LinkedBlockingDeque<Dataset>(sizeOfPool) ;
-+	            for ( int i = 0 ; i < sizeOfPool ; i++ )
-+	                pool.addLast(newDataset(voidURI)) ;
-+	            log.info(String.format("Pool size %d for dataset %s", sizeOfPool, Utils.nodeLabel(datasetRoot))) ;
-+	        }
-+	        else
-+	            dataset = newDataset(voidURI) ;
-+	        
-+	        initialized = true;
-+    	}
-     }
-     
--    private Dataset newDataset()
-+    private Dataset newDataset(String voidURI)
-     {
--        return (Dataset)Assembler.general.open(getResource())  ;
-+        Dataset ds = (Dataset)Assembler.general.open(getResource())  ;
-+        if (voidURI != null)
-+        	ds.setVoidDescURL(voidURI);
-+        return ds;
-     }
- 
-+    public Model getVoiDmodel() {
-+		return voiDmodel;
-+	}
-+    
-+    public long getVoiDLastModified() {
-+		return voiDlastModified;
-+	}
-+    
-     public Resource getResource() { return datasetRoot ; }
-     
-     public Dataset acquireDataset(Request request, Response response)
 Index: src/org/joseki/Configuration.java
 ===================================================================
 RCS file: /cvsroot/joseki/Joseki3/src/org/joseki/Configuration.java,v
 retrieving revision 1.36
 diff -u -r1.36 Configuration.java
 --- src/org/joseki/Configuration.java	30 Dec 2008 19:48:35 -0000	1.36
-+++ src/org/joseki/Configuration.java	9 Oct 2009 07:32:19 -0000
++++ src/org/joseki/Configuration.java	25 Mar 2010 15:32:41 -0000
 @@ -19,7 +19,11 @@
  import org.joseki.module.Loadable;
  import org.joseki.module.Loader;
@@ -512,7 +552,7 @@ diff -u -r1.36 Configuration.java
  
      /** @return Returns the numDatasets. */
      public int getNumDatasets()
-@@ -323,11 +337,16 @@
+@@ -323,11 +337,12 @@
          String s[] = new String[]{
              "SELECT *",
              "{",
@@ -523,28 +563,25 @@ diff -u -r1.36 Configuration.java
              "  ?proc     module:implementation",
              "                [ module:className ?className ]" ,
 -            "    }",
-+            " } OPTIONAL { ",
-+            "   ?service joseki:voidInclude ?void . ",
-+            " } OPTIONAL { ",
-+            "   ?service joseki:generateRDFStats ?stats .",
-+            " }",
++            " }" +
 +            "}",
              "ORDER BY ?serviceRef ?className" } ;
  
          Query query = makeQuery(s) ;
-@@ -355,6 +374,11 @@
+@@ -355,6 +370,12 @@
                  Resource procRes = qs.getResource("proc") ;
                  RDFNode className = qs.get("className") ;
                  
 +                // AndyL - optionally:
 +                Resource voidInclude = qs.getResource("void") ;
++                Resource statsFile = qs.getResource("statsFile");
 +                RDFNode statsNode = qs.get("stats");
 +                boolean stats = statsNode != null && statsNode.isLiteral() && ((Boolean) statsNode.asNode().getLiteralValue());
 +                
                  // ---- Check reference
                  String ref = serviceRef(qs.get("serviceRef")) ;
                  if ( ref == null )
-@@ -367,7 +391,6 @@
+@@ -367,7 +388,6 @@
                      continue ;
                  }
                  
@@ -552,16 +589,21 @@ diff -u -r1.36 Configuration.java
                  // ---- Check duplicates
                  if ( services.containsKey(ref) ) 
                  {
-@@ -414,7 +437,7 @@
-                     continue ;
-                  }
-                 
--                Service service = new Service(proc, ref, dataset) ;
-+                Service service = new Service(proc, ref, baseUrl + ref, dataset, voidInclude, stats) ; // AndyL
-                 services.put(ref, service) ;
-                 numServices ++ ;
-                 
-@@ -847,6 +870,7 @@
+@@ -552,12 +572,11 @@
+             "SELECT ?x ?dft ?graphName ?graphData",
+             "{ { ?x a ja:RDFDataset } UNION { ?x a [ rdfs:subClassOf ja:RDFDataset ] }",  
+             "  OPTIONAL { ?x ja:defaultGraph ?dft }",
+-            "  OPTIONAL { ?x ja:namedGraph  [ ja:graphName ?graphName ; ja:graph ?graphData ] }",  
++            "  OPTIONAL { ?x ja:namedGraph  [ ja:graphName ?graphName ; ja:graph ?graphData ] }",
+             "}", 
+             "ORDER BY ?x ?dft ?graphName"
+         } ;
+ 
+-
+         Query query = makeQuery(s) ;
+         QueryExecution qexec = QueryExecutionFactory.create(query, confModel) ;
+         try {
+@@ -847,6 +866,7 @@
          StringBuffer sBuff = new StringBuffer() ;
          stdNS(sBuff, "rdf",  RDF.getURI()) ;
          stdNS(sBuff, "rdfs", RDFS.getURI()) ;
@@ -569,13 +611,223 @@ diff -u -r1.36 Configuration.java
          stdNS(sBuff, "module" , "http://joseki.org/2003/06/module#") ;
          stdNS(sBuff, "joseki" ,  JosekiVocab.getURI()) ;
          stdNS(sBuff, "ja" ,  DatasetAssemblerVocab.getURI()) ;
+Index: src/org/joseki/Joseki.java
+===================================================================
+RCS file: /cvsroot/joseki/Joseki3/src/org/joseki/Joseki.java,v
+retrieving revision 1.34
+diff -u -r1.34 Joseki.java
+--- src/org/joseki/Joseki.java	28 Dec 2008 19:51:04 -0000	1.34
++++ src/org/joseki/Joseki.java	25 Mar 2010 15:32:41 -0000
+@@ -138,6 +138,10 @@
+     }
+     
+     static Map<String, String> jenaWriters = new HashMap<String, String>() ;
++
++	public static String httpUser = null;
++	public static String httpPassword = null;
++	
+     static {
+         setWriterType(contentTypeXML, "RDF/XML-ABBREV") ;
+         setWriterType(contentTypeN3, "N3") ;
+Index: src/org/joseki/processors/SPARQL.java
+===================================================================
+RCS file: /cvsroot/joseki/Joseki3/src/org/joseki/processors/SPARQL.java,v
+retrieving revision 1.51
+diff -u -r1.51 SPARQL.java
+--- src/org/joseki/processors/SPARQL.java	16 Feb 2009 14:39:41 -0000	1.51
++++ src/org/joseki/processors/SPARQL.java	25 Mar 2010 15:32:41 -0000
+@@ -297,7 +297,15 @@
+     private void executeQuery(Query query, String queryStringLog, QueryExecution qexec, Response response)
+         throws QueryExecutionException
+     {
+-        if ( query.isSelectType() )
++    	// by AndyL - support for EXPLAIN queries
++    	if ( query.isExplainQuery() ) {
++    		Model m = qexec.execExplain() ;
++    		response.setModel(m);
++    		log.info("OK/explain: " + queryStringLog);
++    		return;
++    	}
++    	
++    	if ( query.isSelectType() )
+         {
+             // Force some query execute now.
+             // To cope with MySQL comms timeouts.  Mutter, mutter.
+Index: src/org/joseki/processors/ProcessorBase.java
+===================================================================
+RCS file: /cvsroot/joseki/Joseki3/src/org/joseki/processors/ProcessorBase.java,v
+retrieving revision 1.13
+diff -u -r1.13 ProcessorBase.java
+--- src/org/joseki/processors/ProcessorBase.java	31 Dec 2008 18:24:16 -0000	1.13
++++ src/org/joseki/processors/ProcessorBase.java	25 Mar 2010 15:32:41 -0000
+@@ -34,7 +34,7 @@
+         boolean transactions = false ;
+         Model defaultModel = null ;
+         
+-        final Dataset dataset = (datasetDesc==null) ? null : datasetDesc.acquireDataset(request, response) ;
++        final Dataset dataset = (datasetDesc==null) ? null : datasetDesc.acquireDataset() ;
+         if ( dataset != null )
+         {
+             ResponseCallback cbLock = new ResponseCallback() {
+Index: vocabularies/joseki-schema.ttl
+===================================================================
+RCS file: /cvsroot/joseki/Joseki3/vocabularies/joseki-schema.ttl,v
+retrieving revision 1.4
+diff -u -r1.4 joseki-schema.ttl
+--- vocabularies/joseki-schema.ttl	30 Dec 2008 19:48:35 -0000	1.4
++++ vocabularies/joseki-schema.ttl	25 Mar 2010 15:32:41 -0000
+@@ -1,5 +1,6 @@
+ @prefix rdfs:   <http://www.w3.org/2000/01/rdf-schema#> .
+ @prefix rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
++@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+ @prefix module: <http://joseki.org/2003/06/module#> .
+ 
+ 
+@@ -46,8 +47,8 @@
+     .
+ 
+ :processor     rdf:type    rdf:Property ;
+-         rdfs:comment 
+-       "URI reference for service URI (relative to where the server is)" ;
++    rdfs:comment 
++    "URI reference for service URI (relative to where the server is)" ;
+     rdfs:label          "Service URI reference" ;
+     rdfs:domain         :ServicePoint ;
+     rdfs:range          :Processor ;
+@@ -59,6 +60,25 @@
+     rdfs:range          :RDFDataset ;
+     .
+ 
++:voidInclude   rdf:type    rdf:Property ;
++    rdfs:label          "used to provide additional voiD statements to be included in the provided void:Dataset (usually a blank node with several properties)" ;
++    rdfs:domain         :Service ;
++    rdfs:range			rdfs:Resource ; 
++    .
++
++:statsFile	 rdf:type	rdf:Property ;
++	rdfs:label			"URI of RDFStats file to load from at startup - will be generated if local file URI, the file does not exist, and :generateStats is enabled"
++	rdfs:domain			:Service ;
++	rdfs:range			rdfs:Resource ;
++	.
++
++:generateStats   rdf:type    rdf:Property ;
++    rdfs:label          "generate RDFStats at startup (ignored if :statsFile is set and file exists)" ;
++    rdfs:domain         :Service ;
++    rdfs:range			xsd:boolean ; 
++    .
++
++
+ # Decorate the dataset description.
+ :poolSize    rdf:type    rdf:Property ;
+     rdfs:label          "Pool size" ;
+@@ -141,6 +161,8 @@
+ ## ------------------------------------------------------------
+ ## 
+ 
++:httpUser rdf:type rdf:Property .
++:httpPassword rdf:type rdf:Property .
+ 
+ # Local Variables:
+ # tab-width: 4
+Index: src/org/joseki/vocabulary/JosekiSchemaBase.java
+===================================================================
+RCS file: /cvsroot/joseki/Joseki3/src/org/joseki/vocabulary/JosekiSchemaBase.java,v
+retrieving revision 1.2
+diff -u -r1.2 JosekiSchemaBase.java
+--- src/org/joseki/vocabulary/JosekiSchemaBase.java	30 Dec 2008 19:48:35 -0000	1.2
++++ src/org/joseki/vocabulary/JosekiSchemaBase.java	25 Mar 2010 15:32:41 -0000
+@@ -1,10 +1,10 @@
+-/* CVS $Id: JosekiSchemaBase.java,v 1.2 2008/12/30 19:48:35 andy_seaborne Exp $ */
++/* CVS $Id: $ */
+ package org.joseki.vocabulary; 
+ import com.hp.hpl.jena.rdf.model.*;
+  
+ /**
+  * Vocabulary definitions from joseki-schema.ttl 
+- * @author Auto-generated by schemagen on 03 Oct 2006 13:57 
++ * @author Auto-generated by schemagen on 25 Aug 2009 15:32 
+  */
+ public class JosekiSchemaBase {
+     /** <p>The RDF model that holds the vocabulary terms</p> */
+@@ -20,41 +20,47 @@
+     /** <p>The namespace of the vocabulary as a resource</p> */
+     public static final Resource NAMESPACE = m_model.createResource( NS );
+     
+-    /** <p>query operation name</p> */
+-    public static final Property queryOperationName = m_model.createProperty( "http://joseki.org/2005/06/configuration#queryOperationName" );
+-    
+     public static final Property allowExplicitDataset = m_model.createProperty( "http://joseki.org/2005/06/configuration#allowExplicitDataset" );
+     
+     public static final Property allowWebLoading = m_model.createProperty( "http://joseki.org/2005/06/configuration#allowWebLoading" );
+     
+-    public static final Property lockingPolicy = m_model.createProperty( "http://joseki.org/2005/06/configuration#lockingPolicy" );
+-    
+-    /** <p>Other resources to read and merge (e.g. file:...)</p> */
+-    public static final Property include = m_model.createProperty( "http://joseki.org/2005/06/configuration#include" );
+-    
+     public static final Property dataset = m_model.createProperty( "http://joseki.org/2005/06/configuration#dataset" );
+-
+-    public static final Property poolSize = m_model.createProperty( "http://joseki.org/2005/06/configuration#poolSize" );
+     
+     /** <p></p> */
+     public static final Property defaultGraph = m_model.createProperty( "http://joseki.org/2005/06/configuration#defaultGraph" );
++
++    public static final Property statsFile = m_model.createProperty( "http://joseki.org/2005/06/configuration#statsFile" );
++
++    public static final Property generateStats = m_model.createProperty( "http://joseki.org/2005/06/configuration#generateStats" );
+     
+     /** <p></p> */
+     public static final Property graphData = m_model.createProperty( "http://joseki.org/2005/06/configuration#graphData" );
+     
+-    /** <p>URI reference for service URI (relative to where the server is)</p> */
+-    public static final Property processor = m_model.createProperty( "http://joseki.org/2005/06/configuration#processor" );
++    /** <p></p> */
++    public static final Property graphName = m_model.createProperty( "http://joseki.org/2005/06/configuration#graphName" );
++    
++    /** <p>Other resources to read and merge (e.g. file:...)</p> */
++    public static final Property include = m_model.createProperty( "http://joseki.org/2005/06/configuration#include" );
+     
+     public static final Property initialization = m_model.createProperty( "http://joseki.org/2005/06/configuration#initialization" );
+     
+-    /** <p>URI reference for service URI (relative to where the server is)</p> */
+-    public static final Property serviceRef = m_model.createProperty( "http://joseki.org/2005/06/configuration#serviceRef" );
++    public static final Property lockingPolicy = m_model.createProperty( "http://joseki.org/2005/06/configuration#lockingPolicy" );
+     
+     /** <p></p> */
+     public static final Property namedGraph = m_model.createProperty( "http://joseki.org/2005/06/configuration#namedGraph" );
+     
+-    /** <p></p> */
+-    public static final Property graphName = m_model.createProperty( "http://joseki.org/2005/06/configuration#graphName" );
++    public static final Property poolSize = m_model.createProperty( "http://joseki.org/2005/06/configuration#poolSize" );
++    
++    /** <p>URI reference for service URI (relative to where the server is)</p> */
++    public static final Property processor = m_model.createProperty( "http://joseki.org/2005/06/configuration#processor" );
++    
++    /** <p>query operation name</p> */
++    public static final Property queryOperationName = m_model.createProperty( "http://joseki.org/2005/06/configuration#queryOperationName" );
++    
++    /** <p>URI reference for service URI (relative to where the server is)</p> */
++    public static final Property serviceRef = m_model.createProperty( "http://joseki.org/2005/06/configuration#serviceRef" );
++    
++    public static final Property voidInclude = m_model.createProperty( "http://joseki.org/2005/06/configuration#voidInclude" );
+     
+     /** <p>Processor</p> */
+     public static final Resource Processor = m_model.createResource( "http://joseki.org/2005/06/configuration#Processor" );
+@@ -65,4 +71,7 @@
+     /** <p>Server</p> */
+     public static final Resource Server = m_model.createResource( "http://joseki.org/2005/06/configuration#Server" );
+     
++    public static final Property httpUser = m_model.createProperty( "http://joseki.org/2005/06/configuration#httpUser" );
++    public static final Property httpPassword = m_model.createProperty( "http://joseki.org/2005/06/configuration#httpPassword" );
++    
+ }
 Index: src/joseki/rdfserver.java
 ===================================================================
 RCS file: /cvsroot/joseki/Joseki3/src/joseki/rdfserver.java,v
 retrieving revision 1.10
 diff -u -r1.10 rdfserver.java
 --- src/joseki/rdfserver.java	28 Dec 2008 19:51:05 -0000	1.10
-+++ src/joseki/rdfserver.java	9 Oct 2009 07:32:19 -0000
++++ src/joseki/rdfserver.java	25 Mar 2010 15:32:41 -0000
 @@ -5,6 +5,8 @@
  
  package joseki;
@@ -641,38 +893,75 @@ diff -u -r1.10 rdfserver.java
              server.start() ;
          } catch (ConfigurationErrorException confEx)
          {
-Index: src/org/joseki/processors/SPARQL.java
+Index: src/org/joseki/http/Servlet.java
 ===================================================================
-RCS file: /cvsroot/joseki/Joseki3/src/org/joseki/processors/SPARQL.java,v
-retrieving revision 1.51
-diff -u -r1.51 SPARQL.java
---- src/org/joseki/processors/SPARQL.java	16 Feb 2009 14:39:41 -0000	1.51
-+++ src/org/joseki/processors/SPARQL.java	9 Oct 2009 07:32:21 -0000
-@@ -297,7 +297,15 @@
-     private void executeQuery(Query query, String queryStringLog, QueryExecution qexec, Response response)
-         throws QueryExecutionException
+RCS file: /cvsroot/joseki/Joseki3/src/org/joseki/http/Servlet.java,v
+retrieving revision 1.35
+diff -u -r1.35 Servlet.java
+--- src/org/joseki/http/Servlet.java	18 Jan 2009 19:02:19 -0000	1.35
++++ src/org/joseki/http/Servlet.java	25 Mar 2010 15:32:41 -0000
+@@ -12,6 +12,7 @@
+ import javax.servlet.*;
+ import javax.servlet.http.*;
+ 
++import com.hp.hpl.jena.sparql.util.Base64;
+ import com.hp.hpl.jena.util.FileManager;
+ 
+ import org.joseki.*;
+@@ -142,6 +143,25 @@
+     protected void doCommon(HttpServletRequest httpRequest, HttpServletResponse httpResponse)
      {
--        if ( query.isSelectType() )
-+    	// by AndyL - support for EXPLAIN queries
-+    	if ( query.isExplainQuery() ) {
-+    		Model m = qexec.execExplain() ;
-+    		response.setModel(m);
-+    		log.info("OK/explain: " + queryStringLog);
-+    		return;
-+    	}
-+    	
-+    	if ( query.isSelectType() )
-         {
-             // Force some query execute now.
-             // To cope with MySQL comms timeouts.  Mutter, mutter.
+         try {
++        	String cred = null;
++        	String auth = httpRequest.getHeader("Authorization");
++        	if (auth != null) {
++        		cred = new String(Base64.decode(auth));
++        	
++	        	if (cred != null) {  
++	        		int pos = cred.indexOf(":");
++	       			String user = cred.substring(0, pos);
++	       			String passwd = cred.substring(pos+1, cred.length());
++	        		if (!(user.equals(Joseki.httpUser) && passwd.equals(Joseki.httpPassword)))
++	        			throw new ServletException("User " + user + " failed authentication.");
++	        	
++	        		log.info("User authenticated: " + user);      		
++	        	}
++        	} 
++        	
++        	if ((auth == null || cred == null) && Joseki.httpUser != null) // Joseki configured to request auth
++        		throw new ServletException("User must authenticate!");
++
+             if ( log.isDebugEnabled() )
+                 log.debug(HttpUtils.fmtRequest(httpRequest)) ;
+             
 Index: src/org/joseki/module/Loader.java
 ===================================================================
 RCS file: /cvsroot/joseki/Joseki3/src/org/joseki/module/Loader.java,v
 retrieving revision 1.8
 diff -u -r1.8 Loader.java
 --- src/org/joseki/module/Loader.java	28 Dec 2008 19:51:05 -0000	1.8
-+++ src/org/joseki/module/Loader.java	9 Oct 2009 07:32:20 -0000
-@@ -152,7 +152,7 @@
++++ src/org/joseki/module/Loader.java	25 Mar 2010 15:32:41 -0000
+@@ -7,7 +7,9 @@
+ 
+ import org.apache.commons.logging.* ;
+ 
++import org.joseki.Joseki;
+ import org.joseki.vocabulary.JosekiModule ;
++import org.joseki.vocabulary.JosekiSchemaBase;
+ import org.joseki.util.PrintUtils ;
+ 
+ import com.hp.hpl.jena.rdf.model.* ;
+@@ -38,6 +40,9 @@
+         Resource implementation = null ;
+         try
+         {
++        	Joseki.httpUser = bindingResource.getProperty(JosekiSchemaBase.httpUser).getString();
++        	Joseki.httpPassword = bindingResource.getProperty(JosekiSchemaBase.httpPassword).getString();
++        	
+             // Alternative: pass in a top level resource and do ...
+             // There can be many bindings
+             //bindingResource = thing.getProperty(JosekiModule.binding).getResource() ;
+@@ -152,7 +157,7 @@
              Literal lit = (Literal)n ;
              className = lit.getLexicalForm() ;
              if ( className.startsWith("java:") ) 
@@ -681,58 +970,13 @@ diff -u -r1.8 Loader.java
              return className ;
          }
  
-Index: vocabularies/joseki-schema.ttl
-===================================================================
-RCS file: /cvsroot/joseki/Joseki3/vocabularies/joseki-schema.ttl,v
-retrieving revision 1.4
-diff -u -r1.4 joseki-schema.ttl
---- vocabularies/joseki-schema.ttl	30 Dec 2008 19:48:35 -0000	1.4
-+++ vocabularies/joseki-schema.ttl	9 Oct 2009 07:32:21 -0000
-@@ -1,5 +1,6 @@
- @prefix rdfs:   <http://www.w3.org/2000/01/rdf-schema#> .
- @prefix rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
- @prefix module: <http://joseki.org/2003/06/module#> .
- 
- 
-@@ -46,8 +47,8 @@
-     .
- 
- :processor     rdf:type    rdf:Property ;
--         rdfs:comment 
--       "URI reference for service URI (relative to where the server is)" ;
-+    rdfs:comment 
-+    "URI reference for service URI (relative to where the server is)" ;
-     rdfs:label          "Service URI reference" ;
-     rdfs:domain         :ServicePoint ;
-     rdfs:range          :Processor ;
-@@ -59,6 +60,19 @@
-     rdfs:range          :RDFDataset ;
-     .
- 
-+:voidInclude   rdf:type    rdf:Property ;
-+    rdfs:label          "used to provide additional voiD statements to be included in the provided void:Dataset (usually a blank node with several properties)" ;
-+    rdfs:domain         :Service ;
-+    rdfs:range			rdfs:Resource ; 
-+    .
-+
-+:generateRDFStats   rdf:type    rdf:Property ;
-+    rdfs:label          "generate RDFStats into the served voiD dataset" ;
-+    rdfs:domain         :Service ;
-+    rdfs:range			xsd:boolean ; 
-+    .
-+
-+
- # Decorate the dataset description.
- :poolSize    rdf:type    rdf:Property ;
-     rdfs:label          "Pool size" ;
 Index: webapps/joseki/WEB-INF/web.xml
 ===================================================================
 RCS file: /cvsroot/joseki/Joseki3/webapps/joseki/WEB-INF/web.xml,v
 retrieving revision 1.21
 diff -u -r1.21 web.xml
 --- webapps/joseki/WEB-INF/web.xml	10 Apr 2008 13:36:46 -0000	1.21
-+++ webapps/joseki/WEB-INF/web.xml	9 Oct 2009 07:32:21 -0000
++++ webapps/joseki/WEB-INF/web.xml	25 Mar 2010 15:32:41 -0000
 @@ -32,9 +32,19 @@
        <param-name>org.joseki.rdfserver.config</param-name>
        <param-value>joseki-config.ttl</param-value>
@@ -777,7 +1021,7 @@ RCS file: /cvsroot/joseki/Joseki3/joseki-config.ttl,v
 retrieving revision 1.47
 diff -u -r1.47 joseki-config.ttl
 --- joseki-config.ttl	17 Feb 2009 18:11:29 -0000	1.47
-+++ joseki-config.ttl	9 Oct 2009 07:32:19 -0000
++++ joseki-config.ttl	25 Mar 2010 15:32:41 -0000
 @@ -3,10 +3,12 @@
  @prefix rdfs:   <http://www.w3.org/2000/01/rdf-schema#> .
  @prefix rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
@@ -792,7 +1036,16 @@ diff -u -r1.47 joseki-config.ttl
  
  ## --------------------------------------------------------------
  ## This file is written in N3 / Turtle
-@@ -66,8 +68,12 @@
+@@ -37,6 +39,8 @@
+             [ module:className <java:org.joseki.util.ServiceInitSimple> ;
+               rdfs:label "Example initializer" ; ]
+         ] ;
++        joseki:httpUser "gsdam" ;
++        joseki:httpPassword "gsdam" ;
+     .
+ 
+ ## --------------------------------------------------------------
+@@ -66,8 +70,12 @@
      rdf:type            joseki:Service ;
      rdfs:label          "SPARQL on the books model" ;
      joseki:serviceRef   "books" ;   # web.xml must route this name to Joseki
@@ -805,7 +1058,7 @@ diff -u -r1.47 joseki-config.ttl
      # Service part.
      # This processor will not allow either the protocol,
      # nor the query, to specify the dataset.
-@@ -117,6 +123,22 @@
+@@ -117,6 +125,22 @@
        ] ;
      .
  
@@ -828,100 +1081,19 @@ diff -u -r1.47 joseki-config.ttl
  <#mem>  rdf:type ja:RDFDataset ;
      rdfs:label "MEM" ;
      ja:defaultGraph [ a ja:MemoryModel ] ;
-Index: src/org/joseki/vocabulary/JosekiSchemaBase.java
-===================================================================
-RCS file: /cvsroot/joseki/Joseki3/src/org/joseki/vocabulary/JosekiSchemaBase.java,v
-retrieving revision 1.2
-diff -u -r1.2 JosekiSchemaBase.java
---- src/org/joseki/vocabulary/JosekiSchemaBase.java	30 Dec 2008 19:48:35 -0000	1.2
-+++ src/org/joseki/vocabulary/JosekiSchemaBase.java	9 Oct 2009 07:32:21 -0000
-@@ -1,10 +1,10 @@
--/* CVS $Id: JosekiSchemaBase.java,v 1.2 2008/12/30 19:48:35 andy_seaborne Exp $ */
-+/* CVS $Id: $ */
- package org.joseki.vocabulary; 
- import com.hp.hpl.jena.rdf.model.*;
-  
- /**
-  * Vocabulary definitions from joseki-schema.ttl 
-- * @author Auto-generated by schemagen on 03 Oct 2006 13:57 
-+ * @author Auto-generated by schemagen on 25 Aug 2009 15:32 
-  */
- public class JosekiSchemaBase {
-     /** <p>The RDF model that holds the vocabulary terms</p> */
-@@ -20,41 +20,45 @@
-     /** <p>The namespace of the vocabulary as a resource</p> */
-     public static final Resource NAMESPACE = m_model.createResource( NS );
-     
--    /** <p>query operation name</p> */
--    public static final Property queryOperationName = m_model.createProperty( "http://joseki.org/2005/06/configuration#queryOperationName" );
--    
-     public static final Property allowExplicitDataset = m_model.createProperty( "http://joseki.org/2005/06/configuration#allowExplicitDataset" );
-     
-     public static final Property allowWebLoading = m_model.createProperty( "http://joseki.org/2005/06/configuration#allowWebLoading" );
-     
--    public static final Property lockingPolicy = m_model.createProperty( "http://joseki.org/2005/06/configuration#lockingPolicy" );
--    
--    /** <p>Other resources to read and merge (e.g. file:...)</p> */
--    public static final Property include = m_model.createProperty( "http://joseki.org/2005/06/configuration#include" );
--    
-     public static final Property dataset = m_model.createProperty( "http://joseki.org/2005/06/configuration#dataset" );
--
--    public static final Property poolSize = m_model.createProperty( "http://joseki.org/2005/06/configuration#poolSize" );
-     
-     /** <p></p> */
-     public static final Property defaultGraph = m_model.createProperty( "http://joseki.org/2005/06/configuration#defaultGraph" );
-     
-+    public static final Property generateRDFStats = m_model.createProperty( "http://joseki.org/2005/06/configuration#generateRDFStats" );
-+    
-     /** <p></p> */
-     public static final Property graphData = m_model.createProperty( "http://joseki.org/2005/06/configuration#graphData" );
-     
--    /** <p>URI reference for service URI (relative to where the server is)</p> */
--    public static final Property processor = m_model.createProperty( "http://joseki.org/2005/06/configuration#processor" );
-+    /** <p></p> */
-+    public static final Property graphName = m_model.createProperty( "http://joseki.org/2005/06/configuration#graphName" );
-+    
-+    /** <p>Other resources to read and merge (e.g. file:...)</p> */
-+    public static final Property include = m_model.createProperty( "http://joseki.org/2005/06/configuration#include" );
-     
-     public static final Property initialization = m_model.createProperty( "http://joseki.org/2005/06/configuration#initialization" );
-     
--    /** <p>URI reference for service URI (relative to where the server is)</p> */
--    public static final Property serviceRef = m_model.createProperty( "http://joseki.org/2005/06/configuration#serviceRef" );
-+    public static final Property lockingPolicy = m_model.createProperty( "http://joseki.org/2005/06/configuration#lockingPolicy" );
-     
-     /** <p></p> */
-     public static final Property namedGraph = m_model.createProperty( "http://joseki.org/2005/06/configuration#namedGraph" );
-     
--    /** <p></p> */
--    public static final Property graphName = m_model.createProperty( "http://joseki.org/2005/06/configuration#graphName" );
-+    public static final Property poolSize = m_model.createProperty( "http://joseki.org/2005/06/configuration#poolSize" );
-+    
-+    /** <p>URI reference for service URI (relative to where the server is)</p> */
-+    public static final Property processor = m_model.createProperty( "http://joseki.org/2005/06/configuration#processor" );
-+    
-+    /** <p>query operation name</p> */
-+    public static final Property queryOperationName = m_model.createProperty( "http://joseki.org/2005/06/configuration#queryOperationName" );
-+    
-+    /** <p>URI reference for service URI (relative to where the server is)</p> */
-+    public static final Property serviceRef = m_model.createProperty( "http://joseki.org/2005/06/configuration#serviceRef" );
-+    
-+    public static final Property voidInclude = m_model.createProperty( "http://joseki.org/2005/06/configuration#voidInclude" );
-     
-     /** <p>Processor</p> */
-     public static final Resource Processor = m_model.createResource( "http://joseki.org/2005/06/configuration#Processor" );
 Index: src/org/joseki/servlets/HistogramServlet.java
 ===================================================================
 RCS file: src/org/joseki/servlets/HistogramServlet.java
 diff -N src/org/joseki/servlets/HistogramServlet.java
 --- /dev/null	1 Jan 1970 00:00:00 -0000
 +++ src/org/joseki/servlets/HistogramServlet.java	1 Jan 1970 00:00:00 -0000
-@@ -0,0 +1,47 @@
+@@ -0,0 +1,52 @@
 +/**
 + */
 +package org.joseki.servlets;
 +
 +import java.io.IOException;
++import java.text.SimpleDateFormat;
 +
 +import javax.servlet.ServletException;
 +import javax.servlet.http.HttpServletRequest;
@@ -941,15 +1113,19 @@ diff -N src/org/joseki/servlets/HistogramServlet.java
 + *
 + */
 +public class HistogramServlet extends MetadataBaseServlet {
-+	
++
 +	@Override
 +	protected void service(HttpServletRequest req, HttpServletResponse res, Service s, DatasetDesc desc) throws IOException, ServletException {
 +		try {
-+			String url = s.getSparqlEndpointUri();
 +			RDFStatsModel stats = RDFStatsModelFactory.create(desc.getVoiDmodel());
-+			RDFStatsDataset ds = stats.getDataset(url);
++			RDFStatsDataset ds = stats.getDataset(null);
++			if (ds == null) {
++				res.setStatus(404);
++				res.getWriter().println("No statistics available.");
++				return;
++			}
 +			
-+			String html = GenerateHTML.generateHTML(stats, url);
++			String html = GenerateHTML.generateHTML(stats, null);
 +			res.setContentType("text/html");
 +			res.setHeader("Last-Modified", httpDateFormat.format(ds.getDate()));
 +			res.getOutputStream().println(html);
