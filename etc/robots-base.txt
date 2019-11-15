@@ -1,6 +1,0 @@
-User-agent: *
-Disallow: /sparql
-Disallow: /static
-Disallow: /snorql
-Disallow: /StyleSheets
-Sitemap: http://__HOSTNAME____PORT__/sitemap.xml
