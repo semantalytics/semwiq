@@ -1,0 +1,14 @@
+#!/bin/bash
+SEP=':'
+if [[ "$(uname)" =~ CYGWIN* ]]; then SEP=';'; fi
+CP="lib/logback/"
+
+for jar in lib/*.jar
+do
+  if [ ! -e "$jar" ]; then continue; fi
+  CP="$CP$SEP$jar"
+done
+
+JAVA_ARGS="-server -Xmx1G" 
+
+exec java $JAVA_ARGS -cp "$CP" -XX:-UseGCOverheadLimit -Xmx512M semwiq.endpoint "$@"
