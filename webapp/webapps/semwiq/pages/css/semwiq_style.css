@@ -1,0 +1,370 @@
+/* general styling information for the whole application */
+
+body {
+	background-color:#FFFFFF;
+	color:#444444;
+	font-family:Arial, Helvetica, sans-serif;
+	font-size:.8em;
+	font-weight:normal;
+	margin:5px;
+}
+
+table {
+	font-size:1em;
+}
+
+.pageNavigation {
+#	margin-left: 150px;
+#	margin-right: 150px;	
+}
+
+.pageBody {
+#	margin-left: 150px;
+#	margin-right: 150px;
+	height: 440px;
+}
+
+.pageDatasourcesInfo {
+	font-size:0.9em;
+}
+
+
+/* styling information for popup windows */
+
+.icePanelPopup {
+    padding: 0px;
+    position: absolute;
+    width: 300px;
+    height: 200px;
+}
+
+.icePanelPopupDatasourceMod {
+    padding: 0px;
+    position: absolute;
+}
+
+.icePanelPopupHeader {
+	color: #FFFFFF;
+	font-size:1.1em;
+    background-color: #000033;
+    text-align: center;
+}
+
+.icePanelPopupBody {
+	font-size:.9em;
+    background-color: #DDDDDD;
+    padding: 10px;
+}
+
+
+
+
+/* styling information for the main navigation */
+
+.navCol1 {
+	width: 2%;
+}
+
+.navCol2 {
+	width: 2%;
+}
+
+.navCol3 {
+	width: 2%;
+}
+
+.navCol4 {
+	width: 2%;
+}
+
+.navCol5 {
+	width: 92%;
+}
+
+
+/* styling for the information */
+
+.informationCol1 {
+	width: 20%;
+}
+
+.informationCol2 {
+	width: 80%;
+}
+
+.informationTableCol1 {
+	width: 80%;
+}
+
+.informationTableCol2 {
+	width: 7%;
+}
+
+.informationTableCol3 {
+	width: 13%;
+}
+
+.informationStyleCol1 {
+	vertical-align: top;	
+}
+
+.informationStyleCol2 {
+	vertical-align: top;
+}
+	
+
+/* styling for the query panelGrids */
+
+.panelGridSource {
+	height: 400px;
+	width: 480px	
+}
+
+.panelRow1 {
+	height: 3%;
+}
+
+.panelRow2 {
+	
+}
+
+
+/*
+----------- Progress Bar --------
+*/
+
+.popupInput {
+	width: 200px;
+}
+
+
+/* Progress bar */
+
+.iceOutProg {
+    margin: 0;
+}
+
+.iceOutProgBg {
+    width: 950px;
+    height: 17px;
+    border: 1px solid #d9d9d9;
+    background: #FFF;
+}
+
+.iceOutProgFill {
+    display: block;
+    margin: 1px;
+    height: 17px;
+    background: url( './css-images/ProgFill_bg.gif' ) repeat-x top left;
+}
+
+.iceOutProgTxt {
+    color: #484848;
+}
+
+.iceOutProgIndetActv {
+    margin: 1px;
+    height: 17px;
+    background: url( './css-images/ProgFill_Indet_Bg_active.gif' ) repeat-x top left;
+}
+
+.iceOutProgIndetInactv {
+    margin: 1px;
+    height: 17px;
+    background: url( './css-images/ProgFill_Indet_Bg_inactive.gif' ) repeat-x top left;
+}
+
+
+/*
+----------- Panel Collapsible --------
+*/
+
+.icePnlClpsbl {
+    border: 1px solid #d9d9d9;
+}
+
+.icePnlClpsblCnt .icePnlClpsbl {
+    border: none;
+}
+
+.icePnlClpsblHdr {
+    font: 11px tahoma;
+    color: #484848;
+    padding: 6px 0 0 8px;
+    font-weight: bold;
+    height: 20px;
+    background: #FFFFFF;
+    border-bottom: 1px solid #d9d9d9;
+}
+
+.icePnlClpsblHdr .iceCmdLnk, .icePnlClpsblColpsdHdr .iceCmdLnk {
+    padding-left: 22px;
+}
+
+.icePnlClpsblHdr .icePnlGrp a {
+	font-weight: bold;
+}
+
+.icePnlClpsblCnt {
+    font: 11px / 17px tahoma;
+
+    background: #FFFFFF;
+    padding: 4px 4px 4px 9px;
+    border-bottom: none;
+}
+
+.icePnlClpsblCnt .icePnlClpsblHdr {
+    font: 11px tahoma;
+    padding: 0 0 0 0;
+    font-weight: bold;
+    height: 20px;
+    border: none;
+    margin-top: 8px;
+}
+
+.icePnlClpsblCnt .icePnlClpsblHdr .iceOutTxt {
+    background: none;
+}
+
+.icePnlClpsblCnt .icePnlClpsblColpsdHdr {
+    font: 11px tahoma;
+    padding: 0 0 0 0;
+    font-weight: bold;
+    height: 20px;
+    border: none;
+    margin-top: 8px;
+}
+
+.icePnlClpsblCnt .icePnlClpsblColpsdHdr .iceOutTxt{
+    background: none;
+}
+
+.icePnlClpsblCnt .icePnlClpsblCnt {
+    border-left: none;
+    border-right: none;
+    padding: 0 0 0 10px;
+}
+
+
+.icePnlClpsblColpsd {
+    border: 1px solid #d9d9d9;
+}
+
+.icePnlClpsblCnt .icePnlClpsblColpsd {
+    border: none;
+}
+
+.icePnlClpsblColpsdHdr {
+    font: 11px tahoma;
+    padding: 6px 0 0 8px;
+    font-weight: bold;
+    height: 20px;
+    background: #FFFFFF;
+    border-bottom: none;
+}
+
+.icePnlClpsblColpsdHdr .iceOutTxt,
+    .icePnlClpsblHdr .iceOutTxt {
+    padding-left: 22px;
+}
+
+.icePnlClpsblColpsdCnt {
+    border: none;
+}
+
+.icePnlClpsblHdr, .icePnlClpsblHdr-dis, .icePnlClpsblColpsdHdr, .icePnlClpsblColpsdHdr-dis {
+    cursor: pointer;
+}
+
+.icePnlClpsblHdr div, .icePnlClpsblHdr-dis div, .icePnlClpsblColpsdHdr div, .icePnlClpsblColpsdHdr-dis div {
+    background-repeat: no-repeat;
+    background-position: left top;
+    height: 18px;
+}
+
+.icePnlClpsblHdr div, .icePnlClpsblHdr-dis div {
+    background: url( './css-images/PnlHdr_down.gif' ) no-repeat top left;
+    padding: 2px 0 0 5px;
+    margin: -2px 0 0 -3px;
+}
+
+.icePnlClpsblColpsdHdr div, .icePnlClpsblColpsdHdr-dis div {
+    background: url( './css-images/PnlHdr_collapsed.gif' ) no-repeat top left;
+    padding: 2px 0 0 5px;
+    margin: -2px 0 0 -3px;
+}
+
+
+/* logging */
+
+.log_table {
+	border: 0px; border-top: 1px solid lightblue; width: 100%
+}
+
+.log_level .log_level_error .log_timestamp .log_msg {
+	font-size: 10pt; font-family: Arial, Verdana, sans-serif; vertical-align: top;
+}
+
+.log_level {
+	color: green; font-weight: bold; width: 50px; vertical-align: top;
+}
+
+.log_level_error {
+	color: red; font-weight: bold; width: 50px; vertical-align: top;
+}
+
+.log_timestamp {
+	color: blue; white-space: nowrap; width: 100px; vertical-align: top;
+}
+
+.log_msg {
+	color: black; vertical-align: top;
+}
+
+.log_details {
+	color: gray; font-size: 8pt; vertical-align: top;
+}
+
+
+/* histograms (CSS from RDFStats) */
+
+h1 {
+	font-size: 1.4em; font-weight: bold;
+}
+
+h2 {
+	font-size: 1.2em; font-weight: bold
+}
+
+
+table.results {
+	border: 1px solid black; padding: 6px; border-spacing: 0; background-color: #c0c0f0
+}
+	
+td.results, th.results {
+	background-color: white; 
+	border: 1px solid #c0c0f0; 
+	padding: 2px;
+	width: 100px;
+}
+
+table.chart { width: 100%; }
+table.chart td {
+    font-size: 8pt;
+    font-family: Arial,serif; 
+}
+table.chart tr.barvrow td 
+{ 
+    width: 5%;
+    height: 80px;
+    vertical-align: bottom;
+    border-bottom-color: darkblue;
+    border-bottom-style: solid;
+    text-align: center; 
+}
+table.chart tr.bartrow td 
+{
+    text-align: center;
+    width: 100px;
+    background-color: lightblue;
+}

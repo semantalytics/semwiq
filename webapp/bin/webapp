@@ -1,0 +1,19 @@
+#!/bin/bash
+SEP=':'
+if [[ "$(uname)" =~ CYGWIN* ]]; then SEP=';'; fi
+CP="lib/logback/$SEP./semwiq-webapp.jar"
+
+for jar in lib/*.jar
+do
+  if [ ! -e "$jar" ]; then continue; fi
+  CP="$CP$SEP$jar"
+done
+
+for jar in lib/icefaces/*.jar
+do
+  if [ ! -e "$jar" ]; then continue; fi
+  CP="$CP$SEP$jar"
+done
+
+RUN="java -cp $CP -Xmx512M semwiq.webapp $@"
+exec $RUN
