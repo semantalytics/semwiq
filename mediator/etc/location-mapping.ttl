@@ -1,0 +1,27 @@
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix lm: <http://jena.hpl.hp.com/2004/08/location-mapping#> .
+
+[] lm:mapping
+	[ lm:prefix "http://semwiq.faw.uni-linz.ac.at/vocab/global" ;
+	  lm:altPrefix "file:vocabulary/semwiq.faw.uni-linz.ac.at/vocab/global" ] ,
+
+	[ lm:prefix "http://purl.org" ;
+	  lm:altPrefix "file:vocabulary/purl.org" ] ,
+
+	[ lm:prefix "http://www.w3.org" ;
+	  lm:altPrefix "file:vocabulary/www.w3.org" ] ,
+
+	[ lm:prefix "http://xmlns.com" ;
+	  lm:altPrefix "file:vocabulary/xmlns.com" ] ,
+
+	[ lm:prefix "http://protege.stanford.edu" ;
+	  lm:altPrefix "file:vocabulary/protege.stanford.edu" ]
+.
+	 
+#	[ lm:prefix "http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/instances/" ;
+#	  lm:altPrefix "file:vocabulary/www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/instances" ] ,
+#
+#	[ lm:prefix "http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/" ;
+#	  lm:altPrefix "file:vocabulary/www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary" ] .
